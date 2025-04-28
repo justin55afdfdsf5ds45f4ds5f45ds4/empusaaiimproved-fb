@@ -64,6 +64,8 @@ export function CreatePostContent() {
 
   // Check if there's a URL in the search params
   useEffect(() => {
+    if (!searchParams) return
+
     const urlParam = searchParams.get("url")
     if (urlParam) {
       setUrl(urlParam)
