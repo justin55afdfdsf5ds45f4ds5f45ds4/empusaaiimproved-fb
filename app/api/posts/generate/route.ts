@@ -5,6 +5,12 @@ import { extractContentFromUrl } from "@/lib/url-extractor"
 
 export async function POST(req: Request) {
   try {
+    console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY)
+    console.log(
+      "OPENAI_API_KEY first 5 chars:",
+      process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 5) : "not found",
+    )
+
     // For development, allow without authentication in development mode
     const session = await getServerSession(authOptions)
     if (!session && process.env.NODE_ENV !== "development") {
