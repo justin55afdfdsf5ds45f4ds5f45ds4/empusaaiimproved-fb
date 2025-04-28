@@ -14,23 +14,33 @@ export async function GET() {
     const redirectUri = process.env.PINTEREST_REDIRECT_URI
 
     if (!appId || !redirectUri) {
+      console.error("Pinterest configuration missing:", { appId: !!appId, redirectUri: !!redirectUri })
       return NextResponse.json({ error: "Pinterest configuration missing" }, { status: 500 })
     }
+
+    console.log("Pinterest OAuth configuration:", { appId, redirectUri })
 
     // Generate a random state to prevent CSRF attacks
     const state = Math.random().toString(36).substring(2, 15)
 
-    // Construct the Pinterest OAuth URL
-    // Make sure we're using the correct OAuth endpoint
-    const url = `https://www.pinterest.com/oauth/?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=boards:read,pins:read,pins:write&state=${state}`
+    // Construct the Pinterest OAuth URL - using the v5 API endpoint
+    const url = new URL("https://www.pinterest.com/oauth/")
+    url.searchParams.append("client_id", appId)
+    url.searchParams.append("redirect_uri", redirectUri)
+    url.searchParams.append("response_type", "code")
+    url.searchParams.append("scope", "boards:read,pins:read,pins:write")
+    url.searchParams.append("state", state)
+
+    console.log("Generated Pinterest OAuth URL:", url.toString())
 
     // Set a cookie with the state
-    const response = NextResponse.json({ url })
+    const response = NextResponse.json({ url: url.toString() })
     response.cookies.set("pinterest_auth_state", state, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 10, // 10 minutes
       path: "/",
+      sameSite: "lax",
     })
 
     return response

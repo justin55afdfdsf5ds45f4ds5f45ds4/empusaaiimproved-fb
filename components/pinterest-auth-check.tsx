@@ -3,39 +3,59 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { PinterestAuth } from "@/components/pinterest-auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PinIcon } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { PinIcon, AlertCircle } from "lucide-react"
 
 export function PinterestAuthCheck({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authUrl, setAuthUrl] = useState("")
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
+    // Check for auth errors from URL params
+    const authStatus = searchParams.get("auth")
+    const authError = searchParams.get("error")
+
+    if (authStatus === "failed") {
+      setError(`Authentication failed${authError ? `: ${authError}` : ""}.`)
+    } else if (authStatus === "invalid_state") {
+      setError("Invalid authentication state. Please try again.")
+    } else if (authStatus === "no_code") {
+      setError("No authorization code received. Please try again.")
+    } else if (authStatus === "config_missing") {
+      setError("Pinterest configuration is missing. Please contact support.")
+    } else if (authStatus === "token_error") {
+      setError(`Failed to get access token${authError ? `: ${authError}` : ""}. Please try again.`)
+    } else if (authStatus === "server_error") {
+      setError("Server error during authentication. Please try again later.")
+    }
+
     const checkPinterestAuth = async () => {
       try {
         const response = await fetch("/api/pinterest/check-auth")
         const data = await response.json()
-        setIsAuthenticated(data.isAuthenticated)
 
-        if (!data.isAuthenticated) {
-          // Get the auth URL for direct linking
-          const urlResponse = await fetch("/api/pinterest/auth-url")
-          const urlData = await urlResponse.json()
-          setAuthUrl(urlData.url || "")
+        if (response.ok) {
+          setIsAuthenticated(data.isAuthenticated)
+        } else {
+          console.error("Error response from check-auth:", data)
+          setError(data.error || "Failed to check authentication status")
         }
       } catch (error) {
         console.error("Error checking Pinterest auth:", error)
+        setError("Failed to check authentication status. Please try again.")
       } finally {
         setIsChecking(false)
       }
     }
 
     checkPinterestAuth()
-  }, [])
+  }, [searchParams])
 
   if (isChecking) {
     return (
@@ -57,32 +77,25 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
             <CardDescription>You need to connect your Pinterest account to use Empusa AI.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Authentication Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <p className="mb-6 text-center">
               Empusa AI needs access to your Pinterest account to create and publish pins on your behalf.
             </p>
-            <div className="space-y-4 w-full">
-              <PinterestAuth
-                onSuccess={() => {
-                  setIsAuthenticated(true)
-                  router.refresh()
-                }}
-                className="w-full"
-              />
 
-              {authUrl && (
-                <div className="text-center mt-4">
-                  <p className="text-sm text-gray-500 mb-2">If the popup doesn't work, you can use this direct link:</p>
-                  <a
-                    href={authUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-teal-600 hover:text-teal-700 underline text-sm"
-                  >
-                    Authenticate with Pinterest
-                  </a>
-                </div>
-              )}
-            </div>
+            <PinterestAuth
+              onSuccess={() => {
+                setIsAuthenticated(true)
+                router.refresh()
+              }}
+              className="w-full"
+            />
           </CardContent>
         </Card>
       </div>
