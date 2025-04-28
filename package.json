@@ -67,12 +67,12 @@
     "@mongodb-js/zstd": "latest",
     "mongodb-client-encryption": "latest",
     "@aws-sdk/credential-providers": "latest",
-    "ws": "latest",
     "mongodb": "latest",
+    "ws": "latest",
     "next-auth": "latest",
     "mongoose": "latest",
-    "openai": "latest",
-    "@auth/mongodb-adapter": "latest"
+    "@auth/mongodb-adapter": "latest",
+    "openai": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

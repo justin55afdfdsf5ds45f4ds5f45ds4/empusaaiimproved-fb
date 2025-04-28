@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info } from "lucide-react"
+import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,13 @@ interface Post {
   id: string
   title: string
   description: string
-  imageUrl: string
+  imagePrompt?: string
+  imageUrl: string | null
+}
+
+interface PinterestBoard {
+  id: string
+  name: string
 }
 
 export default function CreatePostPage() {
@@ -39,6 +45,7 @@ export default function CreatePostPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPublishing, setIsPublishing] = useState<string | null>(null)
   const [isScheduling, setIsScheduling] = useState<string | null>(null)
+  const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(null)
   const [referenceImage, setReferenceImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [generatedPosts, setGeneratedPosts] = useState<Post[]>([])
@@ -46,6 +53,42 @@ export default function CreatePostPage() {
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
   const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null)
   const [activeTab, setActiveTab] = useState("url")
+  const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([])
+  const [selectedBoard, setSelectedBoard] = useState<string>("")
+  const [isFetchingBoards, setIsFetchingBoards] = useState(false)
+  const [topic, setTopic] = useState("")
+  const [tone, setTone] = useState("informative")
+
+  // Fetch Pinterest boards
+  useEffect(() => {
+    const fetchBoards = async () => {
+      setIsFetchingBoards(true)
+      try {
+        const response = await fetch("/api/pinterest/boards")
+        if (!response.ok) {
+          throw new Error("Failed to fetch boards")
+        }
+        const data = await response.json()
+        setPinterestBoards(data.items || [])
+
+        // Set the first board as default if available
+        if (data.items && data.items.length > 0) {
+          setSelectedBoard(data.items[0].id)
+        }
+      } catch (error) {
+        console.error("Error fetching Pinterest boards:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch Pinterest boards. Please reconnect your Pinterest account.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsFetchingBoards(false)
+      }
+    }
+
+    fetchBoards()
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -68,6 +111,41 @@ export default function CreatePostPage() {
     e.preventDefault()
   }
 
+  const generateImage = async (post: Post) => {
+    if (!post.imagePrompt) return null
+
+    setIsGeneratingImage(post.id)
+
+    try {
+      const response = await fetch("/api/fal/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: post.imagePrompt,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to generate image")
+      }
+
+      const data = await response.json()
+      return data.images?.[0]?.url || null
+    } catch (error) {
+      console.error("Error generating image:", error)
+      toast({
+        title: "Error",
+        description: "Failed to generate image. Please try again.",
+        variant: "destructive",
+      })
+      return null
+    } finally {
+      setIsGeneratingImage(null)
+    }
+  }
+
   const handleGenerate = async () => {
     if (activeTab === "url" && !url) {
       toast({
@@ -78,28 +156,52 @@ export default function CreatePostPage() {
       return
     }
 
+    if (activeTab === "scratch" && !topic) {
+      toast({
+        title: "Topic Required",
+        description: "Please enter a topic or keywords to generate Pinterest posts.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!selectedBoard) {
+      toast({
+        title: "Board Required",
+        description: "Please select a Pinterest board to publish your posts.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsGenerating(true)
 
     try {
-      // For demonstration purposes, we'll create mock posts
-      setTimeout(() => {
-        const mockPosts = Array.from({ length: Number.parseInt(postCount) }, (_, i) => ({
-          id: `post-${i}`,
-          title: `Pinterest Post ${i + 1} - ${activeTab === "url" ? "From URL" : "From Scratch"}`,
-          description: `This is an AI-generated Pinterest post description optimized for engagement. It includes relevant keywords and a call to action. ${
-            activeTab === "url" ? `Generated from: ${url}` : "Created from scratch with AI."
-          }`,
-          imageUrl: `https://via.placeholder.com/600x900?text=Pinterest+Post+${i + 1}`,
-        }))
+      // Call the API to generate posts
+      const response = await fetch("/api/posts/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: activeTab === "url" ? url : undefined,
+          topic: activeTab === "scratch" ? topic : undefined,
+          tone: activeTab === "scratch" ? tone : undefined,
+          count: Number.parseInt(postCount),
+        }),
+      })
 
-        setGeneratedPosts(mockPosts)
+      if (!response.ok) {
+        throw new Error("Failed to generate posts")
+      }
 
-        toast({
-          title: "Posts Generated",
-          description: `Successfully generated ${mockPosts.length} Pinterest posts.`,
-        })
-        setIsGenerating(false)
-      }, 2000)
+      const data = await response.json()
+      setGeneratedPosts(data.posts || [])
+
+      toast({
+        title: "Posts Generated",
+        description: `Successfully generated ${data.posts.length} Pinterest posts.`,
+      })
     } catch (error) {
       console.error("Error generating posts:", error)
       toast({
@@ -107,16 +209,75 @@ export default function CreatePostPage() {
         description: "Failed to generate posts. Please try again.",
         variant: "destructive",
       })
+    } finally {
       setIsGenerating(false)
     }
   }
 
+  const handleGenerateImage = async (post: Post) => {
+    const imageUrl = await generateImage(post)
+
+    if (imageUrl) {
+      // Update the post with the generated image URL
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...p, imageUrl } : p)))
+    }
+  }
+
   const handlePublish = async (post: Post) => {
+    if (!selectedBoard) {
+      toast({
+        title: "Board Required",
+        description: "Please select a Pinterest board to publish your post.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!post.imageUrl) {
+      // Generate image first if not already generated
+      toast({
+        title: "Generating Image",
+        description: "Generating image before publishing...",
+      })
+
+      const imageUrl = await generateImage(post)
+
+      if (!imageUrl) {
+        toast({
+          title: "Error",
+          description: "Failed to generate image. Please try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Update the post with the generated image
+      post = { ...post, imageUrl }
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...post } : p)))
+    }
+
     setIsPublishing(post.id)
 
     try {
-      // Simulate publishing
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Publish the post to Pinterest
+      const response = await fetch("/api/pinterest/publish", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boardId: selectedBoard,
+          title: post.title,
+          description: post.description,
+          imageUrl: post.imageUrl,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to publish post")
+      }
+
+      const data = await response.json()
 
       toast({
         title: "Post Published",
@@ -138,25 +299,75 @@ export default function CreatePostPage() {
   }
 
   const openScheduleDialog = (post: Post) => {
-    setCurrentPostForScheduling(post)
-    setScheduleDialogOpen(true)
-  }
-
-  const handleSchedule = async () => {
-    if (!currentPostForScheduling || !scheduledDate) {
+    if (!selectedBoard) {
       toast({
-        title: "Error",
-        description: "Please select a date to schedule the post.",
+        title: "Board Required",
+        description: "Please select a Pinterest board to schedule your post.",
         variant: "destructive",
       })
       return
     }
 
-    setIsScheduling(currentPostForScheduling.id)
+    setCurrentPostForScheduling(post)
+    setScheduleDialogOpen(true)
+  }
+
+  const handleSchedule = async () => {
+    if (!currentPostForScheduling || !scheduledDate || !selectedBoard) {
+      toast({
+        title: "Error",
+        description: "Please select a date and board to schedule the post.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Generate image if not already generated
+    let postWithImage = currentPostForScheduling
+    if (!postWithImage.imageUrl) {
+      toast({
+        title: "Generating Image",
+        description: "Generating image before scheduling...",
+      })
+
+      const imageUrl = await generateImage(postWithImage)
+
+      if (!imageUrl) {
+        toast({
+          title: "Error",
+          description: "Failed to generate image. Please try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Update the post with the generated image
+      postWithImage = { ...postWithImage, imageUrl }
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === postWithImage.id ? { ...postWithImage } : p)))
+    }
+
+    setIsScheduling(postWithImage.id)
 
     try {
-      // Simulate scheduling
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Schedule the post
+      const response = await fetch("/api/posts/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          postId: postWithImage.id,
+          boardId: selectedBoard,
+          title: postWithImage.title,
+          description: postWithImage.description,
+          imageUrl: postWithImage.imageUrl,
+          scheduledDate: scheduledDate.toISOString(),
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to schedule post")
+      }
 
       toast({
         title: "Post Scheduled",
@@ -164,7 +375,7 @@ export default function CreatePostPage() {
       })
 
       // Remove the scheduled post from the list
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== currentPostForScheduling.id))
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id))
       setScheduleDialogOpen(false)
       setScheduledDate(undefined)
     } catch (error) {
@@ -187,6 +398,46 @@ export default function CreatePostPage() {
           Generate Pinterest-ready posts with AI-powered images, titles, and descriptions.
         </p>
       </div>
+
+      {/* Pinterest Board Selection */}
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <PinIcon className="h-5 w-5 text-red-600" />
+            Pinterest Board
+          </CardTitle>
+          <CardDescription>Select the Pinterest board where you want to publish your posts</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="board">Select Board</Label>
+            <Select value={selectedBoard} onValueChange={setSelectedBoard} disabled={isFetchingBoards}>
+              <SelectTrigger className={!selectedBoard ? "text-red-500 border-red-500" : ""}>
+                <SelectValue placeholder={isFetchingBoards ? "Loading boards..." : "Select a board"} />
+              </SelectTrigger>
+              <SelectContent>
+                {pinterestBoards.length === 0 ? (
+                  <SelectItem value="no-boards" disabled>
+                    No boards found
+                  </SelectItem>
+                ) : (
+                  pinterestBoards.map((board) => (
+                    <SelectItem key={board.id} value={board.id}>
+                      {board.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            {!selectedBoard && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                You must select a Pinterest board to publish or schedule posts
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {generatedPosts.length === 0 ? (
         <Card>
@@ -241,6 +492,8 @@ export default function CreatePostPage() {
                     id="topic"
                     placeholder="E.g., healthy recipes, home decor ideas, travel tips"
                     className="w-full"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
                   />
                   <p className="text-xs text-gray-500 flex items-center gap-1">
                     <Info className="h-3 w-3" />
@@ -251,7 +504,7 @@ export default function CreatePostPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="tone">Content Tone</Label>
-                    <Select defaultValue="informative">
+                    <Select value={tone} onValueChange={setTone}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select tone" />
                       </SelectTrigger>
@@ -315,7 +568,7 @@ export default function CreatePostPage() {
               <Button
                 className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
                 onClick={handleGenerate}
-                disabled={isGenerating}
+                disabled={isGenerating || !selectedBoard}
               >
                 {isGenerating ? (
                   <>
@@ -341,6 +594,7 @@ export default function CreatePostPage() {
               onClick={() => {
                 setGeneratedPosts([])
                 setUrl("")
+                setTopic("")
                 setReferenceImage(null)
                 setPreviewUrl(null)
               }}
@@ -353,11 +607,30 @@ export default function CreatePostPage() {
             {generatedPosts.map((post) => (
               <Card key={post.id} className="overflow-hidden">
                 <div className="aspect-[2/3] relative">
-                  <img
-                    src={post.imageUrl || "/placeholder.svg"}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
+                  {post.imageUrl ? (
+                    <img
+                      src={post.imageUrl || "/placeholder.svg"}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <Button
+                        onClick={() => handleGenerateImage(post)}
+                        disabled={isGeneratingImage === post.id}
+                        className="bg-teal-600 hover:bg-teal-700"
+                      >
+                        {isGeneratingImage === post.id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          "Generate Image"
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <CardContent className="p-4">
                   <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>

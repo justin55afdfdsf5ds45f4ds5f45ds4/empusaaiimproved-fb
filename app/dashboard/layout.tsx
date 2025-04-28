@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
 import { UserNav } from "@/components/dashboard/user-nav"
 import { MobileNav } from "@/components/dashboard/mobile-nav"
+import { PinterestAuthCheck } from "@/components/pinterest-auth-check"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   // Temporarily bypass authentication
@@ -41,10 +42,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </div>
         </div>
       </header>
-      <div className="flex flex-1">
-        <DashboardNav />
-        <main className="flex-1 p-6 bg-gray-50">{children}</main>
-      </div>
+      <PinterestAuthCheck>
+        <div className="flex flex-1">
+          <DashboardNav />
+          <main className="flex-1 p-6 bg-gray-50">{children}</main>
+        </div>
+      </PinterestAuthCheck>
     </div>
   )
 }
