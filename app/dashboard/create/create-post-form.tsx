@@ -227,6 +227,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     }
   }
 
+  // Update the handleGenerate function to better handle the reference image
   const handleGenerate = async () => {
     if (activeTab === "url" && !url) {
       toast({
@@ -272,19 +273,12 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
         requestBody.tone = tone
       }
 
-      // Add reference image if available
-      if (previewUrl && referenceImage) {
-        try {
-          const base64Image = await fileToBase64(referenceImage)
-          requestBody.referenceImageUrl = base64Image
-        } catch (error) {
-          console.error("Error converting image to base64:", error)
-        }
-      }
+      // We'll skip sending the reference image for now as it might be causing issues
+      // We'll handle reference images only during image generation
 
       console.log("Generating posts with request:", {
         ...requestBody,
-        referenceImageUrl: requestBody.referenceImageUrl ? "[BASE64_IMAGE]" : undefined,
+        referenceImageUrl: undefined,
       })
 
       // Call the API to generate posts

@@ -1,46 +1,76 @@
-// In a production app, you would use a proper web scraper library
-// For now, we'll simulate content extraction with a placeholder function
+import { JSDOM } from "jsdom"
 
 export async function extractContentFromUrl(url: string): Promise<string> {
   try {
-    // For demo purposes, we'll return a placeholder response
-    // In a real app, you would fetch and parse the actual content
+    console.log(`Extracting content from URL: ${url}`)
 
-    // Simulate a network request
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Return a placeholder content based on the URL
-    if (url.includes("blog") || url.includes("article")) {
-      return `This appears to be a blog post or article. The content would typically include a headline, 
-      introduction, several paragraphs of main content, possibly some images, and a conclusion. 
-      The topic seems to be related to ${extractTopicFromUrl(url)}.`
-    } else if (url.includes("product") || url.includes("shop")) {
-      return `This appears to be a product page. The content would typically include a product name, 
-      images, description, features, specifications, pricing, and possibly customer reviews. 
-      The product seems to be related to ${extractTopicFromUrl(url)}.`
-    } else {
-      return `This appears to be a general webpage. The content would typically include various sections 
-      with text, images, and possibly videos. The topic seems to be related to ${extractTopicFromUrl(url)}.`
+    // Handle Google redirect URLs
+    if (url.includes("google.com/url") && url.includes("&url=")) {
+      const match = url.match(/[&?]url=([^&]+)/)
+      if (match && match[1]) {
+        url = decodeURIComponent(match[1])
+        console.log(`Extracted actual URL from Google redirect: ${url}`)
+      }
     }
+
+    // Fetch the content
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`)
+    }
+
+    const html = await response.text()
+
+    // Parse the HTML
+    const dom = new JSDOM(html)
+    const document = dom.window.document
+
+    // Remove script and style elements
+    const scripts = document.querySelectorAll("script, style, noscript, iframe, svg")
+    scripts.forEach((script) => script.remove())
+
+    // Get the title
+    const title = document.querySelector("title")?.textContent || ""
+
+    // Get meta description
+    const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute("content") || ""
+
+    // Get main content
+    let mainContent = ""
+
+    // Try to find main content containers
+    const contentSelectors = ["main", "article", "#content", ".content", "#main", ".main", ".post", ".article"]
+
+    for (const selector of contentSelectors) {
+      const element = document.querySelector(selector)
+      if (element && element.textContent && element.textContent.trim().length > 100) {
+        mainContent = element.textContent
+        break
+      }
+    }
+
+    // If no main content found, use body
+    if (!mainContent) {
+      mainContent = document.body.textContent || ""
+    }
+
+    // Clean up the text
+    const cleanText = mainContent.replace(/\s+/g, " ").trim()
+
+    // Combine all the content
+    const combinedContent = [`Title: ${title}`, `Description: ${metaDescription}`, `Content: ${cleanText}`].join("\n\n")
+
+    console.log(`Successfully extracted content (${combinedContent.length} chars)`)
+
+    return combinedContent
   } catch (error) {
     console.error("Error extracting content from URL:", error)
-    return "Failed to extract content from the provided URL."
+    return `Failed to extract content from URL: ${url}. Error: ${error instanceof Error ? error.message : String(error)}`
   }
-}
-
-function extractTopicFromUrl(url: string): string {
-  // Extract a topic from the URL for demonstration purposes
-  const urlLower = url.toLowerCase()
-
-  if (urlLower.includes("marketing")) return "digital marketing"
-  if (urlLower.includes("recipe") || urlLower.includes("food")) return "cooking and recipes"
-  if (urlLower.includes("travel")) return "travel and destinations"
-  if (urlLower.includes("tech") || urlLower.includes("gadget")) return "technology and gadgets"
-  if (urlLower.includes("fashion") || urlLower.includes("style")) return "fashion and style"
-  if (urlLower.includes("health") || urlLower.includes("fitness")) return "health and fitness"
-  if (urlLower.includes("home") || urlLower.includes("decor")) return "home decor and DIY"
-  if (urlLower.includes("finance") || urlLower.includes("money")) return "personal finance"
-
-  // Default topic
-  return "general information and tips"
 }
