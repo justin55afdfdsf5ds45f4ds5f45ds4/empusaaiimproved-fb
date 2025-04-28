@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
 
@@ -10,8 +11,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { toast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -20,16 +23,41 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Handle login logic here
-    // This is a placeholder for email/password login
-    console.log("Login attempt with:", email, password)
+    try {
+      // In a real app, you would implement email/password login here
+      // For now, we'll just redirect to the dashboard after a delay to simulate login
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    setIsLoading(false)
+      toast({
+        title: "Login successful",
+        description: "Welcome back to Empusa AI!",
+      })
+
+      router.push("/dashboard")
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true)
-    await signIn("google", { callbackUrl: "/dashboard" })
+    try {
+      setIsLoading(true)
+      await signIn("google", { callbackUrl: "/dashboard" })
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      toast({
+        title: "Authentication Error",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
   }
 
   return (
