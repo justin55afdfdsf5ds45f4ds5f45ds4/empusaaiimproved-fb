@@ -1,8 +1,8 @@
 import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight, Check, Menu } from "lucide-react"
+import { ArrowRight, Check } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { MobileMenu } from "@/components/mobile-menu"
 
 export default function Home() {
   return (
@@ -11,7 +11,15 @@ export default function Home() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/images/logo.png" alt="Empusa AI Logo" width={150} height={50} />
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                  E
+                </div>
+                <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                  A
+                </div>
+                <span className="ml-2 font-bold text-xl">Empusa AI</span>
+              </div>
             </Link>
             <nav className="hidden md:flex gap-6">
               <Link href="#features" className="text-sm font-medium hover:text-teal-600 transition-colors">
@@ -35,10 +43,7 @@ export default function Home() {
             <Link href="https://calendly.com/fk146543/30min" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
+            <MobileMenu />
           </div>
         </div>
       </header>
@@ -282,7 +287,7 @@ export default function Home() {
             </div>
             <div className="grid gap-6 pt-12 md:grid-cols-2 lg:grid-cols-3">
               {[
-                "Free access for users with 100k+ followers on Pinterest, TikTok, YouTube, Instagram, or Facebook",
+                "Free access if you have over 100k followers on any one major platform",
                 "Priority access to new features and updates",
                 "Dedicated account manager for enterprise clients",
                 "Custom integration with your existing content workflow",
@@ -398,7 +403,15 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <Image src="/images/logo.png" alt="Empusa AI Logo" width={150} height={50} />
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                    E
+                  </div>
+                  <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                    A
+                  </div>
+                  <span className="ml-2 font-bold text-xl">Empusa AI</span>
+                </div>
               </Link>
               <p className="text-sm text-gray-500">
                 Empusa AI is a web-based platform that automates Pinterest content creation and publishing from any URL,

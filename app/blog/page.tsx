@@ -1,5 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 
@@ -16,7 +15,15 @@ export default function BlogPage() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/images/logo.png" alt="Empusa AI Logo" width={150} height={50} />
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                  E
+                </div>
+                <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                  A
+                </div>
+                <span className="ml-2 font-bold text-xl">Empusa AI</span>
+              </div>
             </Link>
             <nav className="hidden md:flex gap-6">
               <Link href="/#features" className="text-sm font-medium hover:text-teal-600 transition-colors">
@@ -91,7 +98,7 @@ export default function BlogPage() {
                   </p>
                   <h3 className="text-xl font-bold mt-8 mb-4">Why We Built Empusa AI</h3>
                   <p className="mb-4">
-                    As marketers ourselves, we experienced firsthand the challenges of maintaining a consistent
+                    As marketers themselves, we experienced firsthand the challenges of maintaining a consistent
                     Pinterest presence. Creating pins manually was taking hours each week, and we knew there had to be a
                     better way.
                   </p>
@@ -148,7 +155,15 @@ export default function BlogPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <Image src="/images/logo.png" alt="Empusa AI Logo" width={150} height={50} />
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                    E
+                  </div>
+                  <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                    A
+                  </div>
+                  <span className="ml-2 font-bold text-xl">Empusa AI</span>
+                </div>
               </Link>
               <p className="text-sm text-gray-500">
                 Empusa AI is a web-based platform that automates Pinterest content creation and publishing from any URL,

@@ -36,8 +36,16 @@ export function MobileMenu() {
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex flex-col gap-6 px-2 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 font-bold text-2xl text-violet-600">
-              Empusa AI
+            <Link href="/" className="flex items-center gap-2 font-bold text-2xl">
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                  E
+                </div>
+                <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                  A
+                </div>
+                <span className="ml-2 font-bold text-xl">Empusa AI</span>
+              </div>
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
               <X className="h-6 w-6" />
@@ -98,13 +106,13 @@ export function MobileMenu() {
             </div>
           </nav>
           <div className="flex flex-col gap-2 pt-4">
-            <Link href="#" className="w-full">
+            <Link href="/login" className="w-full">
               <Button variant="outline" className="w-full">
                 Log in
               </Button>
             </Link>
             <Link href="https://calendly.com/fk146543/30min" target="_blank" className="w-full">
-              <Button className="w-full bg-violet-600 hover:bg-violet-700">Get a demo</Button>
+              <Button className="w-full bg-teal-600 hover:bg-teal-700">Get a demo</Button>
             </Link>
           </div>
         </div>
