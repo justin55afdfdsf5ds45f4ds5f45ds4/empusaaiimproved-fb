@@ -4,7 +4,7 @@ import { UserNav } from "@/components/dashboard/user-nav"
 import { MobileNav } from "@/components/dashboard/mobile-nav"
 import { PinterestAuthCheck } from "@/components/pinterest-auth-check"
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Mock session data for demonstration
   const mockUser = {
     name: "Demo User",

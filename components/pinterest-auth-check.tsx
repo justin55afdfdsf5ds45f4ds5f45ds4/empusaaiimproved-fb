@@ -21,9 +21,12 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
 
         if (response.ok) {
           setIsAuthenticated(data.isAuthenticated)
+          if (!data.isAuthenticated) {
+            console.log("Not authenticated with Pinterest")
+          }
         } else {
           console.error("Error response from check-auth:", data)
-          setError(data.error || "Failed to check authentication status")
+          setError(data.error || data.details || "Failed to check authentication status")
         }
       } catch (error) {
         console.error("Error checking Pinterest auth:", error)
@@ -71,7 +74,6 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
             <PinterestAuth
               onSuccess={() => {
                 setIsAuthenticated(true)
-                window.location.reload()
               }}
               className="w-full"
             />

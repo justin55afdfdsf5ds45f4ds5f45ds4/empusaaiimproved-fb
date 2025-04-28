@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { PinIcon, ExternalLink } from "lucide-react"
+import { PinIcon, ExternalLink, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface PinterestAuthProps {
@@ -23,23 +23,40 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
     try {
       // Get the Pinterest auth URL
       const response = await fetch("/api/pinterest/auth-url")
+      const data = await response.json()
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to get authentication URL")
+        throw new Error(data.error || data.details || "Failed to get authentication URL")
       }
 
-      const { url } = await response.json()
-
-      if (!url) {
+      if (!data.url) {
         throw new Error("No authentication URL returned")
       }
 
       // Store the URL for direct link option
-      setAuthUrl(url)
+      setAuthUrl(data.url)
+
+      // For development with mock URL, simulate success
+      if (data.url.includes("mock=true")) {
+        toast({
+          title: "Development Mode",
+          description: "Using mock Pinterest authentication in development mode.",
+        })
+
+        // Simulate successful authentication after a delay
+        setTimeout(() => {
+          if (onSuccess) {
+            onSuccess("mock-token")
+          }
+          setIsAuthenticating(false)
+          window.location.reload()
+        }, 2000)
+
+        return
+      }
 
       // Open Pinterest auth in a new tab
-      const authWindow = window.open(url, "_blank")
+      const authWindow = window.open(data.url, "_blank")
 
       if (!authWindow) {
         throw new Error("Popup blocked. Please use the direct link below.")
@@ -69,6 +86,8 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
               title: "Pinterest Connected",
               description: "Your Pinterest account has been successfully connected.",
             })
+
+            window.location.reload()
           }
         } catch (error) {
           console.error("Error checking auth status:", error)
@@ -96,6 +115,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
     <div className="space-y-4">
       {error && (
         <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Authentication Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
