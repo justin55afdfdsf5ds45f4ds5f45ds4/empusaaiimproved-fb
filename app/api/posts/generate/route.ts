@@ -8,18 +8,22 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session) {
+    // For development, allow without authentication
+    if (!session && process.env.NODE_ENV !== "development") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { url, count = 10 } = await req.json()
+    const { url, topic, tone, count = 10, referenceImageUrl } = await req.json()
 
-    if (!url) {
-      return NextResponse.json({ error: "URL is required" }, { status: 400 })
+    if (!url && !topic) {
+      return NextResponse.json({ error: "URL or topic is required" }, { status: 400 })
     }
 
-    // Extract content from the URL
-    const content = await extractContentFromUrl(url)
+    // Extract content from the URL if provided
+    let content = ""
+    if (url) {
+      content = await extractContentFromUrl(url)
+    }
 
     const openaiApiKey = process.env.OPENAI_API_KEY
 
@@ -32,19 +36,29 @@ export async function POST(req: Request) {
     })
 
     // Generate Pinterest post ideas using OpenAI
+    const promptContent = url
+      ? `Content from URL: ${url}\n\n${content}`
+      : `Generate Pinterest posts about the topic: ${topic} with a ${tone || "informative"} tone.`
+
+    const systemPrompt = `You are a Pinterest marketing expert. Generate ${count} Pinterest post ideas based on the following content. 
+    For each post, provide a catchy title and an SEO-optimized description that would perform well on Pinterest.
+    Also provide a detailed image prompt that would work well for generating an AI image for Pinterest.
+    Format your response as a JSON array with objects containing 'title', 'description', and 'imagePrompt' properties.
+    The imagePrompt should be a detailed description for generating an image that would work well on Pinterest.
+    ${referenceImageUrl ? "Use the reference image as inspiration for the image prompts." : ""}`
+
+    console.log("Generating posts with OpenAI...")
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a Pinterest marketing expert. Generate ${count} Pinterest post ideas based on the following content. 
-          For each post, provide a catchy title and an SEO-optimized description that would perform well on Pinterest.
-          Format your response as a JSON array with objects containing 'title', 'description', and 'imagePrompt' properties.
-          The imagePrompt should be a detailed description for generating an image that would work well on Pinterest.`,
+          content: systemPrompt,
         },
         {
           role: "user",
-          content: `Content from URL: ${url}\n\n${content}`,
+          content: promptContent,
         },
       ],
       response_format: { type: "json_object" },
@@ -56,6 +70,7 @@ export async function POST(req: Request) {
     try {
       const parsedResponse = JSON.parse(responseText || "{}")
       postIdeas = parsedResponse.posts || []
+      console.log(`Generated ${postIdeas.length} post ideas`)
     } catch (error) {
       console.error("Error parsing OpenAI response:", error)
       return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 })
@@ -64,7 +79,7 @@ export async function POST(req: Request) {
     // For now, return the post ideas without generating images
     // Images will be generated on demand when the user selects a post
     const posts = postIdeas.map((post, index) => ({
-      id: `post-${index}`,
+      id: `post-${Date.now()}-${index}`,
       title: post.title,
       description: post.description,
       imagePrompt: post.imagePrompt || `Pinterest post about ${post.title}`,

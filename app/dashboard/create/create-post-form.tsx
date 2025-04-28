@@ -2,9 +2,20 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon, RefreshCw, AlertCircle } from "lucide-react"
+import {
+  ArrowRight,
+  Upload,
+  Loader2,
+  LinkIcon,
+  Calendar,
+  Info,
+  PinIcon,
+  RefreshCw,
+  AlertCircle,
+  ImageIcon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -64,6 +75,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
   const [boardFetchError, setBoardFetchError] = useState<string | null>(null)
   const [topic, setTopic] = useState("")
   const [tone, setTone] = useState("informative")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Set the initial URL and tab if provided
   useEffect(() => {
@@ -161,14 +173,22 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     setIsGeneratingImage(post.id)
 
     try {
+      // Prepare the request body
+      const requestBody: any = {
+        prompt: post.imagePrompt,
+      }
+
+      // Add reference image if available
+      if (previewUrl) {
+        requestBody.referenceImageUrl = previewUrl
+      }
+
       const response = await fetch("/api/fal/generate-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          prompt: post.imagePrompt,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
@@ -221,20 +241,55 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     setIsGenerating(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Prepare the request body
+      const requestBody: any = {
+        count: Number.parseInt(postCount),
+      }
 
-      toast({
-        title: "Success",
-        description: "Your Pinterest posts are being generated. This may take a moment.",
+      // Add URL or topic based on active tab
+      if (activeTab === "url") {
+        requestBody.url = url
+      } else {
+        requestBody.topic = topic
+        requestBody.tone = tone
+      }
+
+      // Add reference image if available
+      if (previewUrl) {
+        requestBody.referenceImageUrl = previewUrl
+      }
+
+      // Call the API to generate posts
+      const response = await fetch("/api/posts/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       })
 
-      // Redirect to a success page or show generated content
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to generate posts")
+      }
+
+      const data = await response.json()
+
+      if (!data.posts || data.posts.length === 0) {
+        throw new Error("No posts were generated. Please try again.")
+      }
+
+      setGeneratedPosts(data.posts || [])
+
+      toast({
+        title: "Posts Generated",
+        description: `Successfully generated ${data.posts.length} Pinterest posts.`,
+      })
     } catch (error) {
       console.error("Error generating posts:", error)
       toast({
         title: "Error",
-        description: "Failed to generate posts. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate posts. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -594,9 +649,16 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
                   className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
-                  onClick={() => document.getElementById("file-upload")?.click()}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <input id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                  <input
+                    ref={fileInputRef}
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
                   {previewUrl ? (
                     <div className="flex flex-col items-center">
                       <div className="relative w-40 h-40 mb-4">
@@ -612,7 +674,6 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-gray-400 mb-2" />
                       <p className="text-sm font-medium">Click to upload or drag and drop</p>
-
                       <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
                     </div>
                   )}
@@ -680,7 +741,10 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
                             Generating...
                           </>
                         ) : (
-                          "Generate Image"
+                          <>
+                            <ImageIcon className="mr-2 h-4 w-4" />
+                            Generate Image
+                          </>
                         )}
                       </Button>
                     </div>
