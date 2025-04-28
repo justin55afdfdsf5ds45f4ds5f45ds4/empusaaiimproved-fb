@@ -1,77 +1,46 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../auth/[...nextauth]/route"
+import { NextResponse } from "next/server"
 
-export async function POST(request: NextRequest) {
+// Array of placeholder image URLs
+const PLACEHOLDER_IMAGES = [
+  "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000",
+  "https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=1000",
+  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=1000",
+  "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?q=80&w=1000",
+  "https://images.unsplash.com/photo-1682686581854-5e71f58e7e3f?q=80&w=1000",
+  "https://images.unsplash.com/photo-1682687982501-1e58ab814714?q=80&w=1000",
+  "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?q=80&w=1000",
+]
+
+export async function POST(req: Request) {
   try {
-    // For development, allow without authentication
-    const session = await getServerSession(authOptions)
-    if (!session && process.env.NODE_ENV !== "development") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Parse the request
+    const { prompt } = await req.json()
 
-    const { prompt, referenceImageUrl } = await request.json()
+    console.log(`Generating image with prompt: ${prompt}`)
 
-    if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
-    }
+    // Simulate a delay to mimic API call
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    const falApiKey = process.env.FAL_AI
+    // Select a random placeholder image
+    const randomIndex = Math.floor(Math.random() * PLACEHOLDER_IMAGES.length)
+    const imageUrl = PLACEHOLDER_IMAGES[randomIndex]
 
-    if (!falApiKey) {
-      console.error("FAL AI API key is missing")
-      return NextResponse.json({ error: "FAL AI API key is missing" }, { status: 500 })
-    }
+    console.log(`Generated image: ${imageUrl}`)
 
-    console.log("Generating image with FAL AI...")
-    console.log("Prompt:", prompt.substring(0, 100) + "...")
-    console.log("Reference image:", referenceImageUrl ? "Provided" : "Not provided")
-
-    // Prepare the request body
-    const requestBody: any = {
-      model: "fal-ai/fast-sdxl",
-      prompt: prompt,
-      width: 600,
-      height: 900,
-      num_images: 1,
-    }
-
-    // Add reference image if provided
-    if (referenceImageUrl) {
-      requestBody.image_url = referenceImageUrl
-      requestBody.strength = 0.7 // Control how much influence the reference image has
-    }
-
-    try {
-      // Call FAL AI API to generate an image
-      const response = await fetch("https://api.fal.ai/v1/text-to-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Key ${falApiKey}`,
+    return NextResponse.json({
+      images: [
+        {
+          url: imageUrl,
         },
-        body: JSON.stringify(requestBody),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("FAL AI error response:", errorData)
-        return NextResponse.json(
-          { error: `Failed to generate image: ${errorData.error || response.statusText}` },
-          { status: response.status },
-        )
-      }
-
-      const data = await response.json()
-      console.log("Image generated successfully")
-
-      return NextResponse.json(data)
-    } catch (error) {
-      console.error("Error calling FAL AI API:", error)
-      return NextResponse.json({ error: "Failed to call image generation API" }, { status: 500 })
-    }
+      ],
+    })
   } catch (error) {
-    console.error("Error in image generation route:", error)
-    return NextResponse.json({ error: "Failed to generate image" }, { status: 500 })
+    console.error("Error generating image:", error)
+    return NextResponse.json(
+      {
+        error: `Failed to generate image: ${error instanceof Error ? error.message : String(error)}`,
+      },
+      { status: 500 },
+    )
   }
 }
