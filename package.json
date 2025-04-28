@@ -68,13 +68,9 @@
     "mongodb-client-encryption": "latest",
     "@aws-sdk/credential-providers": "latest",
     "mongodb": "latest",
-    "canvas": "latest",
-    "ws": "latest",
     "next-auth": "latest",
     "mongoose": "latest",
-    "@auth/mongodb-adapter": "latest",
-    "jsdom": "latest",
-    "openai": "latest"
+    "@auth/mongodb-adapter": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

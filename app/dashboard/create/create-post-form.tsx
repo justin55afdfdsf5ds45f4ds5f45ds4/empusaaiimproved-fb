@@ -147,16 +147,6 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     fetchBoards()
   }, [])
 
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = (error) => reject(error)
-    })
-  }
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
@@ -189,16 +179,6 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
         prompt: post.imagePrompt,
       }
 
-      // Add reference image if available
-      if (previewUrl && referenceImage) {
-        try {
-          const base64Image = await fileToBase64(referenceImage)
-          requestBody.referenceImageUrl = base64Image
-        } catch (error) {
-          console.error("Error converting image to base64:", error)
-        }
-      }
-
       const response = await fetch("/api/fal/generate-image", {
         method: "POST",
         headers: {
@@ -227,7 +207,6 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     }
   }
 
-  // Update the handleGenerate function to better handle the reference image
   const handleGenerate = async () => {
     if (activeTab === "url" && !url) {
       toast({
@@ -273,13 +252,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
         requestBody.tone = tone
       }
 
-      // We'll skip sending the reference image for now as it might be causing issues
-      // We'll handle reference images only during image generation
-
-      console.log("Generating posts with request:", {
-        ...requestBody,
-        referenceImageUrl: undefined,
-      })
+      console.log("Generating posts with request:", requestBody)
 
       // Call the API to generate posts
       const response = await fetch("/api/posts/generate", {
