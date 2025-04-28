@@ -20,17 +20,12 @@ export async function GET() {
     // Generate a random state to prevent CSRF attacks
     const state = Math.random().toString(36).substring(2, 15)
 
-    // Store the state in the session (in a real app, you'd use a database or Redis)
-    // For demo purposes, we'll just use a cookie
-    const url = new URL("https://www.pinterest.com/oauth/")
-    url.searchParams.append("client_id", appId)
-    url.searchParams.append("redirect_uri", redirectUri)
-    url.searchParams.append("response_type", "code")
-    url.searchParams.append("scope", "boards:read,pins:read,pins:write")
-    url.searchParams.append("state", state)
+    // Construct the Pinterest OAuth URL
+    // Make sure we're using the correct OAuth endpoint
+    const url = `https://www.pinterest.com/oauth/?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=boards:read,pins:read,pins:write&state=${state}`
 
     // Set a cookie with the state
-    const response = NextResponse.json({ url: url.toString() })
+    const response = NextResponse.json({ url })
     response.cookies.set("pinterest_auth_state", state, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

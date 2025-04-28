@@ -7,21 +7,34 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      // Instead of returning JSON, redirect to login page
+      return NextResponse.redirect(new URL("/login", request.url))
     }
 
     const searchParams = request.nextUrl.searchParams
     const code = searchParams.get("code")
     const state = searchParams.get("state")
     const storedState = request.cookies.get("pinterest_auth_state")?.value
+    const error = searchParams.get("error")
+
+    // Check for error parameter
+    if (error) {
+      console.error("Pinterest OAuth error:", error)
+      // Redirect to dashboard with error
+      return NextResponse.redirect(new URL("/dashboard?auth=failed", request.url))
+    }
 
     // Verify state to prevent CSRF attacks
     if (!state || !storedState || state !== storedState) {
-      return NextResponse.json({ error: "Invalid state" }, { status: 400 })
+      console.error("Invalid state parameter")
+      // Redirect to dashboard with error
+      return NextResponse.redirect(new URL("/dashboard?auth=invalid_state", request.url))
     }
 
     if (!code) {
-      return NextResponse.json({ error: "Authorization code missing" }, { status: 400 })
+      console.error("Authorization code missing")
+      // Redirect to dashboard with error
+      return NextResponse.redirect(new URL("/dashboard?auth=no_code", request.url))
     }
 
     const appId = process.env.PINTEREST_APP_ID
@@ -29,7 +42,9 @@ export async function GET(request: NextRequest) {
     const redirectUri = process.env.PINTEREST_REDIRECT_URI
 
     if (!appId || !appSecret || !redirectUri) {
-      return NextResponse.json({ error: "Pinterest configuration missing" }, { status: 500 })
+      console.error("Pinterest configuration missing")
+      // Redirect to dashboard with error
+      return NextResponse.redirect(new URL("/dashboard?auth=config_missing", request.url))
     }
 
     // Exchange code for access token
@@ -50,15 +65,15 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json()
       console.error("Pinterest token error:", errorData)
-      return NextResponse.json({ error: "Failed to get access token" }, { status: 500 })
+      // Redirect to dashboard with error
+      return NextResponse.redirect(new URL("/dashboard?auth=token_error", request.url))
     }
 
     const tokenData = await tokenResponse.json()
     const { access_token, refresh_token, expires_in } = tokenData
 
-    // In a real app, you would store these tokens in a database
-    // For demo purposes, we'll just use cookies
-    const response = NextResponse.json({ success: true })
+    // Create a response that redirects to the dashboard
+    const response = NextResponse.redirect(new URL("/dashboard?auth=success", request.url))
 
     // Set cookies with the tokens
     response.cookies.set("pinterest_access_token", access_token, {
@@ -88,6 +103,7 @@ export async function GET(request: NextRequest) {
     return response
   } catch (error) {
     console.error("Error handling Pinterest callback:", error)
-    return NextResponse.json({ error: "Failed to process callback" }, { status: 500 })
+    // Redirect to dashboard with error
+    return NextResponse.redirect(new URL("/dashboard?auth=server_error", request.url))
   }
 }

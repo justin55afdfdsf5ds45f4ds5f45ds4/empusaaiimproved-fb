@@ -29,6 +29,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
     checkPinterestAuth()
   }, [])
 
+  // Update the handleAuth function to properly handle the popup window
   const handleAuth = async () => {
     setIsAuthenticating(true)
 
@@ -37,24 +38,28 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
       const response = await fetch("/api/pinterest/auth-url")
       const { url } = await response.json()
 
-      // Open Pinterest auth in a popup
-      const width = 600
-      const height = 700
-      const left = window.innerWidth / 2 - width / 2
-      const top = window.innerHeight / 2 - height / 2
+      if (!url) {
+        throw new Error("Failed to get Pinterest authentication URL")
+      }
 
-      const popup = window.open(url, "pinterest-auth", `width=${width},height=${height},left=${left},top=${top}`)
+      // Open Pinterest auth in a new tab instead of a popup
+      window.open(url, "_blank")
 
-      // Poll for auth completion
-      const checkInterval = setInterval(async () => {
+      // Show a toast to guide the user
+      toast({
+        title: "Pinterest Authentication",
+        description: "Please complete the authentication in the new tab. Return to this page when finished.",
+      })
+
+      // Start checking for auth completion
+      const checkAuthInterval = setInterval(async () => {
         try {
           const checkResponse = await fetch("/api/pinterest/check-auth")
           const checkData = await checkResponse.json()
 
           if (checkData.isAuthenticated) {
-            clearInterval(checkInterval)
+            clearInterval(checkAuthInterval)
             setIsAuthenticated(true)
-            popup?.close()
 
             if (onSuccess && checkData.accessToken) {
               onSuccess(checkData.accessToken)
@@ -68,16 +73,13 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
         } catch (error) {
           console.error("Error checking auth status:", error)
         }
-      }, 1000)
+      }, 3000) // Check every 3 seconds
 
-      // Clean up interval if popup is closed
-      const popupCheckInterval = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(checkInterval)
-          clearInterval(popupCheckInterval)
-          setIsAuthenticating(false)
-        }
-      }, 500)
+      // Clear the interval after 5 minutes (300000ms)
+      setTimeout(() => {
+        clearInterval(checkAuthInterval)
+        setIsAuthenticating(false)
+      }, 300000)
     } catch (error) {
       console.error("Pinterest auth error:", error)
       toast({
@@ -85,7 +87,6 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
         description: "Failed to authenticate with Pinterest. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsAuthenticating(false)
     }
   }
