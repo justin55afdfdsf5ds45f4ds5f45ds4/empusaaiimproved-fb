@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
-import { CreatePostContent } from "./create-post-content"
+import { CreatePostForm } from "./create-post-form"
 
 export default function CreatePostPage({
   searchParams,
@@ -26,7 +26,7 @@ export default function CreatePostPage({
           </div>
         }
       >
-        <CreatePostContent initialUrl={urlParam} />
+        <CreatePostForm initialUrl={urlParam} />
       </Suspense>
     </div>
   )

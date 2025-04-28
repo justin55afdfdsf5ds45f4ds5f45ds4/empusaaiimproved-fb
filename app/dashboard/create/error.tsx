@@ -2,8 +2,7 @@
 
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, RefreshCw } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 
 export default function CreatePostError({
   error,
@@ -18,25 +17,19 @@ export default function CreatePostError({
   }, [error])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Create Pinterest Posts</h1>
-        <p className="text-gray-500 mt-2">
-          Generate Pinterest-ready posts with AI-powered images, titles, and descriptions.
-        </p>
+    <div className="flex flex-col items-center justify-center p-12 space-y-4 text-center">
+      <AlertCircle className="h-12 w-12 text-red-500" />
+      <h2 className="text-2xl font-bold">Something went wrong!</h2>
+      <p className="text-gray-500 max-w-md">
+        We encountered an error while loading the create post page. Please try again or contact support if the problem
+        persists.
+      </p>
+      <div className="flex gap-4">
+        <Button onClick={() => reset()}>Try again</Button>
+        <Button variant="outline" onClick={() => (window.location.href = "/dashboard")}>
+          Return to Dashboard
+        </Button>
       </div>
-
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          <p className="mb-4">An error occurred while loading the create post page.</p>
-          <Button onClick={() => reset()} variant="outline" size="sm" className="mt-2">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Try again
-          </Button>
-        </AlertDescription>
-      </Alert>
     </div>
   )
 }
