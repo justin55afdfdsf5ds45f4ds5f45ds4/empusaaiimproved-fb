@@ -1,16 +1,23 @@
 import type { ReactNode } from "react"
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../api/auth/[...nextauth]/route"
+// import { redirect } from "next/navigation"
+// import { getServerSession } from "next-auth/next"
+// import { authOptions } from "../api/auth/[...nextauth]/route"
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
 import { UserNav } from "@/components/dashboard/user-nav"
 import { MobileNav } from "@/components/dashboard/mobile-nav"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const session = await getServerSession(authOptions)
+  // Temporarily bypass authentication
+  // const session = await getServerSession(authOptions)
+  // if (!session) {
+  //   redirect("/login")
+  // }
 
-  if (!session) {
-    redirect("/login")
+  // Mock session data for demonstration
+  const mockUser = {
+    name: "Demo User",
+    email: "demo@example.com",
+    image: "/vibrant-street-market.png",
   }
 
   return (
@@ -30,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <MobileNav />
           </div>
           <div className="flex items-center gap-4">
-            <UserNav user={session.user} />
+            <UserNav user={mockUser} />
           </div>
         </div>
       </header>
