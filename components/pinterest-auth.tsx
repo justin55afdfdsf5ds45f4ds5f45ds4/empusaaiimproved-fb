@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { PinIcon, ExternalLink, AlertCircle } from "lucide-react"
+import { PinIcon, ExternalLink } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface PinterestAuthProps {
@@ -16,6 +16,21 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
   const [authUrl, setAuthUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Listen for messages from the popup window
+  useState(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "PINTEREST_AUTH_SUCCESS") {
+        if (onSuccess) {
+          onSuccess("success")
+        }
+        window.location.reload()
+      }
+    }
+
+    window.addEventListener("message", handleMessage)
+    return () => window.removeEventListener("message", handleMessage)
+  })
+
   const handleAuth = async () => {
     setIsAuthenticating(true)
     setError(null)
@@ -23,21 +38,23 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
     try {
       // Get the Pinterest auth URL
       const response = await fetch("/api/pinterest/auth-url")
-      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || data.details || "Failed to get authentication URL")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to get authentication URL")
       }
 
-      if (!data.url) {
+      const { url } = await response.json()
+
+      if (!url) {
         throw new Error("No authentication URL returned")
       }
 
       // Store the URL for direct link option
-      setAuthUrl(data.url)
+      setAuthUrl(url)
 
       // For development with mock URL, simulate success
-      if (data.url.includes("mock=true")) {
+      if (url.includes("mock=true")) {
         toast({
           title: "Development Mode",
           description: "Using mock Pinterest authentication in development mode.",
@@ -55,8 +72,17 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
         return
       }
 
-      // Open Pinterest auth in a new tab
-      const authWindow = window.open(data.url, "_blank")
+      // Open Pinterest auth in a popup window
+      const width = 600
+      const height = 700
+      const left = window.innerWidth / 2 - width / 2
+      const top = window.innerHeight / 2 - height / 2
+
+      const authWindow = window.open(
+        url,
+        "pinterest-auth",
+        `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`,
+      )
 
       if (!authWindow) {
         throw new Error("Popup blocked. Please use the direct link below.")
@@ -65,40 +91,50 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
       // Show a toast to guide the user
       toast({
         title: "Pinterest Authentication",
-        description: "Please complete the authentication in the new tab. Return to this page when finished.",
+        description: "Please complete the authentication in the popup window.",
       })
 
       // Start checking for auth completion
       const checkAuthInterval = setInterval(async () => {
         try {
-          const checkResponse = await fetch("/api/pinterest/check-auth")
-          const checkData = await checkResponse.json()
-
-          if (checkData.isAuthenticated) {
+          // Check if the popup is closed
+          if (authWindow.closed) {
             clearInterval(checkAuthInterval)
-            setIsAuthenticating(false)
 
-            if (onSuccess && checkData.accessToken) {
-              onSuccess(checkData.accessToken)
+            // Check if authentication was successful
+            const checkResponse = await fetch("/api/pinterest/check-auth")
+            const checkData = await checkResponse.json()
+
+            if (checkData.isAuthenticated) {
+              if (onSuccess && checkData.accessToken) {
+                onSuccess(checkData.accessToken)
+              }
+
+              toast({
+                title: "Pinterest Connected",
+                description: "Your Pinterest account has been successfully connected.",
+              })
+
+              window.location.reload()
+            } else {
+              setError("Authentication window was closed before completion.")
+              setIsAuthenticating(false)
             }
-
-            toast({
-              title: "Pinterest Connected",
-              description: "Your Pinterest account has been successfully connected.",
-            })
-
-            window.location.reload()
           }
         } catch (error) {
           console.error("Error checking auth status:", error)
         }
-      }, 3000) // Check every 3 seconds
+      }, 1000) // Check every second
 
-      // Clear the interval after 2 minutes (120000ms)
+      // Clear the interval after 5 minutes (300000ms)
       setTimeout(() => {
         clearInterval(checkAuthInterval)
+        if (!authWindow.closed) {
+          authWindow.close()
+        }
         setIsAuthenticating(false)
-      }, 120000)
+        setError("Authentication timed out. Please try again.")
+      }, 300000)
     } catch (error) {
       console.error("Pinterest auth error:", error)
       setError(error instanceof Error ? error.message : "Failed to authenticate with Pinterest")
@@ -115,7 +151,6 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
     <div className="space-y-4">
       {error && (
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Authentication Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -128,7 +163,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
 
       {authUrl && isAuthenticating && (
         <div className="mt-4 text-center">
-          <p className="text-sm text-gray-500 mb-2">If the new tab didn't open, please use this direct link:</p>
+          <p className="text-sm text-gray-500 mb-2">If the popup didn't open, please use this direct link:</p>
           <a
             href={authUrl}
             target="_blank"

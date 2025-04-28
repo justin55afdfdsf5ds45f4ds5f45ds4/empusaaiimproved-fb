@@ -48,7 +48,7 @@ export async function GET() {
     url.searchParams.append("scope", "boards:read,pins:read,pins:write")
     url.searchParams.append("state", state)
 
-    console.log("Generated Pinterest OAuth URL:", url.toString())
+    console.log("Generated Pinterest OAuth URL (without sensitive data)")
 
     // Set a cookie with the state
     const response = NextResponse.json({ url: url.toString() })
