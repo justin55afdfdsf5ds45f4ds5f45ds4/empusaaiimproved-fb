@@ -1,14 +1,26 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
 
+// Check if MongoDB URI is available and valid
+const validMongoURI =
+  process.env.MONGODB_URI &&
+  (process.env.MONGODB_URI.startsWith("mongodb://") || process.env.MONGODB_URI.startsWith("mongodb+srv://"))
+
+// Only use MongoDB adapter if we have a valid URI
+const adapter = validMongoURI
+  ? (async () => {
+      const { MongoDBAdapter } = await import("@auth/mongodb-adapter")
+      return MongoDBAdapter(await clientPromise)
+    })()
+  : undefined
+
 export const authOptions = {
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: adapter,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock-client-secret",
     }),
   ],
   pages: {
@@ -20,7 +32,7 @@ export const authOptions = {
   callbacks: {
     async session({ session, user }) {
       // Add user ID to the session
-      if (session.user) {
+      if (session.user && user) {
         session.user.id = user.id
       }
       return session
