@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (accessToken) {
       return NextResponse.json({
         isAuthenticated: true,
-        accessToken,
+        accessToken: accessToken.substring(0, 5) + "...", // Only return a hint of the token for security
       })
     } else {
       return NextResponse.json({ isAuthenticated: false })

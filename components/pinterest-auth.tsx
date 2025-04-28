@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { PinIcon, ExternalLink } from "lucide-react"
@@ -17,7 +17,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
   const [error, setError] = useState<string | null>(null)
 
   // Listen for messages from the popup window
-  useState(() => {
+  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "PINTEREST_AUTH_SUCCESS") {
         if (onSuccess) {
@@ -29,7 +29,41 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
 
     window.addEventListener("message", handleMessage)
     return () => window.removeEventListener("message", handleMessage)
-  })
+  }, [onSuccess])
+
+  // Check if we were redirected with auth=success in the URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const authStatus = urlParams.get("auth")
+
+    if (authStatus === "success") {
+      toast({
+        title: "Pinterest Connected",
+        description: "Your Pinterest account has been successfully connected.",
+      })
+
+      // Remove the auth parameter from the URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete("auth")
+      window.history.replaceState({}, document.title, newUrl.toString())
+
+      if (onSuccess) {
+        onSuccess("success")
+      }
+    } else if (authStatus && authStatus !== "success") {
+      setError(`Authentication failed: ${authStatus}`)
+      toast({
+        title: "Authentication Error",
+        description: `Failed to authenticate with Pinterest: ${authStatus}`,
+        variant: "destructive",
+      })
+
+      // Remove the auth parameter from the URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete("auth")
+      window.history.replaceState({}, document.title, newUrl.toString())
+    }
+  }, [onSuccess])
 
   const handleAuth = async () => {
     setIsAuthenticating(true)
@@ -41,7 +75,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to get authentication URL")
+        throw new Error(errorData.error || errorData.details || "Failed to get authentication URL")
       }
 
       const { url } = await response.json()
@@ -85,7 +119,13 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
       )
 
       if (!authWindow) {
-        throw new Error("Popup blocked. Please use the direct link below.")
+        // If popup is blocked, redirect the current window
+        toast({
+          title: "Popup Blocked",
+          description: "Redirecting to Pinterest authentication page...",
+        })
+        window.location.href = url
+        return
       }
 
       // Show a toast to guide the user
@@ -129,7 +169,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
       // Clear the interval after 5 minutes (300000ms)
       setTimeout(() => {
         clearInterval(checkAuthInterval)
-        if (!authWindow.closed) {
+        if (authWindow && !authWindow.closed) {
           authWindow.close()
         }
         setIsAuthenticating(false)

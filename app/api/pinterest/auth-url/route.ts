@@ -4,7 +4,14 @@ export async function GET() {
   try {
     // Get Pinterest credentials from environment variables
     const appId = process.env.PINTEREST_APP_ID
-    const redirectUri = process.env.PINTEREST_REDIRECT_URI
+
+    // Use the correct redirect URI that matches what's configured in Pinterest
+    // This should be the same as PINTEREST_REDIRECT_URI in your env vars
+    // But we'll default to the path that Pinterest is actually redirecting to
+    const redirectUri =
+      process.env.PINTEREST_REDIRECT_URI || process.env.NEXTAUTH_URL
+        ? `${process.env.NEXTAUTH_URL}/api/auth/callback/pinterest`
+        : "https://your-app-url.com/api/auth/callback/pinterest"
 
     // Log the environment variables for debugging
     console.log("Pinterest credentials:", {
