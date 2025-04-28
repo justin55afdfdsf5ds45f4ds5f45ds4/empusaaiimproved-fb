@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon } from "lucide-react"
+import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon, RefreshCw, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Post {
   id: string
@@ -57,6 +58,7 @@ export function CreatePostContent() {
   const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([])
   const [selectedBoard, setSelectedBoard] = useState<string>("")
   const [isFetchingBoards, setIsFetchingBoards] = useState(false)
+  const [boardFetchError, setBoardFetchError] = useState<string | null>(null)
   const [topic, setTopic] = useState("")
   const [tone, setTone] = useState("informative")
 
@@ -70,33 +72,63 @@ export function CreatePostContent() {
   }, [searchParams])
 
   // Fetch Pinterest boards
-  useEffect(() => {
-    const fetchBoards = async () => {
-      setIsFetchingBoards(true)
-      try {
-        const response = await fetch("/api/pinterest/boards")
-        if (!response.ok) {
-          throw new Error("Failed to fetch boards")
-        }
-        const data = await response.json()
-        setPinterestBoards(data.items || [])
+  const fetchBoards = async () => {
+    setIsFetchingBoards(true)
+    setBoardFetchError(null)
 
-        // Set the first board as default if available
-        if (data.items && data.items.length > 0) {
-          setSelectedBoard(data.items[0].id)
+    try {
+      console.log("Fetching Pinterest boards")
+      const response = await fetch("/api/pinterest/boards")
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("Failed to fetch boards:", errorData)
+
+        // If unauthorized, redirect to auth
+        if (response.status === 401) {
+          toast({
+            title: "Authentication Required",
+            description: "Your Pinterest authentication has expired. Please reconnect your account.",
+            variant: "destructive",
+          })
+
+          // Force re-authentication
+          router.push("/dashboard?reauth=true")
+          return
         }
-      } catch (error) {
-        console.error("Error fetching Pinterest boards:", error)
-        toast({
-          title: "Error",
-          description: "Failed to fetch Pinterest boards. Please reconnect your Pinterest account.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsFetchingBoards(false)
+
+        throw new Error(errorData.error || "Failed to fetch Pinterest boards")
       }
-    }
 
+      const data = await response.json()
+      console.log("Boards fetched:", data)
+
+      if (!data.items || data.items.length === 0) {
+        setBoardFetchError("No Pinterest boards found. Please create a board in your Pinterest account first.")
+        setPinterestBoards([])
+        return
+      }
+
+      setPinterestBoards(data.items || [])
+
+      // Set the first board as default if available
+      if (data.items && data.items.length > 0 && !selectedBoard) {
+        setSelectedBoard(data.items[0].id)
+      }
+    } catch (error) {
+      console.error("Error fetching Pinterest boards:", error)
+      setBoardFetchError(error instanceof Error ? error.message : "Failed to fetch Pinterest boards. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to fetch Pinterest boards. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsFetchingBoards(false)
+    }
+  }
+
+  useEffect(() => {
     fetchBoards()
   }, [])
 
@@ -284,7 +316,15 @@ export function CreatePostContent() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to publish post")
+        const errorData = await response.json().catch(() => ({}))
+
+        // If unauthorized, refresh boards and show error
+        if (response.status === 401) {
+          fetchBoards()
+          throw new Error("Pinterest authentication expired. Please reconnect your account.")
+        }
+
+        throw new Error(errorData.error || "Failed to publish post")
       }
 
       const data = await response.json()
@@ -300,7 +340,7 @@ export function CreatePostContent() {
       console.error("Error publishing post:", error)
       toast({
         title: "Error",
-        description: "Failed to publish post. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -412,33 +452,57 @@ export function CreatePostContent() {
           <CardDescription>Select the Pinterest board where you want to publish your posts</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="board">Select Board</Label>
-            <Select value={selectedBoard} onValueChange={setSelectedBoard} disabled={isFetchingBoards}>
-              <SelectTrigger className={!selectedBoard ? "text-red-500 border-red-500" : ""}>
-                <SelectValue placeholder={isFetchingBoards ? "Loading boards..." : "Select a board"} />
-              </SelectTrigger>
-              <SelectContent>
-                {pinterestBoards.length === 0 ? (
-                  <SelectItem value="no-boards" disabled>
-                    No boards found
-                  </SelectItem>
-                ) : (
-                  pinterestBoards.map((board) => (
-                    <SelectItem key={board.id} value={board.id}>
-                      {board.name}
+          {boardFetchError ? (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error Fetching Boards</AlertTitle>
+              <AlertDescription>{boardFetchError}</AlertDescription>
+              <Button variant="outline" size="sm" className="mt-2" onClick={fetchBoards} disabled={isFetchingBoards}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${isFetchingBoards ? "animate-spin" : ""}`} />
+                Retry
+              </Button>
+            </Alert>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="board">Select Board</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchBoards}
+                  disabled={isFetchingBoards}
+                  className="h-8 px-2 text-xs"
+                >
+                  <RefreshCw className={`mr-1 h-3 w-3 ${isFetchingBoards ? "animate-spin" : ""}`} />
+                  Refresh
+                </Button>
+              </div>
+              <Select value={selectedBoard} onValueChange={setSelectedBoard} disabled={isFetchingBoards}>
+                <SelectTrigger className={!selectedBoard ? "text-red-500 border-red-500" : ""}>
+                  <SelectValue placeholder={isFetchingBoards ? "Loading boards..." : "Select a board"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {pinterestBoards.length === 0 ? (
+                    <SelectItem value="no-boards" disabled>
+                      No boards found
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            {!selectedBoard && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <Info className="h-3 w-3" />
-                You must select a Pinterest board to publish or schedule posts
-              </p>
-            )}
-          </div>
+                  ) : (
+                    pinterestBoards.map((board) => (
+                      <SelectItem key={board.id} value={board.id}>
+                        {board.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {!selectedBoard && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  You must select a Pinterest board to publish or schedule posts
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -562,6 +626,7 @@ export function CreatePostContent() {
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-gray-400 mb-2" />
                       <p className="text-sm font-medium">Click to upload or drag and drop</p>
+
                       <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
                     </div>
                   )}

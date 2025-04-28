@@ -3,12 +3,16 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { PinterestAuth } from "@/components/pinterest-auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { PinIcon, AlertCircle, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function PinterestAuthCheck({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [isChecking, setIsChecking] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -21,6 +25,7 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
         const authStatus = urlParams.get("auth")
 
         if (authStatus === "success") {
+          console.log("Auth success detected in URL")
           setIsAuthenticated(true)
           setIsChecking(false)
 
@@ -28,13 +33,15 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
           const newUrl = new URL(window.location.href)
           newUrl.searchParams.delete("auth")
           window.history.replaceState({}, document.title, newUrl.toString())
-
           return
         }
 
         // Otherwise check with the API
+        console.log("Checking Pinterest auth status")
         const response = await fetch("/api/pinterest/check-auth")
         const data = await response.json()
+
+        console.log("Auth check response:", data)
 
         if (response.ok) {
           setIsAuthenticated(data.isAuthenticated)
@@ -64,6 +71,12 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
     }
   }, [isAuthenticated, isChecking])
 
+  const handleRetry = () => {
+    setIsChecking(true)
+    setError(null)
+    window.location.reload()
+  }
+
   if (isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -89,6 +102,9 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Authentication Error</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
+                <Button variant="outline" size="sm" className="mt-2" onClick={handleRetry}>
+                  Retry
+                </Button>
               </Alert>
             )}
 
