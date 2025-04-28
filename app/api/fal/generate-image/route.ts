@@ -19,10 +19,13 @@ export async function POST(request: NextRequest) {
     const falApiKey = process.env.FAL_AI
 
     if (!falApiKey) {
+      console.error("FAL AI API key is missing")
       return NextResponse.json({ error: "FAL AI API key is missing" }, { status: 500 })
     }
 
     console.log("Generating image with FAL AI...")
+    console.log("Prompt:", prompt.substring(0, 100) + "...")
+    console.log("Reference image:", referenceImageUrl ? "Provided" : "Not provided")
 
     // Prepare the request body
     const requestBody: any = {
@@ -39,28 +42,36 @@ export async function POST(request: NextRequest) {
       requestBody.strength = 0.7 // Control how much influence the reference image has
     }
 
-    // Call FAL AI API to generate an image
-    const response = await fetch("https://api.fal.ai/v1/text-to-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Key ${falApiKey}`,
-      },
-      body: JSON.stringify(requestBody),
-    })
+    try {
+      // Call FAL AI API to generate an image
+      const response = await fetch("https://api.fal.ai/v1/text-to-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Key ${falApiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+      })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error("FAL AI error:", errorData)
-      return NextResponse.json({ error: "Failed to generate image" }, { status: 500 })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("FAL AI error response:", errorData)
+        return NextResponse.json(
+          { error: `Failed to generate image: ${errorData.error || response.statusText}` },
+          { status: response.status },
+        )
+      }
+
+      const data = await response.json()
+      console.log("Image generated successfully")
+
+      return NextResponse.json(data)
+    } catch (error) {
+      console.error("Error calling FAL AI API:", error)
+      return NextResponse.json({ error: "Failed to call image generation API" }, { status: 500 })
     }
-
-    const data = await response.json()
-    console.log("Image generated successfully")
-
-    return NextResponse.json(data)
   } catch (error) {
-    console.error("Error generating image:", error)
+    console.error("Error in image generation route:", error)
     return NextResponse.json({ error: "Failed to generate image" }, { status: 500 })
   }
 }

@@ -76,6 +76,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
   const [topic, setTopic] = useState("")
   const [tone, setTone] = useState("informative")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [generationError, setGenerationError] = useState<string | null>(null)
 
   // Set the initial URL and tab if provided
   useEffect(() => {
@@ -146,6 +147,16 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     fetchBoards()
   }, [])
 
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = (error) => reject(error)
+    })
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
@@ -179,8 +190,13 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       }
 
       // Add reference image if available
-      if (previewUrl) {
-        requestBody.referenceImageUrl = previewUrl
+      if (previewUrl && referenceImage) {
+        try {
+          const base64Image = await fileToBase64(referenceImage)
+          requestBody.referenceImageUrl = base64Image
+        } catch (error) {
+          console.error("Error converting image to base64:", error)
+        }
       }
 
       const response = await fetch("/api/fal/generate-image", {
@@ -192,7 +208,8 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to generate image")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to generate image")
       }
 
       const data = await response.json()
@@ -201,7 +218,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       console.error("Error generating image:", error)
       toast({
         title: "Error",
-        description: "Failed to generate image. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate image. Please try again.",
         variant: "destructive",
       })
       return null
@@ -239,6 +256,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     }
 
     setIsGenerating(true)
+    setGenerationError(null)
 
     try {
       // Prepare the request body
@@ -255,9 +273,19 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       }
 
       // Add reference image if available
-      if (previewUrl) {
-        requestBody.referenceImageUrl = previewUrl
+      if (previewUrl && referenceImage) {
+        try {
+          const base64Image = await fileToBase64(referenceImage)
+          requestBody.referenceImageUrl = base64Image
+        } catch (error) {
+          console.error("Error converting image to base64:", error)
+        }
       }
+
+      console.log("Generating posts with request:", {
+        ...requestBody,
+        referenceImageUrl: requestBody.referenceImageUrl ? "[BASE64_IMAGE]" : undefined,
+      })
 
       // Call the API to generate posts
       const response = await fetch("/api/posts/generate", {
@@ -287,6 +315,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       })
     } catch (error) {
       console.error("Error generating posts:", error)
+      setGenerationError(error instanceof Error ? error.message : "Failed to generate posts. Please try again.")
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to generate posts. Please try again.",
@@ -679,6 +708,14 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
                   )}
                 </div>
               </div>
+
+              {generationError && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{generationError}</AlertDescription>
+                </Alert>
+              )}
 
               <Button
                 className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
