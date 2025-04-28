@@ -1,19 +1,10 @@
 import type { ReactNode } from "react"
-// import { redirect } from "next/navigation"
-// import { getServerSession } from "next-auth/next"
-// import { authOptions } from "../api/auth/[...nextauth]/route"
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
 import { UserNav } from "@/components/dashboard/user-nav"
 import { MobileNav } from "@/components/dashboard/mobile-nav"
 import { PinterestAuthCheck } from "@/components/pinterest-auth-check"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  // Temporarily bypass authentication
-  // const session = await getServerSession(authOptions)
-  // if (!session) {
-  //   redirect("/login")
-  // }
-
   // Mock session data for demonstration
   const mockUser = {
     name: "Demo User",

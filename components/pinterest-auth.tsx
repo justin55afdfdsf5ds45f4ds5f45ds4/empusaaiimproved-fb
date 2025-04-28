@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { PinIcon, ExternalLink } from "lucide-react"
@@ -13,24 +13,8 @@ interface PinterestAuthProps {
 
 export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authUrl, setAuthUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  // Check if user is already authenticated with Pinterest
-  useEffect(() => {
-    const checkPinterestAuth = async () => {
-      try {
-        const response = await fetch("/api/pinterest/check-auth")
-        const data = await response.json()
-        setIsAuthenticated(data.isAuthenticated)
-      } catch (error) {
-        console.error("Error checking Pinterest auth:", error)
-      }
-    }
-
-    checkPinterestAuth()
-  }, [])
 
   const handleAuth = async () => {
     setIsAuthenticating(true)
@@ -75,7 +59,6 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
 
           if (checkData.isAuthenticated) {
             clearInterval(checkAuthInterval)
-            setIsAuthenticated(true)
             setIsAuthenticating(false)
 
             if (onSuccess && checkData.accessToken) {
@@ -118,14 +101,9 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
         </Alert>
       )}
 
-      <Button
-        onClick={handleAuth}
-        disabled={isAuthenticating || isAuthenticated}
-        className={className}
-        variant={isAuthenticated ? "outline" : "default"}
-      >
+      <Button onClick={handleAuth} disabled={isAuthenticating} className={className}>
         <PinIcon className="mr-2 h-4 w-4" />
-        {isAuthenticated ? "Pinterest Connected" : isAuthenticating ? "Connecting..." : "Connect Pinterest"}
+        {isAuthenticating ? "Connecting..." : "Connect Pinterest"}
       </Button>
 
       {authUrl && isAuthenticating && (

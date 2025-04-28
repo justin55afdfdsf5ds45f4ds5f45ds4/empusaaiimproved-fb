@@ -18,8 +18,6 @@ export async function GET() {
       return NextResponse.json({ error: "Pinterest configuration missing" }, { status: 500 })
     }
 
-    console.log("Pinterest OAuth configuration:", { appId, redirectUri })
-
     // Generate a random state to prevent CSRF attacks
     const state = Math.random().toString(36).substring(2, 15)
 
@@ -30,8 +28,6 @@ export async function GET() {
     url.searchParams.append("response_type", "code")
     url.searchParams.append("scope", "boards:read,pins:read,pins:write")
     url.searchParams.append("state", state)
-
-    console.log("Generated Pinterest OAuth URL:", url.toString())
 
     // Set a cookie with the state
     const response = NextResponse.json({ url: url.toString() })
