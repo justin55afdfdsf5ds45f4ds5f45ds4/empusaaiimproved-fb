@@ -1,23 +1,15 @@
-"use client"
-
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
 import { CreatePostContent } from "./create-post-content"
 
-interface Post {
-  id: string
-  title: string
-  description: string
-  imagePrompt?: string
-  imageUrl: string | null
-}
+export default function CreatePostPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined }
+}) {
+  // Extract the URL from search params
+  const urlParam = searchParams?.url as string | undefined
 
-interface PinterestBoard {
-  id: string
-  name: string
-}
-
-export default function CreatePostPage() {
   return (
     <div className="space-y-6">
       <div>
@@ -34,7 +26,7 @@ export default function CreatePostPage() {
           </div>
         }
       >
-        <CreatePostContent />
+        <CreatePostContent initialUrl={urlParam} />
       </Suspense>
     </div>
   )

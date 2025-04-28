@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon, RefreshCw, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -39,10 +39,13 @@ interface PinterestBoard {
   name: string
 }
 
-export function CreatePostContent() {
+interface CreatePostContentProps {
+  initialUrl?: string
+}
+
+export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [url, setUrl] = useState("")
+  const [url, setUrl] = useState(initialUrl || "")
   const [postCount, setPostCount] = useState("10")
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPublishing, setIsPublishing] = useState<string | null>(null)
@@ -62,16 +65,13 @@ export function CreatePostContent() {
   const [topic, setTopic] = useState("")
   const [tone, setTone] = useState("informative")
 
-  // Check if there's a URL in the search params
+  // Set the initial URL and tab if provided
   useEffect(() => {
-    if (!searchParams) return
-
-    const urlParam = searchParams.get("url")
-    if (urlParam) {
-      setUrl(urlParam)
+    if (initialUrl) {
+      setUrl(initialUrl)
       setActiveTab("url")
     }
-  }, [searchParams])
+  }, [initialUrl])
 
   // Fetch Pinterest boards
   const fetchBoards = async () => {

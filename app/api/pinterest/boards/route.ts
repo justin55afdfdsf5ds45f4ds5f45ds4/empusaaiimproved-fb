@@ -1,53 +1,64 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    // Get the Pinterest access token from cookies
-    const cookieStore = cookies()
-    const pinterestToken = cookieStore.get("pinterest_token")?.value
+    console.log("Fetching Pinterest boards")
 
-    if (!pinterestToken) {
-      console.error("Pinterest token not found in cookies")
-      return NextResponse.json(
-        { error: "Pinterest authentication required. Please connect your Pinterest account." },
-        { status: 401 },
-      )
+    // Get the access token from cookies
+    const accessToken = request.cookies.get("pinterest_access_token")?.value
+
+    // For development mode, return mock boards if no token or in development
+    if (process.env.NODE_ENV === "development" && (!accessToken || accessToken === "mock-access-token")) {
+      console.log("Using mock boards in development mode")
+      return NextResponse.json({
+        items: [
+          { id: "mock-board-1", name: "Home Decor Ideas" },
+          { id: "mock-board-2", name: "Travel Inspiration" },
+          { id: "mock-board-3", name: "Recipes to Try" },
+        ],
+      })
     }
 
-    // Fetch the user's boards from Pinterest API
-    const response = await fetch("https://api.pinterest.com/v5/boards", {
+    if (!accessToken) {
+      console.error("No Pinterest access token found")
+      return NextResponse.json({ error: "Not authenticated with Pinterest" }, { status: 401 })
+    }
+
+    console.log("Fetching boards with access token")
+
+    // Get the user's Pinterest boards
+    const boardsResponse = await fetch("https://api.pinterest.com/v5/boards", {
       headers: {
-        Authorization: `Bearer ${pinterestToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
-      method: "GET",
     })
 
-    if (!response.ok) {
-      console.error("Failed to fetch Pinterest boards:", response.status, response.statusText)
+    if (!boardsResponse.ok) {
+      const errorData = await boardsResponse.json().catch(() => ({}))
+      console.error("Pinterest boards error:", errorData)
 
-      // If the token is invalid or expired
-      if (response.status === 401) {
-        return NextResponse.json(
-          { error: "Pinterest authentication expired. Please reconnect your Pinterest account." },
-          { status: 401 },
-        )
+      // If token is expired or invalid, clear it
+      if (boardsResponse.status === 401) {
+        const response = NextResponse.json({ error: "Pinterest authentication expired" }, { status: 401 })
+        response.cookies.set("pinterest_access_token", "", { maxAge: 0, path: "/" })
+        return response
       }
 
-      return NextResponse.json(
-        { error: `Failed to fetch Pinterest boards: ${response.statusText}` },
-        { status: response.status },
-      )
+      return NextResponse.json({ error: "Failed to fetch boards", details: errorData }, { status: 500 })
     }
 
-    const data = await response.json()
+    const boardsData = await boardsResponse.json()
+    console.log(`Successfully fetched ${boardsData.items?.length || 0} Pinterest boards`)
 
-    // Log the response for debugging
-    console.log("Pinterest boards response:", JSON.stringify(data))
-
-    return NextResponse.json(data)
+    return NextResponse.json(boardsData)
   } catch (error) {
     console.error("Error fetching Pinterest boards:", error)
-    return NextResponse.json({ error: "Failed to fetch Pinterest boards. Please try again." }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to fetch boards",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
   }
 }
