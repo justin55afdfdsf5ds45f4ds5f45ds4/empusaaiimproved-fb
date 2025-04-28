@@ -1,17 +1,6 @@
 import type { ReactNode } from "react"
-import { DashboardNav } from "@/components/dashboard/dashboard-nav"
-import { UserNav } from "@/components/dashboard/user-nav"
-import { MobileNav } from "@/components/dashboard/mobile-nav"
-import { PinterestAuthCheck } from "@/components/pinterest-auth-check"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  // Mock session data for demonstration
-  const mockUser = {
-    name: "Demo User",
-    email: "demo@example.com",
-    image: "/vibrant-street-market.png",
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
@@ -26,19 +15,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
               <span className="ml-2 font-bold text-xl">Empusa AI</span>
             </div>
-            <MobileNav />
-          </div>
-          <div className="flex items-center gap-4">
-            <UserNav user={mockUser} />
           </div>
         </div>
       </header>
-      <PinterestAuthCheck>
-        <div className="flex flex-1">
-          <DashboardNav />
-          <main className="flex-1 p-6 bg-gray-50">{children}</main>
+      <div className="flex flex-1">
+        <div className="hidden md:block w-64 border-r bg-white p-6">
+          <nav className="space-y-2">
+            <a
+              href="/dashboard"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-gray-500 hover:bg-gray-100"
+            >
+              Dashboard
+            </a>
+            <a
+              href="/dashboard/create"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 bg-gray-100 text-gray-900 font-medium"
+            >
+              Create Posts
+            </a>
+            <a
+              href="/dashboard/posts"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-gray-500 hover:bg-gray-100"
+            >
+              My Posts
+            </a>
+            <a
+              href="/dashboard/settings"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-gray-500 hover:bg-gray-100"
+            >
+              Settings
+            </a>
+          </nav>
         </div>
-      </PinterestAuthCheck>
+        <main className="flex-1 p-6 bg-gray-50">{children}</main>
+      </div>
     </div>
   )
 }

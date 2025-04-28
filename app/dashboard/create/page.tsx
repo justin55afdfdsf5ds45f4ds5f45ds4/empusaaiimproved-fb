@@ -1,15 +1,4 @@
-import { Suspense } from "react"
-import { Loader2 } from "lucide-react"
-import { CreatePostForm } from "./create-post-form"
-
-export default function CreatePostPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined }
-}) {
-  // Extract the URL from search params
-  const urlParam = searchParams?.url as string | undefined
-
+export default function CreatePostPage() {
   return (
     <div className="space-y-6">
       <div>
@@ -19,15 +8,11 @@ export default function CreatePostPage({
         </p>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center p-12">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          </div>
-        }
-      >
-        <CreatePostForm initialUrl={urlParam} />
-      </Suspense>
+      <div className="p-8 border rounded-lg bg-white">
+        <p className="text-center text-gray-500">
+          This page is temporarily unavailable while we resolve some technical issues. Please check back later.
+        </p>
+      </div>
     </div>
   )
 }

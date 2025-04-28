@@ -1,137 +1,55 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { PinterestAuth } from "@/components/pinterest-auth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { PinIcon, AlertCircle, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
-export function PinterestAuthCheck({ children }: { children: React.ReactNode }) {
+export function PinterestAuthCheck({ children }: { children: ReactNode }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isChecking, setIsChecking] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const checkPinterestAuth = async () => {
+    async function checkAuth() {
       try {
-        // Check if we have a success parameter in the URL
-        const urlParams = new URLSearchParams(window.location.search)
-        const authStatus = urlParams.get("auth")
-
-        if (authStatus === "success") {
-          console.log("Auth success detected in URL")
-          setIsAuthenticated(true)
-          setIsChecking(false)
-
-          // Clean up the URL
-          const newUrl = new URL(window.location.href)
-          newUrl.searchParams.delete("auth")
-          window.history.replaceState({}, document.title, newUrl.toString())
-          return
-        }
-
-        // Otherwise check with the API
-        console.log("Checking Pinterest auth status")
         const response = await fetch("/api/pinterest/check-auth")
         const data = await response.json()
 
-        console.log("Auth check response:", data)
-
-        if (response.ok) {
-          setIsAuthenticated(data.isAuthenticated)
-        } else {
-          console.error("Error response from check-auth:", data)
-          setError(data.error || data.details || "Failed to check authentication status")
-        }
+        setIsAuthenticated(data.authenticated)
       } catch (error) {
         console.error("Error checking Pinterest auth:", error)
-        setError("Failed to check authentication status. Please try again.")
+        setIsAuthenticated(false)
       } finally {
-        setIsChecking(false)
+        setIsLoading(false)
       }
     }
 
-    checkPinterestAuth()
+    checkAuth()
   }, [])
 
-  // For development mode, allow bypassing authentication check
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development" && !isAuthenticated && !isChecking) {
-      const devBypass = localStorage.getItem("dev_bypass_pinterest_auth")
-      if (devBypass === "true") {
-        console.log("Development mode: Bypassing Pinterest authentication check")
-        setIsAuthenticated(true)
-      }
-    }
-  }, [isAuthenticated, isChecking])
-
-  const handleRetry = () => {
-    setIsChecking(true)
-    setError(null)
-    window.location.reload()
-  }
-
-  if (isChecking) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-teal-600" />
+      <div className="flex flex-1 items-center justify-center p-6">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500">Checking authentication...</p>
+        </div>
       </div>
     )
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PinIcon className="h-5 w-5 text-red-600" />
-              Connect Pinterest
-            </CardTitle>
-            <CardDescription>You need to connect your Pinterest account to use Empusa AI.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Authentication Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-                <Button variant="outline" size="sm" className="mt-2" onClick={handleRetry}>
-                  Retry
-                </Button>
-              </Alert>
-            )}
-
-            <p className="mb-6 text-center">
-              Empusa AI needs access to your Pinterest account to create and publish pins on your behalf.
-            </p>
-
-            <PinterestAuth
-              onSuccess={() => {
-                setIsAuthenticated(true)
-              }}
-              className="w-full"
-            />
-
-            {process.env.NODE_ENV === "development" && (
-              <button
-                className="mt-4 text-xs text-gray-400 hover:text-gray-600"
-                onClick={() => {
-                  localStorage.setItem("dev_bypass_pinterest_auth", "true")
-                  setIsAuthenticated(true)
-                }}
-              >
-                [DEV] Bypass authentication
-              </button>
-            )}
-          </CardContent>
-        </Card>
+      <div className="flex flex-1 items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <h2 className="text-2xl font-bold mb-4">Pinterest Authentication Required</h2>
+          <p className="mb-6 text-gray-500">You need to connect your Pinterest account to use this feature.</p>
+          <button
+            onClick={() => router.push("/api/pinterest/direct-auth")}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Connect Pinterest Account
+          </button>
+        </div>
       </div>
     )
   }
