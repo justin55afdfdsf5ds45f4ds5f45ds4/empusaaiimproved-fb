@@ -96,23 +96,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       const response = await fetch("/api/pinterest/boards")
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("Failed to fetch boards:", errorData)
-
-        // If unauthorized, redirect to auth
-        if (response.status === 401) {
-          toast({
-            title: "Authentication Required",
-            description: "Your Pinterest authentication has expired. Please reconnect your account.",
-            variant: "destructive",
-          })
-
-          // Force re-authentication
-          router.push("/dashboard?reauth=true")
-          return
-        }
-
-        throw new Error(errorData.error || "Failed to fetch Pinterest boards")
+        throw new Error("Failed to fetch Pinterest boards")
       }
 
       const data = await response.json()
@@ -132,12 +116,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       }
     } catch (error) {
       console.error("Error fetching Pinterest boards:", error)
-      setBoardFetchError(error instanceof Error ? error.message : "Failed to fetch Pinterest boards. Please try again.")
-      toast({
-        title: "Error",
-        description: "Failed to fetch Pinterest boards. Please try again.",
-        variant: "destructive",
-      })
+      setBoardFetchError("Failed to fetch Pinterest boards. Please try again.")
     } finally {
       setIsFetchingBoards(false)
     }
@@ -174,22 +153,16 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     setIsGeneratingImage(post.id)
 
     try {
-      // Prepare the request body
-      const requestBody: any = {
-        prompt: post.imagePrompt,
-      }
-
       const response = await fetch("/api/fal/generate-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ prompt: post.imagePrompt }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to generate image")
+        throw new Error("Failed to generate image")
       }
 
       const data = await response.json()
@@ -198,7 +171,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       console.error("Error generating image:", error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate image. Please try again.",
+        description: "Failed to generate image. Please try again.",
         variant: "destructive",
       })
       return null
@@ -208,24 +181,6 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
   }
 
   const handleGenerate = async () => {
-    if (activeTab === "url" && !url) {
-      toast({
-        title: "URL Required",
-        description: "Please enter a URL to generate Pinterest posts.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (activeTab === "scratch" && !topic) {
-      toast({
-        title: "Topic Required",
-        description: "Please enter a topic or keywords to generate Pinterest posts.",
-        variant: "destructive",
-      })
-      return
-    }
-
     if (!selectedBoard) {
       toast({
         title: "Board Required",
@@ -239,33 +194,17 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
     setGenerationError(null)
 
     try {
-      // Prepare the request body
-      const requestBody: any = {
-        count: Number.parseInt(postCount),
-      }
-
-      // Add URL or topic based on active tab
-      if (activeTab === "url") {
-        requestBody.url = url
-      } else {
-        requestBody.topic = topic
-        requestBody.tone = tone
-      }
-
-      console.log("Generating posts with request:", requestBody)
-
-      // Call the API to generate posts
+      // Simplified API call with minimal data
       const response = await fetch("/api/posts/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ url, topic, count: Number.parseInt(postCount) }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to generate posts")
+        throw new Error("Failed to generate posts")
       }
 
       const data = await response.json()
@@ -282,10 +221,10 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       })
     } catch (error) {
       console.error("Error generating posts:", error)
-      setGenerationError(error instanceof Error ? error.message : "Failed to generate posts. Please try again.")
+      setGenerationError("Failed to generate posts. Please try again.")
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate posts. Please try again.",
+        description: "Failed to generate posts. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -353,18 +292,8 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-
-        // If unauthorized, refresh boards and show error
-        if (response.status === 401) {
-          fetchBoards()
-          throw new Error("Pinterest authentication expired. Please reconnect your account.")
-        }
-
-        throw new Error(errorData.error || "Failed to publish post")
+        throw new Error("Failed to publish post")
       }
-
-      const data = await response.json()
 
       toast({
         title: "Post Published",
@@ -377,7 +306,7 @@ export function CreatePostForm({ initialUrl }: CreatePostFormProps) {
       console.error("Error publishing post:", error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
+        description: "Failed to publish post. Please try again.",
         variant: "destructive",
       })
     } finally {
