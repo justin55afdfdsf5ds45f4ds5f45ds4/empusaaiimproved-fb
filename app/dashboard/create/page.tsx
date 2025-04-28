@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon } from "lucide-react"
 
@@ -38,7 +38,8 @@ interface PinterestBoard {
   name: string
 }
 
-export default function CreatePostPage() {
+// Create a separate component that uses useSearchParams
+function CreatePostContent() {
   const router = useRouter()
   const [url, setUrl] = useState("")
   const [postCount, setPostCount] = useState("10")
@@ -716,5 +717,20 @@ export default function CreatePostPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+// Main component that wraps the content in a Suspense boundary
+export default function CreatePostPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+        </div>
+      }
+    >
+      <CreatePostContent />
+    </Suspense>
   )
 }
