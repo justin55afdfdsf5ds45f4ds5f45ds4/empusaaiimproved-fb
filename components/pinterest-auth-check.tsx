@@ -16,14 +16,28 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const checkPinterestAuth = async () => {
       try {
+        // Check if we have a success parameter in the URL
+        const urlParams = new URLSearchParams(window.location.search)
+        const authStatus = urlParams.get("auth")
+
+        if (authStatus === "success") {
+          setIsAuthenticated(true)
+          setIsChecking(false)
+
+          // Clean up the URL
+          const newUrl = new URL(window.location.href)
+          newUrl.searchParams.delete("auth")
+          window.history.replaceState({}, document.title, newUrl.toString())
+
+          return
+        }
+
+        // Otherwise check with the API
         const response = await fetch("/api/pinterest/check-auth")
         const data = await response.json()
 
         if (response.ok) {
           setIsAuthenticated(data.isAuthenticated)
-          if (!data.isAuthenticated) {
-            console.log("Not authenticated with Pinterest")
-          }
         } else {
           console.error("Error response from check-auth:", data)
           setError(data.error || data.details || "Failed to check authentication status")
@@ -38,6 +52,17 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
 
     checkPinterestAuth()
   }, [])
+
+  // For development mode, allow bypassing authentication check
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development" && !isAuthenticated && !isChecking) {
+      const devBypass = localStorage.getItem("dev_bypass_pinterest_auth")
+      if (devBypass === "true") {
+        console.log("Development mode: Bypassing Pinterest authentication check")
+        setIsAuthenticated(true)
+      }
+    }
+  }, [isAuthenticated, isChecking])
 
   if (isChecking) {
     return (
@@ -77,6 +102,18 @@ export function PinterestAuthCheck({ children }: { children: React.ReactNode }) 
               }}
               className="w-full"
             />
+
+            {process.env.NODE_ENV === "development" && (
+              <button
+                className="mt-4 text-xs text-gray-400 hover:text-gray-600"
+                onClick={() => {
+                  localStorage.setItem("dev_bypass_pinterest_auth", "true")
+                  setIsAuthenticated(true)
+                }}
+              >
+                [DEV] Bypass authentication
+              </button>
+            )}
           </CardContent>
         </Card>
       </div>

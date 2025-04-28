@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { PinIcon, ExternalLink } from "lucide-react"
@@ -16,55 +16,6 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
   const [authUrl, setAuthUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Listen for messages from the popup window
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === "PINTEREST_AUTH_SUCCESS") {
-        if (onSuccess) {
-          onSuccess("success")
-        }
-        window.location.reload()
-      }
-    }
-
-    window.addEventListener("message", handleMessage)
-    return () => window.removeEventListener("message", handleMessage)
-  }, [onSuccess])
-
-  // Check if we were redirected with auth=success in the URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const authStatus = urlParams.get("auth")
-
-    if (authStatus === "success") {
-      toast({
-        title: "Pinterest Connected",
-        description: "Your Pinterest account has been successfully connected.",
-      })
-
-      // Remove the auth parameter from the URL
-      const newUrl = new URL(window.location.href)
-      newUrl.searchParams.delete("auth")
-      window.history.replaceState({}, document.title, newUrl.toString())
-
-      if (onSuccess) {
-        onSuccess("success")
-      }
-    } else if (authStatus && authStatus !== "success") {
-      setError(`Authentication failed: ${authStatus}`)
-      toast({
-        title: "Authentication Error",
-        description: `Failed to authenticate with Pinterest: ${authStatus}`,
-        variant: "destructive",
-      })
-
-      // Remove the auth parameter from the URL
-      const newUrl = new URL(window.location.href)
-      newUrl.searchParams.delete("auth")
-      window.history.replaceState({}, document.title, newUrl.toString())
-    }
-  }, [onSuccess])
-
   const handleAuth = async () => {
     setIsAuthenticating(true)
     setError(null)
@@ -75,7 +26,7 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || errorData.details || "Failed to get authentication URL")
+        throw new Error(errorData.error || "Failed to get authentication URL")
       }
 
       const { url } = await response.json()
@@ -106,75 +57,15 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
         return
       }
 
-      // Open Pinterest auth in a popup window
-      const width = 600
-      const height = 700
-      const left = window.innerWidth / 2 - width / 2
-      const top = window.innerHeight / 2 - height / 2
-
-      const authWindow = window.open(
-        url,
-        "pinterest-auth",
-        `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`,
-      )
-
-      if (!authWindow) {
-        // If popup is blocked, redirect the current window
-        toast({
-          title: "Popup Blocked",
-          description: "Redirecting to Pinterest authentication page...",
-        })
-        window.location.href = url
-        return
-      }
-
-      // Show a toast to guide the user
+      // Direct approach: Just redirect to the Pinterest auth URL
+      // This is simpler and more reliable than using popups
       toast({
         title: "Pinterest Authentication",
-        description: "Please complete the authentication in the popup window.",
+        description: "Redirecting to Pinterest for authentication...",
       })
 
-      // Start checking for auth completion
-      const checkAuthInterval = setInterval(async () => {
-        try {
-          // Check if the popup is closed
-          if (authWindow.closed) {
-            clearInterval(checkAuthInterval)
-
-            // Check if authentication was successful
-            const checkResponse = await fetch("/api/pinterest/check-auth")
-            const checkData = await checkResponse.json()
-
-            if (checkData.isAuthenticated) {
-              if (onSuccess && checkData.accessToken) {
-                onSuccess(checkData.accessToken)
-              }
-
-              toast({
-                title: "Pinterest Connected",
-                description: "Your Pinterest account has been successfully connected.",
-              })
-
-              window.location.reload()
-            } else {
-              setError("Authentication window was closed before completion.")
-              setIsAuthenticating(false)
-            }
-          }
-        } catch (error) {
-          console.error("Error checking auth status:", error)
-        }
-      }, 1000) // Check every second
-
-      // Clear the interval after 5 minutes (300000ms)
-      setTimeout(() => {
-        clearInterval(checkAuthInterval)
-        if (authWindow && !authWindow.closed) {
-          authWindow.close()
-        }
-        setIsAuthenticating(false)
-        setError("Authentication timed out. Please try again.")
-      }, 300000)
+      // Redirect to Pinterest auth page
+      window.location.href = url
     } catch (error) {
       console.error("Pinterest auth error:", error)
       setError(error instanceof Error ? error.message : "Failed to authenticate with Pinterest")
@@ -203,13 +94,10 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
 
       {authUrl && isAuthenticating && (
         <div className="mt-4 text-center">
-          <p className="text-sm text-gray-500 mb-2">If the popup didn't open, please use this direct link:</p>
-          <a
-            href={authUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-teal-600 hover:text-teal-700 text-sm"
-          >
+          <p className="text-sm text-gray-500 mb-2">
+            If you're not redirected automatically, please use this direct link:
+          </p>
+          <a href={authUrl} className="inline-flex items-center text-teal-600 hover:text-teal-700 text-sm">
             Authenticate with Pinterest
             <ExternalLink className="ml-1 h-3 w-3" />
           </a>
