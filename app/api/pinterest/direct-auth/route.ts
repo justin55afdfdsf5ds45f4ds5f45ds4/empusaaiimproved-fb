@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const appSecret = process.env.PINTEREST_APP_SECRET
     const redirectUri =
       process.env.PINTEREST_REDIRECT_URI ||
-      (process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/pinterest` : null)
+      (process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/pinterest-callback` : null)
 
     if (!appId || !appSecret || !redirectUri) {
       console.error("Pinterest credentials missing:", {
@@ -112,7 +112,6 @@ export async function POST(request: NextRequest) {
         secure: process.env.NODE_ENV === "production",
         maxAge: expires_in,
         path: "/",
-        sameSite: "lax",
       })
 
       if (refresh_token) {

@@ -1,58 +1,116 @@
 "use client"
 
-import { useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PinIcon, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-export default function PinterestCallback() {
+export default function PinterestCallbackPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
+  const [message, setMessage] = useState("Processing authentication...")
 
   useEffect(() => {
-    // Get the code and state from the URL
-    const code = searchParams.get("code")
-    const state = searchParams.get("state")
+    const handleAuth = async () => {
+      try {
+        const code = searchParams.get("code")
+        const state = searchParams.get("state")
+        const error = searchParams.get("error")
 
-    if (code && state) {
-      // Call the callback API
-      fetch(`/api/pinterest/callback?code=${code}&state=${state}`)
-        .then((response) => {
-          if (response.ok) {
-            // Show success message
-            document.getElementById("status")!.textContent = "Authentication successful! You can close this window."
-            document.getElementById("status")!.className = "text-green-600"
+        if (error) {
+          setStatus("error")
+          setMessage(`Authentication failed: ${error}`)
+          return
+        }
 
-            // Close the window after 3 seconds
-            setTimeout(() => {
-              window.close()
-            }, 3000)
-          } else {
-            // Show error message
-            document.getElementById("status")!.textContent = "Authentication failed. Please try again."
-            document.getElementById("status")!.className = "text-red-600"
-          }
+        if (!code) {
+          setStatus("error")
+          setMessage("No authorization code received from Pinterest")
+          return
+        }
+
+        // Create a simple form data object to send to our API
+        const formData = new FormData()
+        if (code) formData.append("code", code)
+        if (state) formData.append("state", state)
+
+        // Process the authentication directly
+        const response = await fetch("/api/pinterest/direct-auth", {
+          method: "POST",
+          body: formData,
         })
-        .catch((error) => {
-          console.error("Error during callback:", error)
-          document.getElementById("status")!.textContent = "Authentication error. Please try again."
-          document.getElementById("status")!.className = "text-red-600"
-        })
-    } else {
-      document.getElementById("status")!.textContent = "Invalid callback parameters. Please try again."
-      document.getElementById("status")!.className = "text-red-600"
+
+        const data = await response.json()
+
+        if (response.ok && data.success) {
+          setStatus("success")
+          setMessage("Authentication successful! Redirecting to dashboard...")
+
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            router.push("/dashboard")
+          }, 1500)
+        } else {
+          setStatus("error")
+          setMessage(data.message || "Authentication failed. Please try again.")
+        }
+      } catch (error) {
+        console.error("Error processing Pinterest callback:", error)
+        setStatus("error")
+        setMessage("An unexpected error occurred. Please try again.")
+      }
     }
-  }, [searchParams])
+
+    handleAuth()
+  }, [searchParams, router])
+
+  const handleManualRedirect = () => {
+    router.push("/dashboard")
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
-        <h1 className="text-2xl font-bold mb-4">Pinterest Authentication</h1>
-        <div className="mb-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600 mx-auto"></div>
-        </div>
-        <p id="status" className="text-gray-600">
-          Processing authentication...
-        </p>
-        <p className="text-sm text-gray-500 mt-4">This window will close automatically when complete.</p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PinIcon className="h-5 w-5 text-red-600" />
+            Pinterest Authentication
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center text-center">
+          {status === "loading" && <Loader2 className="h-12 w-12 animate-spin text-teal-600 mb-4" />}
+
+          {status === "success" && <CheckCircle className="h-12 w-12 text-green-500 mb-4" />}
+
+          {status === "error" && <XCircle className="h-12 w-12 text-red-500 mb-4" />}
+
+          <p
+            className={`text-lg ${
+              status === "success" ? "text-green-600" : status === "error" ? "text-red-600" : "text-gray-600"
+            }`}
+          >
+            {message}
+          </p>
+
+          {status === "success" && (
+            <p className="text-sm text-gray-500 mt-4">
+              You will be redirected automatically. If not, click the button below.
+            </p>
+          )}
+
+          {status === "error" && (
+            <p className="text-sm text-gray-500 mt-4">
+              Please try again or click the button below to go to the dashboard.
+            </p>
+          )}
+
+          <Button onClick={handleManualRedirect} className="mt-6 bg-teal-600 hover:bg-teal-700">
+            Go to Dashboard
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }
