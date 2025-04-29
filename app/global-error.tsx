@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 
 export default function GlobalError({
@@ -9,17 +10,19 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
   return (
     <html>
       <body>
         <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-          <div className="max-w-md space-y-4">
-            <h1 className="text-3xl font-bold">Something went wrong!</h1>
-            <p className="text-gray-500">We apologize for the inconvenience. An unexpected error has occurred.</p>
-            <div className="pt-4">
-              <Button onClick={() => reset()}>Try again</Button>
-            </div>
-          </div>
+          <h1 className="text-4xl font-bold">Something went wrong</h1>
+          <p className="mt-4 text-lg text-gray-600">We apologize for the inconvenience. Please try again later.</p>
+          <Button onClick={reset} className="mt-6">
+            Try again
+          </Button>
         </div>
       </body>
     </html>

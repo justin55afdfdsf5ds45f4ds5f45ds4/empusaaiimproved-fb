@@ -2,9 +2,10 @@
 
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle, RefreshCw } from "lucide-react"
 
-export default function CreatePostError({
+export default function CreateError({
   error,
   reset,
 }: {
@@ -12,24 +13,22 @@ export default function CreatePostError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error("Create Post Error:", error)
+    console.error(error)
   }, [error])
 
   return (
-    <div className="flex flex-col items-center justify-center p-12 space-y-4 text-center">
-      <AlertCircle className="h-12 w-12 text-red-500" />
-      <h2 className="text-2xl font-bold">Something went wrong!</h2>
-      <p className="text-gray-500 max-w-md">
-        We encountered an error while loading the create post page. Please try again or contact support if the problem
-        persists.
-      </p>
-      <div className="flex gap-4">
-        <Button onClick={() => reset()}>Try again</Button>
-        <Button variant="outline" onClick={() => (window.location.href = "/dashboard")}>
-          Return to Dashboard
-        </Button>
-      </div>
+    <div className="p-6">
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error Generating Posts</AlertTitle>
+        <AlertDescription>
+          {error.message || "An unexpected error occurred while generating posts. Please try again."}
+        </AlertDescription>
+      </Alert>
+      <Button onClick={reset} variant="outline" className="flex items-center gap-2">
+        <RefreshCw className="h-4 w-4" />
+        Try again
+      </Button>
     </div>
   )
 }
