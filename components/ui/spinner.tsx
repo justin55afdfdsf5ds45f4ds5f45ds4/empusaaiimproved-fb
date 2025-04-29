@@ -1,5 +1,7 @@
-import { Loader2 } from "lucide-react"
-
 export function Spinner() {
-  return <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+  return (
+    <div className="flex justify-center items-center p-4">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
+    </div>
+  )
 }

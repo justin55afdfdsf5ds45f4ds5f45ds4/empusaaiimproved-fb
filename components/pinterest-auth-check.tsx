@@ -1,10 +1,10 @@
-"use client"
+"use client" // Added use client directive
 
 import type React from "react"
 
 import { useSession } from "next-auth/react"
 import { PinterestAuth } from "./pinterest-auth"
-import { Loader2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 interface PinterestAuthCheckProps {
   children: React.ReactNode
@@ -14,17 +14,22 @@ export function PinterestAuthCheck({ children }: PinterestAuthCheckProps) {
   const { data: session, status } = useSession()
 
   if (status === "loading") {
-    return (
-      <div className="flex justify-center items-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-      </div>
-    )
+    return <Spinner />
   }
 
-  if (!session?.user?.id) {
+  if (!session) {
+    return <Spinner />
+  }
+
+  // Check if user has Pinterest connected
+  // The session.user.id will now be available from the token.sub
+  if (!session.user?.id) {
     return (
-      <div className="flex flex-col items-center justify-center p-6 space-y-4 border rounded-lg bg-gray-50">
-        <p className="text-center text-gray-600">Please connect your Pinterest account to continue.</p>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h2 className="text-2xl font-bold mb-4">Connect Pinterest</h2>
+        <p className="text-gray-600 mb-6 text-center">
+          To create and publish Pinterest posts, you need to connect your Pinterest account.
+        </p>
         <PinterestAuth />
       </div>
     )

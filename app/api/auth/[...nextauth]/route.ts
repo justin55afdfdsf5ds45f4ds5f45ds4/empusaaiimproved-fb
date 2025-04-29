@@ -31,23 +31,23 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.PINTEREST_APP_SECRET!,
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
   adapter: MongoDBAdapter(clientPromise),
   session: { strategy: "jwt" },
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub // <-- required for Pinterest button query
+        session.user.id = token.sub // Copy token.sub to session.user.id
       }
       return session
     },
     async redirect({ baseUrl }) {
-      return `${baseUrl}/dashboard` // always land on dashboard
+      return `${baseUrl}/dashboard` // Always redirect to dashboard
     },
   },
   pages: {
     signIn: "/login",
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }
 
 const handler = NextAuth(authOptions)

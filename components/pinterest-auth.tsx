@@ -1,4 +1,4 @@
-"use client"
+"use client" // Added use client directive
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
