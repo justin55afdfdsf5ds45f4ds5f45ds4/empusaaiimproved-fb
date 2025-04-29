@@ -5,13 +5,6 @@ import { UserNav } from "@/components/dashboard/user-nav"
 import { PinterestAuthCheck } from "@/components/pinterest-auth-check"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  // Mock session data for demonstration
-  const mockUser = {
-    name: "Demo User",
-    email: "demo@example.com",
-    image: "/vibrant-street-market.png",
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
@@ -42,7 +35,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <UserNav user={mockUser} />
+            <UserNav />
           </div>
         </div>
       </header>

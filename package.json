@@ -67,10 +67,12 @@
     "@mongodb-js/zstd": "latest",
     "mongodb-client-encryption": "latest",
     "@aws-sdk/credential-providers": "latest",
-    "next-auth": "latest",
-    "mongoose": "latest",
     "mongodb": "latest",
-    "uuid": "latest"
+    "mongoose": "latest",
+    "next-auth": "latest",
+    "uuid": "latest",
+    "@auth/mongodb-adapter": "latest",
+    "bcryptjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

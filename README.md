@@ -14,7 +14,7 @@ This application requires the following environment variables:
 - `NEXTAUTH_SECRET`: A secret string used to encrypt session cookies
 - `FALAI_API_KEY`: Fal.ai API key for image generation
 - `FALAI_MODEL_ID`: Fal.ai model ID for image generation (defaults to "stable-diffusion-xl-v1-0" if not provided)
-- `MONGODB_URI`: MongoDB connection string (optional)
+- `MONGODB_URI`: MongoDB connection string
 
 ## OAuth Redirect URIs
 
@@ -54,7 +54,3 @@ This application is deployed on Vercel. To deploy your own instance:
 2. Connect it to Vercel
 3. Set up the required environment variables
 4. Deploy
-
-\`\`\`
-
-Let's check if there are any other files that might be using the old FAL_AI environment variable:

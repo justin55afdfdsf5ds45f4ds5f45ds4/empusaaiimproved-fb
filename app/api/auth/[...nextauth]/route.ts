@@ -1,6 +1,8 @@
-import NextAuth from "next-auth"
+import NextAuth, { type NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import PinterestProvider from "next-auth/providers/pinterest"
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
+import clientPromise from "@/lib/mongodb"
 
 // Check required environment variables
 const requiredEnvVars = [
@@ -18,7 +20,9 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise),
+  session: { strategy: "database" },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -43,10 +47,11 @@ export const authOptions = {
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, user }) {
       // Send properties to the client
-      session.accessToken = token.accessToken
-      session.provider = token.provider
+      if (session.user) {
+        session.user.id = user.id
+      }
       return session
     },
     async redirect({ url, baseUrl }) {

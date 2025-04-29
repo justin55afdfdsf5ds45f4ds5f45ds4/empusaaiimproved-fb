@@ -1,6 +1,10 @@
 export async function generateImage(prompt: string) {
   try {
-    console.log(`Generating image with prompt: ${prompt}`)
+    if (!process.env.FALAI_API_KEY) {
+      throw new Error("FALAI_API_KEY environment variable is not set")
+    }
+
+    const modelId = process.env.FALAI_MODEL_ID || "stable-diffusion-xl-v1-0"
 
     const res = await fetch(`https://api.fal.ai/v1/predictions`, {
       method: "POST",
@@ -9,23 +13,20 @@ export async function generateImage(prompt: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.FALAI_MODEL_ID || "stable-diffusion-xl-v1-0",
+        model: modelId,
         input: { prompt },
       }),
     })
 
     if (!res.ok) {
       const errorText = await res.text()
-      console.error(`Fal.ai request failed with status ${res.status}:`, errorText)
-      throw new Error(`Fal.ai request failed with status ${res.status}`)
+      throw new Error(`Fal.ai request failed: ${res.status} ${errorText}`)
     }
 
     const data = await res.json()
-    console.log("Image generated successfully")
-
     return data.output.url as string
   } catch (error) {
-    console.error("Error in generateImage:", error)
+    console.error("Error generating image with Fal.ai:", error)
     throw error
   }
 }
