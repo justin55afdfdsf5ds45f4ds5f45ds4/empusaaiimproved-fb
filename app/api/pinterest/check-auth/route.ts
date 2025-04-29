@@ -1,45 +1,39 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Check for development mode mock authentication
-    const mockState = request.cookies.get("pinterest_auth_state")?.value === "mock-state"
+    // Get the access token from cookies
+    const cookieStore = cookies()
+    const accessToken = cookieStore.get("pinterest_access_token")?.value
 
-    if (process.env.NODE_ENV === "development" && mockState) {
-      console.log("Using mock Pinterest authentication in development mode")
-
-      // Set a mock access token cookie
-      const response = NextResponse.json({
-        isAuthenticated: true,
-        accessToken: "mock-access-token",
-      })
-
-      response.cookies.set("pinterest_access_token", "mock-access-token", {
-        httpOnly: true,
-        maxAge: 60 * 60 * 24, // 1 day
-        path: "/",
-      })
-
-      return response
+    // For development, always consider authenticated
+    if (process.env.NODE_ENV === "development" && !accessToken) {
+      console.log("Development mode: Simulating authenticated state")
+      return NextResponse.json({ isAuthenticated: true })
     }
 
-    // Check for real authentication
-    const accessToken = request.cookies.get("pinterest_access_token")?.value
-
-    if (accessToken) {
-      return NextResponse.json({
-        isAuthenticated: true,
-        accessToken: accessToken.substring(0, 5) + "...", // Only return a hint of the token for security
-      })
-    } else {
+    if (!accessToken) {
+      console.log("No Pinterest access token found")
       return NextResponse.json({ isAuthenticated: false })
     }
+
+    // Verify the token by making a simple API call
+    const response = await fetch("https://api.pinterest.com/v5/user_account", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    if (!response.ok) {
+      console.error("Pinterest token validation failed:", response.status, response.statusText)
+      return NextResponse.json({ isAuthenticated: false })
+    }
+
+    console.log("Pinterest token is valid")
+    return NextResponse.json({ isAuthenticated: true })
   } catch (error) {
     console.error("Error checking Pinterest auth:", error)
-    return NextResponse.json({
-      isAuthenticated: false,
-      error: "Failed to check auth status",
-      details: error instanceof Error ? error.message : String(error),
-    })
+    return NextResponse.json({ isAuthenticated: false })
   }
 }

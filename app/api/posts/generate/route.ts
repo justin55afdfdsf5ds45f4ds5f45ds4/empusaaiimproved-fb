@@ -1,92 +1,147 @@
 import { NextResponse } from "next/server"
+import { v4 as uuidv4 } from "uuid"
 
-// Hardcoded mock posts that will always work
-const MOCK_POSTS = [
-  {
-    id: "post-1",
-    title: "10 Essential Travel Tips for Budget Explorers",
-    description:
-      "Discover how to see the world without breaking the bank. These budget travel tips will help you maximize experiences while minimizing costs.",
-    imagePrompt: "Person with backpack overlooking mountain landscape at sunset",
-    imageUrl: "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?q=80&w=2070&auto=format&fit=crop",
-  },
-  {
-    id: "post-2",
-    title: "Simple 5-Ingredient Weeknight Dinner Ideas",
-    description: "Quick, easy, and delicious dinner recipes that only need 5 ingredients. Perfect for busy weeknights!",
-    imagePrompt: "Overhead view of a simple, colorful dinner plate with pasta",
-    imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop",
-  },
-  {
-    id: "post-3",
-    title: "Home Office Organization Hacks",
-    description:
-      "Transform your workspace with these clever organization ideas that boost productivity and create a stylish environment.",
-    imagePrompt: "Organized minimalist home office with plants and natural light",
-    imageUrl: "https://images.unsplash.com/photo-1593062096033-9a26b09da705?q=80&w=2070&auto=format&fit=crop",
-  },
-  {
-    id: "post-4",
-    title: "Indoor Plants That Thrive in Low Light",
-    description:
-      "Bring nature indoors with these beautiful plants that don't need much sunlight to flourish. Perfect for apartments!",
-    imagePrompt: "Collection of indoor plants in stylish pots in a cozy room corner",
-    imageUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?q=80&w=2070&auto=format&fit=crop",
-  },
-  {
-    id: "post-5",
-    title: "30-Day Fitness Challenge for Beginners",
-    description:
-      "Start your fitness journey with this approachable 30-day challenge designed specifically for beginners. No equipment needed!",
-    imagePrompt: "Person in workout clothes stretching in bright living room",
-    imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop",
-  },
-  {
-    id: "post-6",
-    title: "DIY Natural Home Cleaning Solutions",
-    description:
-      "Make your own eco-friendly cleaning products with simple ingredients. Better for your health and the environment!",
-    imagePrompt: "Natural cleaning products in glass containers with fresh lemons and baking soda",
-    imageUrl: "https://images.unsplash.com/photo-1556911220-bda9f7f7597e?q=80&w=2070&auto=format&fit=crop",
-  },
-  {
-    id: "post-7",
-    title: "Capsule Wardrobe Essentials for Every Season",
-    description:
-      "Build a versatile capsule wardrobe with these timeless pieces that mix and match perfectly for year-round style.",
-    imagePrompt: "Neatly arranged capsule wardrobe with neutral colors on clothing rack",
-    imageUrl: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=2070&auto=format&fit=crop",
-  },
-  {
-    id: "post-8",
-    title: "5-Minute Meditation Techniques for Busy People",
-    description:
-      "Find calm in the chaos with these quick meditation practices that fit into even the busiest schedule.",
-    imagePrompt: "Person meditating in peaceful home setting with morning light",
-    imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2022&auto=format&fit=crop",
-  },
-  {
-    id: "post-9",
-    title: "Creative Wall Art Ideas for Any Budget",
-    description: "Transform your space with these wall decor ideas ranging from DIY projects to affordable art finds.",
-    imagePrompt: "Gallery wall with mix of framed art, photos and decorative items",
-    imageUrl: "https://images.unsplash.com/photo-1493552152660-f915ab47ae9d?q=80&w=1974&auto=format&fit=crop",
-  },
-  {
-    id: "post-10",
-    title: "Healthy Breakfast Bowls to Start Your Day Right",
-    description: "Nutritious and Instagram-worthy breakfast bowl ideas that will keep you energized all morning.",
-    imagePrompt: "Vibrant smoothie bowl with colorful fruit toppings and granola",
-    imageUrl: "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=1964&auto=format&fit=crop",
-  },
+// Sample topics for generating content
+const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
+
+// Sample adjectives for titles
+const ADJECTIVES = [
+  "Amazing",
+  "Incredible",
+  "Beautiful",
+  "Stunning",
+  "Gorgeous",
+  "Delicious",
+  "Fantastic",
+  "Wonderful",
+  "Brilliant",
+  "Creative",
+  "Innovative",
+  "Inspiring",
+  "Elegant",
+  "Stylish",
+  "Modern",
 ]
+
+// Sample image prompts
+const IMAGE_PROMPTS = [
+  "beautiful landscape with mountains and lake",
+  "colorful abstract digital art",
+  "minimalist interior design with plants",
+  "delicious food photography with natural lighting",
+  "fashion photography with urban background",
+  "creative product photography with shadows",
+  "architectural photography with geometric patterns",
+  "portrait photography with bokeh background",
+  "nature close-up with vibrant colors",
+  "street photography with dramatic lighting",
+]
+
+// Sample image URLs from Unsplash
+const IMAGE_URLS = [
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1511649475669-e288648b2339?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1550439062-609e1531270e?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=800&h=1200&fit=crop",
+  "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1200&fit=crop",
+]
+
+// Function to generate a random title based on topic
+function generateTitle(topic: string): string {
+  const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]
+  const randomNumber = Math.floor(Math.random() * 100) + 1
+
+  const titleTemplates = [
+    `${adjective} ${topic} Ideas for Your Next Project`,
+    `${randomNumber} ${adjective} ${topic} Tips You Need to Try`,
+    `How to Create ${adjective} ${topic} Designs`,
+    `The Ultimate Guide to ${topic} in ${new Date().getFullYear()}`,
+    `${adjective} ${topic} Inspiration for Every Day`,
+  ]
+
+  return titleTemplates[Math.floor(Math.random() * titleTemplates.length)]
+}
+
+// Function to generate a random description based on topic
+function generateDescription(topic: string): string {
+  const descriptionTemplates = [
+    `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike.`,
+    `Looking for ${topic} inspiration? Check out these incredible ideas that are trending right now. Perfect for your next project!`,
+    `Elevate your ${topic} game with these professional tips and tricks. Save this pin for later when you need creative inspiration.`,
+    `The best ${topic} ideas curated just for you. Follow for more inspiration and daily updates on the latest trends.`,
+    `Transform your ${topic} experience with these innovative approaches. Click through to learn more about how to implement these ideas.`,
+  ]
+
+  return descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)]
+}
+
+// Function to extract keywords from URL or use provided topic
+function extractKeywords(url: string | null, topic: string | null): string {
+  if (topic && topic.trim().length > 0) {
+    return topic.trim().toLowerCase()
+  }
+
+  if (url) {
+    // Extract keywords from URL
+    const urlObj = new URL(url)
+    const path = urlObj.pathname.replace(/[^a-zA-Z0-9]/g, " ").trim()
+    const query = urlObj.searchParams
+      .toString()
+      .replace(/[^a-zA-Z0-9]/g, " ")
+      .trim()
+
+    const keywords = `${path} ${query}`.toLowerCase()
+
+    if (keywords.trim().length > 0) {
+      return keywords
+    }
+  }
+
+  // Default to a random topic if no keywords could be extracted
+  return TOPICS[Math.floor(Math.random() * TOPICS.length)]
+}
 
 export async function POST(req: Request) {
   try {
-    // Return hardcoded posts without any processing
-    return NextResponse.json({ posts: MOCK_POSTS })
+    // Parse the request body
+    const body = await req.json()
+    const { url, topic, count = 10, tone = "informative" } = body
+
+    console.log("Generating posts with:", { url, topic, count, tone })
+
+    // Extract keywords from URL or use provided topic
+    const keywords = extractKeywords(url, topic)
+    console.log("Extracted keywords:", keywords)
+
+    // Generate the requested number of posts
+    const posts = []
+    const requestedCount = Math.min(Math.max(1, count), 20) // Limit between 1 and 20
+
+    for (let i = 0; i < requestedCount; i++) {
+      const post = {
+        id: uuidv4(),
+        title: generateTitle(keywords),
+        description: generateDescription(keywords),
+        imagePrompt: IMAGE_PROMPTS[Math.floor(Math.random() * IMAGE_PROMPTS.length)],
+        imageUrl: IMAGE_URLS[Math.floor(Math.random() * IMAGE_URLS.length)],
+      }
+
+      posts.push(post)
+    }
+
+    console.log(`Generated ${posts.length} posts`)
+
+    return NextResponse.json({ posts })
   } catch (error) {
-    console.error("Error in post generation route:", error)
-    return NextResponse.json({ error: "An unexpected error occurred. Please try again." }, { status: 500 })
+    console.error("Error generating posts:", error)
+    return NextResponse.json(
+      { error: `Failed to generate posts: ${error instanceof Error ? error.message : String(error)}` },
+      { status: 500 },
+    )
   }
 }

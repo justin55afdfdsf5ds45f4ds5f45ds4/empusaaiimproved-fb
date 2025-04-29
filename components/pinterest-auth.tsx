@@ -58,7 +58,6 @@ export function PinterestAuth({ onSuccess, className }: PinterestAuthProps) {
       }
 
       // Direct approach: Just redirect to the Pinterest auth URL
-      // This is simpler and more reliable than using popups
       toast({
         title: "Pinterest Authentication",
         description: "Redirecting to Pinterest for authentication...",

@@ -13,13 +13,6 @@ export function PinterestAuthCheck({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function checkAuth() {
       try {
-        // For development purposes, always consider authenticated
-        if (process.env.NODE_ENV === "development") {
-          setIsAuthenticated(true)
-          setIsLoading(false)
-          return
-        }
-
         const response = await fetch("/api/pinterest/check-auth")
         const data = await response.json()
 

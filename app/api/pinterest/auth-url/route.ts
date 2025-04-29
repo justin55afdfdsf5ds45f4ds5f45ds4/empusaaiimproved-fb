@@ -4,15 +4,10 @@ export async function GET() {
   try {
     // Get Pinterest credentials from environment variables
     const appId = process.env.PINTEREST_APP_ID
-
-    // Use the correct redirect URI that matches what's configured in Pinterest
-    // This should be the same as PINTEREST_REDIRECT_URI in your env vars
-    // But we'll default to the new callback page we created
     const redirectUri =
       process.env.PINTEREST_REDIRECT_URI ||
       (process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/pinterest-callback` : null)
 
-    // Log the environment variables for debugging
     console.log("Pinterest credentials:", {
       appId: appId ? "present" : "missing",
       redirectUri: redirectUri ? "present" : "missing",
@@ -51,10 +46,10 @@ export async function GET() {
     url.searchParams.append("client_id", appId)
     url.searchParams.append("redirect_uri", redirectUri)
     url.searchParams.append("response_type", "code")
-    url.searchParams.append("scope", "boards:read,pins:read,pins:write")
+    url.searchParams.append("scope", "boards:read,pins:read,pins:write,user_accounts:read")
     url.searchParams.append("state", state)
 
-    console.log("Generated Pinterest OAuth URL (without sensitive data)")
+    console.log("Generated Pinterest OAuth URL with scopes: boards:read,pins:read,pins:write,user_accounts:read")
 
     // Set a cookie with the state
     const response = NextResponse.json({ url: url.toString() })
