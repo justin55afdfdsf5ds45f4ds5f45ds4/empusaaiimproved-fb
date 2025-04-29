@@ -71,8 +71,8 @@
     "mongoose": "latest",
     "next-auth": "latest",
     "uuid": "latest",
-    "bcryptjs": "latest",
-    "@auth/mongodb-adapter": "latest"
+    "@auth/mongodb-adapter": "latest",
+    "bcryptjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
