@@ -2,14 +2,7 @@ import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
 import { CreatePostForm } from "./create-post-form"
 
-export default function CreatePostPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined }
-}) {
-  // Extract the URL from search params
-  const urlParam = searchParams?.url as string | undefined
-
+export default function CreatePostPage() {
   return (
     <div className="space-y-6">
       <div>
@@ -26,7 +19,7 @@ export default function CreatePostPage({
           </div>
         }
       >
-        <CreatePostForm initialUrl={urlParam} />
+        <CreatePostForm />
       </Suspense>
     </div>
   )

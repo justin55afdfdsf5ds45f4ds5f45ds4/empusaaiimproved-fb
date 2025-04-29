@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -27,26 +27,38 @@ interface Post {
 }
 
 export function CreatePostForm() {
+  const searchParams = useSearchParams()
+  const initialUrl = searchParams.get("url") || ""
+
   const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
-  const [url, setUrl] = useState("")
+  const [url, setUrl] = useState(initialUrl)
   const [topic, setTopic] = useState("")
   const [posts, setPosts] = useState<Post[]>([])
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [boards, setBoards] = useState<Board[]>([])
   const [selectedBoard, setSelectedBoard] = useState<string>("")
-  const [activeTab, setActiveTab] = useState("url")
+  const [activeTab, setActiveTab] = useState(initialUrl ? "url" : "topic")
+
+  // Set initial URL from search params
+  useEffect(() => {
+    if (initialUrl) {
+      setUrl(initialUrl)
+      setActiveTab("url")
+    }
+  }, [initialUrl])
 
   // Fetch Pinterest boards when component mounts
   useEffect(() => {
     async function fetchBoards() {
       try {
         setIsLoading(true)
-        const response = await fetch("/api/pinterest/boards")
+        // Use NextAuth session to fetch boards
+        const response = await fetch("/api/posts/pinterest-boards")
         const data = await response.json()
 
         if (data.boards && Array.isArray(data.boards)) {
@@ -161,7 +173,7 @@ export function CreatePostForm() {
     try {
       setIsPublishing(true)
 
-      const response = await fetch("/api/pinterest/publish", {
+      const response = await fetch("/api/posts/publish-to-pinterest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,8 +190,6 @@ export function CreatePostForm() {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to publish post")
       }
-
-      const data = await response.json()
 
       toast({
         title: "Success",
@@ -204,7 +214,7 @@ export function CreatePostForm() {
     <div className="space-y-6">
       <Card>
         <CardContent className="pt-6">
-          <Tabs defaultValue="url" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
               <TabsTrigger value="url">Generate from URL</TabsTrigger>
               <TabsTrigger value="topic">Generate from Topic</TabsTrigger>

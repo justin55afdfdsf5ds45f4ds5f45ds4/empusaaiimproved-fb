@@ -67,10 +67,9 @@
     "@mongodb-js/zstd": "latest",
     "mongodb-client-encryption": "latest",
     "@aws-sdk/credential-providers": "latest",
-    "mongodb": "latest",
     "next-auth": "latest",
     "mongoose": "latest",
-    "@auth/mongodb-adapter": "latest",
+    "mongodb": "latest",
     "uuid": "latest"
   },
   "devDependencies": {
