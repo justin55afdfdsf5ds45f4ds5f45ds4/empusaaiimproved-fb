@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { PinIcon, Loader2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function PinterestAuthPage() {
   const router = useRouter()
@@ -16,25 +17,44 @@ export default function PinterestAuthPage() {
     setError(null)
 
     try {
-      // Attempt to authenticate with Pinterest
-      await signIn("pinterest", {
+      // Use a direct approach with error handling
+      const result = await signIn("pinterest", {
         redirect: false,
         callbackUrl: "/dashboard",
       })
 
-      // Even if authentication fails, redirect to dashboard
-      setTimeout(() => {
-        router.push("/dashboard")
-      }, 2000)
-    } catch (error) {
-      console.error("Pinterest auth error:", error)
-      setError("Authentication failed. Redirecting to dashboard anyway...")
+      if (result?.error) {
+        console.error("Pinterest auth error:", result.error)
+        setError(`Authentication failed: ${result.error}`)
 
-      // Redirect to dashboard even on error
+        // Redirect to dashboard after a delay even on error
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 3000)
+      } else if (result?.url) {
+        // Successful authentication with redirect URL
+        router.push(result.url)
+      } else {
+        // Fallback to dashboard if no redirect URL
+        router.push("/dashboard")
+      }
+    } catch (error) {
+      console.error("Pinterest auth exception:", error)
+      setError("An unexpected error occurred. Redirecting to dashboard...")
+
+      // Redirect to dashboard after a delay
       setTimeout(() => {
         router.push("/dashboard")
-      }, 2000)
+      }, 3000)
+    } finally {
+      setIsAuthenticating(false)
     }
+  }
+
+  // Alternative direct authentication method
+  const handleDirectAuth = () => {
+    // Directly redirect to the Pinterest OAuth URL
+    window.location.href = "/api/auth/signin/pinterest?callbackUrl=/dashboard"
   }
 
   return (
@@ -56,9 +76,10 @@ export default function PinterestAuthPage() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4 text-red-600">
-            <p>{error}</p>
-          </div>
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle>Authentication Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {isAuthenticating ? (
@@ -67,10 +88,16 @@ export default function PinterestAuthPage() {
             <p className="mt-4 text-gray-500">Connecting to Pinterest...</p>
           </div>
         ) : (
-          <Button onClick={handleAuth} className="w-full bg-red-600 hover:bg-red-700">
-            <PinIcon className="mr-2 h-5 w-5" />
-            Connect Pinterest Account
-          </Button>
+          <div className="space-y-4">
+            <Button onClick={handleDirectAuth} className="w-full bg-red-600 hover:bg-red-700">
+              <PinIcon className="mr-2 h-5 w-5" />
+              Connect Pinterest Account
+            </Button>
+
+            <Button onClick={() => router.push("/dashboard")} variant="outline" className="w-full">
+              Skip for Now
+            </Button>
+          </div>
         )}
 
         <div className="mt-6 text-center text-sm text-gray-500">

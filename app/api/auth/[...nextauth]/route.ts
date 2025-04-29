@@ -16,19 +16,24 @@ const requiredEnvVars = [
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
-    throw new Error(`Environment variable ${envVar} is required but not set`)
+    console.error(`Environment variable ${envVar} is required but not set`)
   }
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
     PinterestProvider({
-      clientId: process.env.PINTEREST_APP_ID!,
-      clientSecret: process.env.PINTEREST_APP_SECRET!,
+      clientId: process.env.PINTEREST_APP_ID || "",
+      clientSecret: process.env.PINTEREST_APP_SECRET || "",
+      authorization: {
+        params: {
+          scope: "pins:read pins:write boards:read user_accounts:read",
+        },
+      },
     }),
   ],
   adapter: MongoDBAdapter(clientPromise),
@@ -40,13 +45,22 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async redirect({ baseUrl }) {
-      return `${baseUrl}/dashboard` // Always redirect to dashboard
+    async redirect({ url, baseUrl }) {
+      // Handle different redirect scenarios
+      if (url.startsWith("/api/auth/callback")) {
+        return `${baseUrl}/dashboard`
+      }
+      if (url.startsWith(baseUrl)) {
+        return url
+      }
+      return baseUrl
     },
   },
   pages: {
     signIn: "/login",
+    error: "/auth-error", // Add an error page
   },
+  debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
 }
 
