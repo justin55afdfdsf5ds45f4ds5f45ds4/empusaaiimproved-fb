@@ -1,71 +1,72 @@
-import NextAuth, { type NextAuthOptions } from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import PinterestProvider from "next-auth/providers/pinterest"
+import NextAuth from "next-auth"
 import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
+import Google from "next-auth/providers/google"
+import Pinterest from "next-auth/providers/pinterest"
+import Credentials from "next-auth/providers/credentials"
+import bcrypt from "bcryptjs"
 
-// Check required environment variables
-const requiredEnvVars = [
-  "GOOGLE_CLIENT_ID",
-  "GOOGLE_CLIENT_SECRET",
-  "PINTEREST_APP_ID",
-  "PINTEREST_APP_SECRET",
-  "NEXTAUTH_URL",
-  "NEXTAUTH_SECRET",
-]
-
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Environment variable ${envVar} is required but not set`)
-  }
-}
-
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   adapter: MongoDBAdapter(clientPromise),
-  session: { strategy: "database" },
+
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    PinterestProvider({
+    Pinterest({
       clientId: process.env.PINTEREST_APP_ID!,
       clientSecret: process.env.PINTEREST_APP_SECRET!,
-      authorization: {
-        params: {
-          scope: "pins:read pins:write boards:read user_accounts:read",
-        },
+    }),
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        const client = await clientPromise
+        const db = client.db()
+        const user = await db.collection("users").findOne({ email: credentials.email })
+
+        if (!user || !user.password) {
+          return null
+        }
+
+        const passwordMatch = await bcrypt.compare(credentials.password, user.password)
+
+        if (!passwordMatch) {
+          return null
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+        }
       },
     }),
   ],
+
   callbacks: {
-    async jwt({ token, account }) {
-      // Persist the OAuth access_token to the token right after signin
-      if (account) {
-        token.accessToken = account.access_token
-        token.provider = account.provider
-      }
-      return token
+    async redirect({ baseUrl }) {
+      return `${baseUrl}/dashboard`
     },
     async session({ session, user }) {
-      // Send properties to the client
       if (session.user) {
         session.user.id = user.id
       }
       return session
     },
-    async redirect({ url, baseUrl }) {
-      // if sign-in succeeded → dashboard
-      if (url.startsWith("/api/auth/callback")) return `${baseUrl}/dashboard`
-      return baseUrl // default
-    },
   },
+
   pages: {
     signIn: "/login",
   },
-  secret: process.env.NEXTAUTH_SECRET,
 }
 
-const handler = NextAuth(authOptions)
-
-export { handler as GET, handler as POST }
+export const { GET, POST } = NextAuth(authOptions)
