@@ -9,7 +9,7 @@ export async function generateImage(prompt: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "stable-diffusion-xl-v1-0",
+        model: process.env.FALAI_MODEL_ID || "stable-diffusion-xl-v1-0",
         input: { prompt },
       }),
     })

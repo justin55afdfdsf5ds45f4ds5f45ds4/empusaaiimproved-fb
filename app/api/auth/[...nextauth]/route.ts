@@ -2,6 +2,22 @@ import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import PinterestProvider from "next-auth/providers/pinterest"
 
+// Check required environment variables
+const requiredEnvVars = [
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "PINTEREST_APP_ID",
+  "PINTEREST_APP_SECRET",
+  "NEXTAUTH_URL",
+  "NEXTAUTH_SECRET",
+]
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Environment variable ${envVar} is required but not set`)
+  }
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -33,8 +49,10 @@ export const authOptions = {
       session.provider = token.provider
       return session
     },
-    redirect() {
-      return "/dashboard"
+    async redirect({ url, baseUrl }) {
+      // if sign-in succeeded → dashboard
+      if (url.startsWith("/api/auth/callback")) return `${baseUrl}/dashboard`
+      return baseUrl // default
     },
   },
   pages: {
