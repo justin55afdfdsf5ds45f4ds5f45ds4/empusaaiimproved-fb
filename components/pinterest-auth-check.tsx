@@ -3,43 +3,45 @@
 import type React from "react"
 
 import { useSession } from "next-auth/react"
+import { PinterestAuth } from "./pinterest-auth"
 import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
-function Spinner() {
-  return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <div className="text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-teal-600 mx-auto" />
-        <p className="mt-4 text-gray-500">Checking authentication...</p>
-      </div>
-    </div>
-  )
+interface PinterestAuthCheckProps {
+  children: React.ReactNode
 }
 
-function ConnectPinterest() {
-  return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <div className="max-w-md text-center">
-        <h2 className="text-2xl font-bold mb-4">Pinterest Authentication Required</h2>
-        <p className="mb-6 text-gray-500">You need to connect your Pinterest account to use this feature.</p>
-        <Button
-          onClick={() => (window.location.href = "/api/auth/signin/pinterest")}
-          className="bg-red-600 hover:bg-red-700"
-        >
-          Connect Pinterest Account
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-export function PinterestAuthCheck({ children }: { children: React.ReactNode }) {
+export function PinterestAuthCheck({ children }: PinterestAuthCheckProps) {
   const { data: session, status } = useSession()
 
-  if (status === "loading" || !session) return <Spinner />
+  if (status === "loading") {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
 
-  const hasPin = session.accounts?.some((a) => a.provider === "pinterest")
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <h2 className="text-xl font-semibold">Authentication Required</h2>
+        <p className="text-gray-500 text-center mb-4">Please sign in to access this feature.</p>
+      </div>
+    )
+  }
 
-  return hasPin ? <>{children}</> : <ConnectPinterest />
+  // Check if the user has a Pinterest account linked
+  const hasPinterest = session.user?.accounts?.some((account) => account.provider === "pinterest")
+
+  if (!hasPinterest) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <h2 className="text-xl font-semibold">Connect Pinterest</h2>
+        <p className="text-gray-500 text-center mb-4">Please connect your Pinterest account to use this feature.</p>
+        <PinterestAuth />
+      </div>
+    )
+  }
+
+  return <>{children}</>
 }

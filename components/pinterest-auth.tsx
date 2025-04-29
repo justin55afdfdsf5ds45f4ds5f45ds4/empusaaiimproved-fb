@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { signIn } from "next-auth/react"
+import { PinIcon } from "lucide-react"
 
 export function PinterestAuth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +32,10 @@ export function PinterestAuth() {
           Connecting...
         </>
       ) : (
-        "Connect Pinterest Account"
+        <>
+          <PinIcon className="mr-2 h-4 w-4" />
+          Connect Pinterest Account
+        </>
       )}
     </Button>
   )
