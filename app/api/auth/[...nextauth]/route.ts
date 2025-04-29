@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import PinterestProvider from "next-auth/providers/pinterest"
 import clientPromise from "@/lib/mongodb"
 
 // Check if MongoDB URI is available and valid
@@ -22,6 +23,11 @@ export const authOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock-client-secret",
     }),
+    PinterestProvider({
+      clientId: process.env.PINTEREST_APP_ID!,
+      clientSecret: process.env.PINTEREST_APP_SECRET!,
+      authorization: { params: { scope: "pins:read pins:write boards:read user_accounts:read" } },
+    }),
   ],
   pages: {
     signIn: "/login",
@@ -42,7 +48,7 @@ export const authOptions = {
       if (url.startsWith("/")) return `${baseUrl}${url}`
       // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      return "/dashboard"
     },
   },
   debug: process.env.NODE_ENV === "development",

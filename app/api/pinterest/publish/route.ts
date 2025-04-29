@@ -1,90 +1,82 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    // Parse the request
-    const { boardId, title, description, imageUrl } = await req.json()
+    const body = await request.json()
+    const { title, description, imageUrl, boardId } = body
 
-    // Validate required fields
-    if (!boardId || !title || !description || !imageUrl) {
+    if (!title || !description || !imageUrl || !boardId) {
       return NextResponse.json(
-        { error: "Missing required fields: boardId, title, description, and imageUrl are required" },
+        { error: "Missing required fields: title, description, imageUrl, and boardId are required" },
         { status: 400 },
       )
     }
 
-    // Get the access token from cookies
-    const cookieStore = cookies()
-    const accessToken = cookieStore.get("pinterest_access_token")?.value
+    console.log("Publishing pin to Pinterest with:", { title, boardId })
 
-    // For development, return mock response if no token is available
-    if (!accessToken && process.env.NODE_ENV === "development") {
-      console.log("Using mock publish in development mode")
-      return NextResponse.json({
-        success: true,
-        id: `pin-${Date.now()}`,
-        url: `https://pinterest.com/pin/${Date.now()}`,
-        message: "Pin successfully published to Pinterest (MOCK)",
-      })
+    // Get the session
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      console.error("No session found")
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
+    // Get the access token from the session
+    const accessToken = session.accessToken
+
     if (!accessToken) {
-      console.error("No Pinterest access token found")
+      console.error("No Pinterest access token found in session")
       return NextResponse.json({ error: "Pinterest authentication required" }, { status: 401 })
     }
 
-    console.log(`Publishing to Pinterest board ${boardId}:`)
-    console.log(`Title: ${title}`)
-    console.log(`Description: ${description.substring(0, 50)}...`)
-    console.log(`Image URL: ${imageUrl}`)
-
     // Create the pin on Pinterest
-    const response = await fetch(`https://api.pinterest.com/v5/pins`, {
+    const pinData = {
+      board_id: boardId,
+      media_source: {
+        source_type: "image_url",
+        url: imageUrl,
+      },
+      title,
+      description,
+      alt_text: title,
+    }
+
+    console.log("Sending pin data to Pinterest API:", JSON.stringify(pinData))
+
+    const response = await fetch("https://api.pinterest.com/v5/pins", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({
-        board_id: boardId,
-        title: title,
-        description: description,
-        media_source: {
-          source_type: "image_url",
-          url: imageUrl,
-        },
-      }),
+      body: JSON.stringify(pinData),
     })
 
     if (!response.ok) {
+      console.error("Error creating Pinterest pin:", response.status, response.statusText)
       const errorText = await response.text()
-      console.error("Pinterest API error:", errorText)
-
-      // If unauthorized, return 401 to trigger re-authentication
-      if (response.status === 401) {
-        return NextResponse.json({ error: "Pinterest authentication expired" }, { status: 401 })
-      }
-
+      console.error("Error details:", errorText)
       return NextResponse.json(
-        { error: `Pinterest API error: ${response.status} ${response.statusText}` },
+        { error: `Failed to create pin: ${response.status} ${response.statusText}` },
         { status: response.status },
       )
     }
 
     const data = await response.json()
-    console.log("Successfully published pin:", data)
+    console.log("Pin created successfully:", data)
 
     return NextResponse.json({
       success: true,
-      id: data.id,
-      url: `https://pinterest.com/pin/${data.id}`,
-      message: "Pin successfully published to Pinterest",
+      message: "Pin published successfully",
+      pin: data,
     })
   } catch (error) {
-    console.error("Error publishing to Pinterest:", error)
+    console.error("Error publishing pin:", error)
     return NextResponse.json(
-      { error: `Failed to publish to Pinterest: ${error instanceof Error ? error.message : String(error)}` },
+      { error: `Failed to publish pin: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 },
     )
   }
