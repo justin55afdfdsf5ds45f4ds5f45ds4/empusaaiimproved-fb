@@ -15,29 +15,16 @@ export function PinterestAuthCheck({ children }: PinterestAuthCheckProps) {
 
   if (status === "loading") {
     return (
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="flex justify-center items-center p-4">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
       </div>
     )
   }
 
-  if (!session) {
+  if (!session?.user?.id) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4">
-        <h2 className="text-xl font-semibold">Authentication Required</h2>
-        <p className="text-gray-500 text-center mb-4">Please sign in to access this feature.</p>
-      </div>
-    )
-  }
-
-  // Check if the user has a Pinterest account linked
-  const hasPinterest = session.user?.accounts?.some((account) => account.provider === "pinterest")
-
-  if (!hasPinterest) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4">
-        <h2 className="text-xl font-semibold">Connect Pinterest</h2>
-        <p className="text-gray-500 text-center mb-4">Please connect your Pinterest account to use this feature.</p>
+      <div className="flex flex-col items-center justify-center p-6 space-y-4 border rounded-lg bg-gray-50">
+        <p className="text-center text-gray-600">Please connect your Pinterest account to continue.</p>
         <PinterestAuth />
       </div>
     )

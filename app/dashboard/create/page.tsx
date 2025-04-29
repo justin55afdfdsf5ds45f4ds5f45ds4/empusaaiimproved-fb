@@ -1,8 +1,6 @@
-"use client"
-
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
-import { CreatePostForm } from "./create-post-form"
+import { CreatePostFormWrapper } from "./create-post-form-wrapper"
 
 export default function CreatePostPage() {
   return (
@@ -21,7 +19,7 @@ export default function CreatePostPage() {
           </div>
         }
       >
-        <CreatePostForm />
+        <CreatePostFormWrapper />
       </Suspense>
     </div>
   )
