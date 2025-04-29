@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { v4 as uuidv4 } from "uuid"
-import { generateImage } from "@/app/lib/falai"
+import { generateImage } from "@/lib/falai"
 
 // Sample topics for generating content
 const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
