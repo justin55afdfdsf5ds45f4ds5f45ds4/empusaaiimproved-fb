@@ -6,10 +6,12 @@ import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { PinIcon, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import Link from "next/link"
 
 export default function PinterestAuthPage() {
   const router = useRouter()
   const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [isSkipping, setIsSkipping] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleAuth = async () => {
@@ -29,14 +31,14 @@ export default function PinterestAuthPage() {
 
         // Redirect to dashboard after a delay even on error
         setTimeout(() => {
-          router.push("/dashboard")
+          window.location.href = "/dashboard"
         }, 3000)
       } else if (result?.url) {
         // Successful authentication with redirect URL
-        router.push(result.url)
+        window.location.href = result.url
       } else {
         // Fallback to dashboard if no redirect URL
-        router.push("/dashboard")
+        window.location.href = "/dashboard"
       }
     } catch (error) {
       console.error("Pinterest auth exception:", error)
@@ -44,7 +46,7 @@ export default function PinterestAuthPage() {
 
       // Redirect to dashboard after a delay
       setTimeout(() => {
-        router.push("/dashboard")
+        window.location.href = "/dashboard"
       }, 3000)
     } finally {
       setIsAuthenticating(false)
@@ -55,6 +57,13 @@ export default function PinterestAuthPage() {
   const handleDirectAuth = () => {
     // Directly redirect to the Pinterest OAuth URL
     window.location.href = "/api/auth/signin/pinterest?callbackUrl=/dashboard"
+  }
+
+  // Handle skip button click
+  const handleSkip = () => {
+    setIsSkipping(true)
+    // Use window.location for a full page navigation
+    window.location.href = "/dashboard"
   }
 
   return (
@@ -87,6 +96,11 @@ export default function PinterestAuthPage() {
             <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
             <p className="mt-4 text-gray-500">Connecting to Pinterest...</p>
           </div>
+        ) : isSkipping ? (
+          <div className="flex flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+            <p className="mt-4 text-gray-500">Redirecting to dashboard...</p>
+          </div>
         ) : (
           <div className="space-y-4">
             <Button onClick={handleDirectAuth} className="w-full bg-red-600 hover:bg-red-700">
@@ -94,9 +108,12 @@ export default function PinterestAuthPage() {
               Connect Pinterest Account
             </Button>
 
-            <Button onClick={() => router.push("/dashboard")} variant="outline" className="w-full">
-              Skip for Now
-            </Button>
+            {/* Use direct link instead of router.push */}
+            <Link href="/dashboard" passHref>
+              <Button variant="outline" className="w-full" onClick={handleSkip}>
+                Skip for Now
+              </Button>
+            </Link>
           </div>
         )}
 

@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
 import { UserNav } from "@/components/dashboard/user-nav"
-import { PinterestAuthCheck } from "@/components/pinterest-auth-check"
+import { Suspense } from "react"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -35,18 +35,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <UserNav />
+            <Suspense fallback={<div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />}>
+              <UserNav />
+            </Suspense>
           </div>
         </div>
       </header>
-      <PinterestAuthCheck>
-        <div className="flex flex-1">
-          <aside className="hidden md:block w-64 border-r bg-white p-6">
-            <DashboardNav />
-          </aside>
-          <main className="flex-1 p-6 bg-gray-50">{children}</main>
-        </div>
-      </PinterestAuthCheck>
+      <div className="flex flex-1">
+        <aside className="hidden md:block w-64 border-r bg-white p-6">
+          <DashboardNav />
+        </aside>
+        <main className="flex-1 p-6 bg-gray-50">{children}</main>
+      </div>
     </div>
   )
 }
