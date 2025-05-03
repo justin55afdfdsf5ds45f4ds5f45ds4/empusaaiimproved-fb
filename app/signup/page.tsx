@@ -2,43 +2,89 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
+import { Loader2 } from "lucide-react"
 
 export default function SignupPage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      router.push("/dashboard")
+    }
+  }, [session, status, router])
+
+  // Show loading state while checking session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // In a real app, you would implement email/password signup here
-      // For now, we'll just redirect to the dashboard after a delay to simulate signup
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Register the user
+      const registerResponse = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      const registerData = await registerResponse.json()
+
+      if (!registerResponse.ok) {
+        throw new Error(registerData.error || "Failed to register")
+      }
 
       toast({
         title: "Account created",
         description: "Your account has been created successfully.",
       })
 
-      router.push("/dashboard")
+      // Sign in the user
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.error) {
+        toast({
+          title: "Login Error",
+          description: "Account created but couldn't log in automatically. Please log in manually.",
+          variant: "destructive",
+        })
+        router.push("/login")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error) {
+      console.error("Registration error:", error)
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       })
     } finally {

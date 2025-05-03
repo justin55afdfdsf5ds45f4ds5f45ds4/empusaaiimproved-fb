@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server"
-import bcrypt from "bcryptjs" // Changed from bcrypt to bcryptjs
+import bcrypt from "bcryptjs"
 import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json() // Parse JSON body
+    const { name, email, password } = await req.json()
 
     // Validate fields
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters long" }, { status: 400 })
     }
 
     // Connect to MongoDB
@@ -51,7 +55,6 @@ export async function POST(req: Request) {
       type: "credentials",
     })
 
-    // Return JSON response instead of redirect
     return NextResponse.json({ success: true, user }, { status: 201 })
   } catch (error) {
     console.error("Registration error:", error)

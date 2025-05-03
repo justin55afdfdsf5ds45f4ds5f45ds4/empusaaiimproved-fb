@@ -1,16 +1,15 @@
 import type React from "react"
-import "@/app/globals.css"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import AuthProvider from "@/components/providers/session-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata = {
-  title: "Empusa AI - Generate AI Images from Any URL",
-  description:
-    "Empusa AI is a web-based platform that analyzes your content and generates high-quality AI images with titles and descriptions in seconds.",
+export const metadata: Metadata = {
+  title: "Empusa AI - Pinterest Content Automation",
+  description: "Automatically create and publish SEO-optimized Pinterest content from any URL",
     generator: 'v0.dev'
 }
 
@@ -23,10 +22,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            {children}
-            <Toaster />
-          </ThemeProvider>
+          {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
