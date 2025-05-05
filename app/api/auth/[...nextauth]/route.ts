@@ -1,3 +1,4 @@
+// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider     from "next-auth/providers/google";
 import PinterestProvider  from "next-auth/providers/pinterest";
@@ -27,27 +28,44 @@ export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
 
   providers: [
+    // ── Google ───────────────────────────────
     GoogleProvider({
       clientId:     process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
 
+    // ── Pinterest (no native e‑mail) ─────────
     PinterestProvider({
       clientId:     process.env.AUTH_PINTEREST_ID!,
       clientSecret: process.env.AUTH_PINTEREST_SECRET!,
-      // default scopes already include email/profile → no override
+      authorization: {
+        // default + write + boards; email NOT available
+        params: { scope: "user_accounts:read,pins:read,boards:read,pins:write" },
+      },
+      profile(p) {
+        // fabricate an e‑mail so the Mongo adapter’s unique index is satisfied
+        return {
+          id:    p.id,
+          name:  p.username,
+          email: `${p.id}@pinterest.user`,
+          image: p.profile_image ?? null,
+        };
+      },
     }),
   ],
+
+  // merge Google + Pinterest accounts for same user if they collide
+  allowDangerousEmailAccountLinking: true,
 
   session: { strategy: "jwt" },
 
   callbacks: {
     async session({ session, token }) {
-      if (session.user) session.user.id = token.sub;  // expose DB id on client
+      if (session.user) session.user.id = token.sub;   // expose DB id on client
       return session;
     },
     async redirect() {
-      return "/dashboard";                            // always land on dashboard
+      return "/dashboard";                             // always land on dashboard
     },
   },
 
