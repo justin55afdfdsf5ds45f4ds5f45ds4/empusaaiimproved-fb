@@ -1,22 +1,14 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { type NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-import PinterestProvider from "next-auth/providers/pinterest"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
-import clientPromise from "@/lib/mongodb"
+// Comment out Pinterest provider for now to simplify debugging
+// import PinterestProvider from "next-auth/providers/pinterest"
+// import { MongoDBAdapter } from "@auth/mongodb-adapter"
+// import clientPromise from "@/lib/mongodb"
 
 // ─────────────────────────────────────────────
 // 1. ENV sanity‑check
 // ─────────────────────────────────────────────
-;[
-  "AUTH_GOOGLE_ID",
-  "AUTH_GOOGLE_SECRET",
-  "AUTH_PINTEREST_ID",
-  "AUTH_PINTEREST_SECRET",
-  "AUTH_SECRET",
-  "AUTH_URL",
-  "MONGODB_URI",
-].forEach((v) => {
+;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET"].forEach((v) => {
   if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`)
 })
 
@@ -25,7 +17,8 @@ import clientPromise from "@/lib/mongodb"
 // ─────────────────────────────────────────────
 export const authOptions: NextAuthOptions = {
   debug: true,
-  adapter: MongoDBAdapter(clientPromise),
+  // Temporarily disable MongoDB adapter to simplify debugging
+  // adapter: MongoDBAdapter(clientPromise),
 
   providers: [
     // ── Google ───────────────────────────────
@@ -34,16 +27,18 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
 
+    // Temporarily comment out Pinterest provider
+    /*
     // ── Pinterest (no native e‑mail) ─────────
     PinterestProvider({
       clientId: process.env.AUTH_PINTEREST_ID!,
-      clientSecret: process.env.AUTH_PINTEREST_SECRET!,
+      clientSecret: process.AUTH_PINTEREST_SECRET!,
       authorization: {
         // default + write + boards; email NOT available
         params: { scope: "user_accounts:read,pins:read,boards:read,pins:write" },
       },
       profile(p) {
-        // fabricate an e‑mail so the Mongo adapter’s unique index is satisfied
+        // fabricate an e‑mail so the Mongo adapter's unique index is satisfied
         return {
           id: p.id,
           name: p.username,
@@ -52,6 +47,7 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    */
   ],
 
   // merge Google + Pinterest accounts for same user if they collide
