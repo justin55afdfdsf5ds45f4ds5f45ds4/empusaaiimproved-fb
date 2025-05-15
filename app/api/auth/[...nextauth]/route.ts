@@ -4,11 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
 import bcrypt from "bcryptjs"
-
-// ─────────────────────────────────────────────
-// 1. ENV sanity‑check
-// ─────────────────────────────────────────────
-;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET", "AUTH_URL", "MONGODB_URI"].forEach((v) => {
+;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET", "MONGODB_URI"].forEach((v) => {
   if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`)
 })
 
@@ -44,13 +40,13 @@ export const authOptions: NextAuthOptions = {
           const user = await db.collection("users").findOne({ email: credentials.email })
 
           if (!user || !user.password) {
-            throw new Error("User not found")
+            throw new Error("Invalid email or password")
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
           if (!isPasswordValid) {
-            throw new Error("Invalid password")
+            throw new Error("Invalid email or password")
           }
 
           return {
@@ -61,7 +57,7 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error("Auth error:", error)
-          throw new Error("Authentication failed")
+          throw new Error(error instanceof Error ? error.message : "Authentication failed")
         }
       },
     }),
