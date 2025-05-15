@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
 
 export async function POST(req: Request) {
@@ -40,22 +39,18 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     })
 
-    const user = {
-      _id: result.insertedId,
-      name,
-      email,
-    }
-
-    // Link credentials
-    const adapter = MongoDBAdapter(client)
-    await adapter.linkAccount({
-      provider: "credentials",
-      providerAccountId: user._id.toString(),
-      userId: user._id.toString(),
-      type: "credentials",
-    })
-
-    return NextResponse.json({ success: true, user }, { status: 201 })
+    // Return success without sensitive data
+    return NextResponse.json(
+      {
+        success: true,
+        user: {
+          id: result.insertedId.toString(),
+          name,
+          email,
+        },
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json({ error: "An error occurred during registration" }, { status: 500 })

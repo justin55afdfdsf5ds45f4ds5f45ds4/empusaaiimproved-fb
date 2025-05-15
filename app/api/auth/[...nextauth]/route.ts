@@ -1,14 +1,14 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import GoogleProvider     from "next-auth/providers/google";
-import PinterestProvider  from "next-auth/providers/pinterest";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import clientPromise      from "@/lib/mongodb";
+import NextAuth, { type NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import PinterestProvider from "next-auth/providers/pinterest"
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
+import clientPromise from "@/lib/mongodb"
 
 // ─────────────────────────────────────────────
 // 1. ENV sanity‑check
 // ─────────────────────────────────────────────
-[
+;[
   "AUTH_GOOGLE_ID",
   "AUTH_GOOGLE_SECRET",
   "AUTH_PINTEREST_ID",
@@ -17,8 +17,8 @@ import clientPromise      from "@/lib/mongodb";
   "AUTH_URL",
   "MONGODB_URI",
 ].forEach((v) => {
-  if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`);
-});
+  if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`)
+})
 
 // ─────────────────────────────────────────────
 // 2. Auth options
@@ -30,13 +30,13 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // ── Google ───────────────────────────────
     GoogleProvider({
-      clientId:     process.env.AUTH_GOOGLE_ID!,
+      clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
 
     // ── Pinterest (no native e‑mail) ─────────
     PinterestProvider({
-      clientId:     process.env.AUTH_PINTEREST_ID!,
+      clientId: process.env.AUTH_PINTEREST_ID!,
       clientSecret: process.env.AUTH_PINTEREST_SECRET!,
       authorization: {
         // default + write + boards; email NOT available
@@ -45,11 +45,11 @@ export const authOptions: NextAuthOptions = {
       profile(p) {
         // fabricate an e‑mail so the Mongo adapter’s unique index is satisfied
         return {
-          id:    p.id,
-          name:  p.username,
+          id: p.id,
+          name: p.username,
           email: `${p.id}@pinterest.user`,
           image: p.profile_image ?? null,
-        };
+        }
       },
     }),
   ],
@@ -61,21 +61,21 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async session({ session, token }) {
-      if (session.user) session.user.id = token.sub;   // expose DB id on client
-      return session;
+      if (session.user) session.user.id = token.sub // expose DB id on client
+      return session
     },
     async redirect() {
-      return "/dashboard";                             // always land on dashboard
+      return "/dashboard" // always land on dashboard
     },
   },
 
   pages: {
     signIn: "/login",
-    error : "/auth-error",
+    error: "/auth-error",
   },
 
   secret: process.env.AUTH_SECRET,
-};
+}
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+const handler = NextAuth(authOptions)
+export { handler as GET, handler as POST }
