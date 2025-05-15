@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link href="/dashboard" className="text-sm font-medium text-gray-500 hover:text-gray-900">
                 Dashboard
               </Link>
-              <Link href="/dashboard/create" className="text-sm font-medium text-gray-900">
+              <Link href="/dashboard/create" className="text-sm font-medium text-gray-500 hover:text-gray-900">
                 Create
               </Link>
               <Link href="/dashboard/posts" className="text-sm font-medium text-gray-500 hover:text-gray-900">

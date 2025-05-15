@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, LayoutDashboard, History, Settings, PlusCircle } from "lucide-react"
+import { Menu, X, LayoutDashboard, History, Settings, PlusCircle, Share2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -29,6 +29,11 @@ const navItems = [
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
+  },
+  {
+    title: "Social Connections",
+    href: "/dashboard/settings/social",
+    icon: Share2,
   },
 ]
 

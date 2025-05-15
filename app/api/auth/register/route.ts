@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import clientPromise from "@/lib/mongodb"
 
 export async function POST(req: Request) {
   try {
@@ -13,14 +15,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Password must be at least 8 characters long" }, { status: 400 })
     }
 
-    // In a real implementation, we would connect to MongoDB and create the user
-    // For now, we'll just return a success response to avoid build errors
+    // Connect to MongoDB
+    const client = await clientPromise
+    const db = client.db()
+    const usersCollection = db.collection("users")
+
+    // Check if user already exists
+    const existingUser = await usersCollection.findOne({ email })
+    if (existingUser) {
+      return NextResponse.json({ error: "User already exists" }, { status: 409 })
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Create user
+    const result = await usersCollection.insertOne({
+      name,
+      email,
+      password: hashedPassword,
+      emailVerified: null,
+      image: null,
+      createdAt: new Date(),
+    })
+
+    // Return success without sensitive data
     return NextResponse.json(
       {
         success: true,
-        message: "Registration endpoint is ready",
+        user: {
+          id: result.insertedId.toString(),
+          name,
+          email,
+        },
       },
-      { status: 200 },
+      { status: 201 },
     )
   } catch (error) {
     console.error("Registration error:", error)

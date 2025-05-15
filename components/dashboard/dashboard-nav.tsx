@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, History, Settings, PlusCircle } from "lucide-react"
+import { LayoutDashboard, History, Settings, PlusCircle, Share2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -27,6 +27,11 @@ const navItems = [
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
+  },
+  {
+    title: "Social Connections",
+    href: "/dashboard/settings/social",
+    icon: Share2,
   },
 ]
 

@@ -1,14 +1,14 @@
 import NextAuth, { type NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-// Comment out Pinterest provider for now to simplify debugging
-// import PinterestProvider from "next-auth/providers/pinterest"
-// import { MongoDBAdapter } from "@auth/mongodb-adapter"
-// import clientPromise from "@/lib/mongodb"
+import CredentialsProvider from "next-auth/providers/credentials"
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
+import clientPromise from "@/lib/mongodb"
+import bcrypt from "bcryptjs"
 
 // ─────────────────────────────────────────────
 // 1. ENV sanity‑check
 // ─────────────────────────────────────────────
-;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET"].forEach((v) => {
+;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET", "AUTH_URL", "MONGODB_URI"].forEach((v) => {
   if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`)
 })
 
@@ -16,9 +16,8 @@ import GoogleProvider from "next-auth/providers/google"
 // 2. Auth options
 // ─────────────────────────────────────────────
 export const authOptions: NextAuthOptions = {
-  debug: true,
-  // Temporarily disable MongoDB adapter to simplify debugging
-  // adapter: MongoDBAdapter(clientPromise),
+  debug: process.env.NODE_ENV === "development",
+  adapter: MongoDBAdapter(clientPromise),
 
   providers: [
     // ── Google ───────────────────────────────
@@ -27,41 +26,61 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
 
-    // Temporarily comment out Pinterest provider
-    /*
-    // ── Pinterest (no native e‑mail) ─────────
-    PinterestProvider({
-      clientId: process.env.AUTH_PINTEREST_ID!,
-      clientSecret: process.AUTH_PINTEREST_SECRET!,
-      authorization: {
-        // default + write + boards; email NOT available
-        params: { scope: "user_accounts:read,pins:read,boards:read,pins:write" },
+    // ── Email/Password ────────────────────────
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
-      profile(p) {
-        // fabricate an e‑mail so the Mongo adapter's unique index is satisfied
-        return {
-          id: p.id,
-          name: p.username,
-          email: `${p.id}@pinterest.user`,
-          image: p.profile_image ?? null,
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials")
+        }
+
+        try {
+          const client = await clientPromise
+          const db = client.db()
+          const user = await db.collection("users").findOne({ email: credentials.email })
+
+          if (!user || !user.password) {
+            throw new Error("User not found")
+          }
+
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+
+          if (!isPasswordValid) {
+            throw new Error("Invalid password")
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            image: user.image,
+          }
+        } catch (error) {
+          console.error("Auth error:", error)
+          throw new Error("Authentication failed")
         }
       },
     }),
-    */
   ],
-
-  // merge Google + Pinterest accounts for same user if they collide
-  allowDangerousEmailAccountLinking: true,
 
   session: { strategy: "jwt" },
 
   callbacks: {
-    async session({ session, token }) {
-      if (session.user) session.user.id = token.sub // expose DB id on client
-      return session
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+      return token
     },
-    async redirect() {
-      return "/dashboard" // always land on dashboard
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+      }
+      return session
     },
   },
 
