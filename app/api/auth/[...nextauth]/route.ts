@@ -20,6 +20,11 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      authorization: {
+        params: {
+          prompt: "select_account"
+        }
+      }
     }),
 
     // ── Email/Password ────────────────────────
@@ -63,12 +68,18 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  session: { strategy: "jwt" },
+  session: { 
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
+      }
+      if (account) {
+        token.accessToken = account.access_token
       }
       return token
     },
@@ -78,11 +89,19 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
   },
 
   pages: {
     signIn: "/login",
     error: "/auth-error",
+    signOut: "/",
   },
 
   secret: process.env.AUTH_SECRET,

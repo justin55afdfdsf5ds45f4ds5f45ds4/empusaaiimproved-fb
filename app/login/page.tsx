@@ -24,7 +24,7 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (status === "authenticated" && session) {
-      router.push("/dashboard")
+      router.replace("/dashboard")
     }
   }, [session, status, router])
 
@@ -46,6 +46,7 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
+        callbackUrl: "/dashboard"
       })
 
       if (result?.error) {
@@ -54,12 +55,8 @@ export default function LoginPage() {
           description: result.error,
           variant: "destructive",
         })
-      } else {
-        toast({
-          title: "Login successful",
-          description: "Welcome back to Empusa AI!",
-        })
-        router.push("/dashboard")
+      } else if (result?.url) {
+        router.replace(result.url)
       }
     } catch (error) {
       toast({
@@ -75,7 +72,10 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true)
-      await signIn("google", { callbackUrl: "/dashboard" })
+      await signIn("google", { 
+        callbackUrl: "/dashboard",
+        redirect: true
+      })
     } catch (error) {
       console.error("Google sign-in error:", error)
       toast({
