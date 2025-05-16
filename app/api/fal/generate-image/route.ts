@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
+import OpenAI from "openai"
+import { generateImage } from "@/lib/falai"
 
-// Sample image URLs from Unsplash for different categories
-const IMAGE_URLS = {
+// Sample image URLs from Unsplash for different categories (FALLBACK MODE)
+const FALLBACK_IMAGE_URLS = {
   landscape: [
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&h=1200&fit=crop",
     "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=1200&fit=crop",
@@ -12,70 +14,94 @@ const IMAGE_URLS = {
     "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=1200&fit=crop",
     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=1200&fit=crop",
   ],
-  technology: [
+  general: [
     "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=1200&fit=crop",
     "https://images.unsplash.com/photo-1550439062-609e1531270e?w=800&h=1200&fit=crop",
-    "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&h=1200&fit=crop",
-  ],
-  abstract: [
     "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&h=1200&fit=crop",
     "https://images.unsplash.com/photo-1507908708918-778587c9e563?w=800&h=1200&fit=crop",
-    "https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=800&h=1200&fit=crop",
-  ],
-  fashion: [
-    "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1200&fit=crop",
-    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1200&fit=crop",
-    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop",
-  ],
+  ]
 }
 
-// Function to determine the category based on prompt
-function determineCategory(prompt: string): string {
+// Function to determine fallback category (FALLBACK MODE)
+function determineFallbackCategory(prompt: string): string {
   prompt = prompt.toLowerCase()
-
-  if (
-    prompt.includes("landscape") ||
-    prompt.includes("nature") ||
-    prompt.includes("mountain") ||
-    prompt.includes("lake")
-  ) {
+  
+  if (prompt.includes("landscape") || prompt.includes("nature") || prompt.includes("mountain")) {
     return "landscape"
   }
-
-  if (prompt.includes("food") || prompt.includes("meal") || prompt.includes("dish") || prompt.includes("recipe")) {
+  
+  if (prompt.includes("food") || prompt.includes("meal") || prompt.includes("dish")) {
     return "food"
   }
+  
+  return "general"
+}
 
-  if (
-    prompt.includes("tech") ||
-    prompt.includes("computer") ||
-    prompt.includes("digital") ||
-    prompt.includes("device")
-  ) {
-    return "technology"
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+
+// Function to enhance prompt with OpenAI
+async function enhancePrompt(userPrompt: string) {
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      console.log("OpenAI API key not found, using original prompt")
+      return {
+        success: true,
+        prompt: userPrompt,
+        enhanced: false
+      }
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert at creating detailed image generation prompts. Transform basic prompts into detailed ones optimized for Stable Diffusion XL.
+Key points to include:
+- Detailed visual descriptions
+- Lighting and atmosphere
+- Style and artistic direction
+- Technical aspects (high resolution, detailed, sharp focus, etc.)
+Keep the enhanced prompt concise but descriptive.`
+        },
+        {
+          role: "user",
+          content: `Transform this prompt for optimal image generation: "${userPrompt}". 
+Include specific details about style, lighting, and quality but keep it under 100 words.`
+        },
+      ],
+      max_tokens: 150,
+      temperature: 0.7,
+    })
+
+    const enhancedPrompt = response.choices[0]?.message?.content?.trim()
+    
+    if (!enhancedPrompt) {
+      return {
+        success: true,
+        prompt: userPrompt,
+        enhanced: false
+      }
+    }
+
+    console.log("Enhanced prompt:", enhancedPrompt)
+    return {
+      success: true,
+      prompt: enhancedPrompt,
+      enhanced: true
+    }
+  } catch (error) {
+    console.error("Error enhancing prompt with OpenAI:", error)
+    return {
+      success: false,
+      prompt: userPrompt,
+      enhanced: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
   }
-
-  if (
-    prompt.includes("abstract") ||
-    prompt.includes("art") ||
-    prompt.includes("pattern") ||
-    prompt.includes("design")
-  ) {
-    return "abstract"
-  }
-
-  if (
-    prompt.includes("fashion") ||
-    prompt.includes("style") ||
-    prompt.includes("clothing") ||
-    prompt.includes("outfit")
-  ) {
-    return "fashion"
-  }
-
-  // Default to a random category
-  const categories = Object.keys(IMAGE_URLS)
-  return categories[Math.floor(Math.random() * categories.length)]
 }
 
 export async function POST(req: Request) {
@@ -88,36 +114,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
     }
 
-    console.log("Generating image for prompt:", prompt)
+    console.log("Original prompt:", prompt)
 
-    // Determine the category based on the prompt
-    const category = determineCategory(prompt)
-    console.log("Determined category:", category)
+    // Enhance the prompt using OpenAI
+    const enhancedPromptResult = await enhancePrompt(prompt)
+    const finalPrompt = enhancedPromptResult.prompt
 
-    // Get a random image URL from the category
-    const categoryUrls = IMAGE_URLS[category as keyof typeof IMAGE_URLS]
-    const imageUrl = categoryUrls[Math.floor(Math.random() * categoryUrls.length)]
+    // Generate the image using the enhanced prompt
+    const imageUrl = await generateImage(finalPrompt)
 
-    // For real FAL AI integration, we would use the FAL_AI environment variable here
-    // But for now, we'll just return a placeholder image
-
-    // Simulate a delay to mimic API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
+    // Return the response with all relevant information
     return NextResponse.json({
-      images: [
-        {
-          url: imageUrl,
-          width: 800,
-          height: 1200,
-        },
-      ],
+      success: true,
+      images: [{
+        url: imageUrl,
+        width: 1024,
+        height: 1024
+      }],
+      original_prompt: prompt,
+      enhanced_prompt: finalPrompt,
+      prompt_enhanced: enhancedPromptResult.enhanced
     })
+
   } catch (error) {
-    console.error("Error generating image:", error)
+    console.error("Error in image generation route:", error)
+    
+    // Return a proper error response
     return NextResponse.json(
-      { error: `Failed to generate image: ${error instanceof Error ? error.message : String(error)}` },
-      { status: 500 },
+      { 
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? error.stack : undefined
+      },
+      { status: 500 }
     )
   }
 }
