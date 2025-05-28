@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
 import bcrypt from "bcryptjs"
-;["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "NEXTAUTH_SECRET", "MONGODB_URI"].forEach((v) => {
+;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET", "MONGODB_URI"].forEach((v) => {
   if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`)
 })
 
@@ -18,8 +18,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // ── Google ───────────────────────────────
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
       authorization: {
         params: {
           prompt: "select_account"

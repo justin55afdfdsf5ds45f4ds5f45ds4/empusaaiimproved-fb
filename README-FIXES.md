@@ -66,18 +66,18 @@ There are some minor Next.js development server issues that need to be addressed
 
 1. Review environment variables in your `.env.local` or deployment environment
 2. Ensure the required API keys are set:
-   ```
+   \`\`\`
    FALAI_API_KEY=your_fal_ai_key_here
    FALAI_MODEL_ID=fast-sdxl
    OPENAI_API_KEY=your_openai_api_key_here
    FireCrawl_API=your_firecrawl_api_key_here
-   ```
+   \`\`\`
 3. Rebuild the Next.js application:
-   ```
+   \`\`\`
    rm -r -fo .next
    npm run build
    npm start
-   ```
+   \`\`\`
 
 ## Test Results
 
@@ -85,4 +85,4 @@ The fallback mechanisms are working correctly in the implementation code. While 
 
 The FireCrawl integration test confirms that fallback content is being provided when no API key is available.
 
-Your Fal.ai, OpenAI, and FireCrawl integrations are now properly implemented in the codebase and will work seamlessly when the API keys are available. 
+Your Fal.ai, OpenAI, and FireCrawl integrations are now properly implemented in the codebase and will work seamlessly when the API keys are available.

@@ -68,4 +68,4 @@ console.log('Starting tests...');
 console.log('Make sure your development server is running on http://localhost:3000');
 console.log('And ensure your .env.local file contains the necessary API keys\n');
 
-testImageGeneration(); 
+testImageGeneration();

@@ -29,7 +29,7 @@ The application uses the following environment variables:
 
 These should be set in your environment or in a `.env.local` file in the project root:
 
-```
+\`\`\`
 # Fal.ai API Key (required for real image generation)
 FALAI_API_KEY=your_fal_ai_key_here
 FALAI_MODEL_ID=fast-sdxl
@@ -39,7 +39,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 # FireCrawl API Key (for crawling and scraping)
 FireCrawl_API=your_firecrawl_api_key_here
-```
+\`\`\`
 
 ### 2. Getting API Keys
 
@@ -61,14 +61,14 @@ FireCrawl_API=your_firecrawl_api_key_here
 ## Testing Your Setup
 
 1. Start the development server:
-   ```
+   \`\`\`
    npm run dev
-   ```
+   \`\`\`
 
 2. Run the test script to verify API integration:
-   ```
+   \`\`\`
    node test-image-api.js
-   ```
+   \`\`\`
 
 3. Check the output to confirm:
    - If you see "Mode: ✅ PRODUCTION" - You're using real Fal.ai API
@@ -106,4 +106,4 @@ Once correctly set up, the image generation will be used in these contexts:
 2. During the post generation process
 3. As part of the content pipeline when processing URLs
 
-For any additional help, please contact the development team. 
+For any additional help, please contact the development team.

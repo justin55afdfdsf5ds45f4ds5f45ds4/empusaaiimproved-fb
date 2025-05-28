@@ -98,4 +98,4 @@ export async function scrapeUrl(url: string) {
       error: error instanceof Error ? error.message : "Unknown error"
     };
   }
-} 
+}

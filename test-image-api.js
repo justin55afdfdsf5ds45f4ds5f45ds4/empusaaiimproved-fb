@@ -76,4 +76,4 @@ async function testPrompt(prompt) {
 }
 
 // Run the tests
-testImageGeneration(); 
+testImageGeneration();
