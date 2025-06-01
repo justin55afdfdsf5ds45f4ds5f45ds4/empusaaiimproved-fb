@@ -2,8 +2,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { PlusCircle, ImageIcon, Clock, TrendingUp, Lightbulb, Zap, Target } from "lucide-react"
+import { useEffect, useState } from "react"
+
+interface DashboardMetrics {
+  totalPosts: number
+  scheduledPosts: number
+  totalEngagement: number
+}
 
 export default function DashboardPage() {
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalPosts: 0,
+    scheduledPosts: 0,
+    totalEngagement: 0,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchMetrics() {
+      try {
+        const response = await fetch("/api/dashboard/metrics")
+        if (!response.ok) {
+          throw new Error("Failed to fetch metrics")
+        }
+        const data = await response.json()
+        setMetrics(data)
+      } catch (error) {
+        console.error("Error fetching dashboard metrics:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMetrics()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg border shadow-sm mb-6">
@@ -20,7 +53,7 @@ export default function DashboardPage() {
             <ImageIcon className="h-4 w-4 text-teal-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{isLoading ? "..." : metrics.totalPosts}</div>
             <p className="text-xs text-gray-500">Posts created</p>
           </CardContent>
         </Card>
@@ -30,7 +63,7 @@ export default function DashboardPage() {
             <Clock className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{isLoading ? "..." : metrics.scheduledPosts}</div>
             <p className="text-xs text-gray-500">Posts scheduled</p>
           </CardContent>
         </Card>
@@ -40,7 +73,7 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{isLoading ? "..." : metrics.totalEngagement}</div>
             <p className="text-xs text-gray-500">Total engagements</p>
           </CardContent>
         </Card>
