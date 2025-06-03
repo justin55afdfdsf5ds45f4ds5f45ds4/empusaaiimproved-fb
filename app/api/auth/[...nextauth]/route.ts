@@ -22,9 +22,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
       authorization: {
         params: {
-          prompt: "select_account"
-        }
-      }
+          prompt: "select_account",
+        },
+      },
     }),
 
     // ── Email/Password ────────────────────────
@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  session: { 
+  session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
