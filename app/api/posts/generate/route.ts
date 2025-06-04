@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server"
 import { v4 as uuidv4 } from "uuid"
 import { generateImage } from "@/lib/falai"
-import FirecrawlApp from "firecrawl"
-import { OpenAI } from "openai"
-
-const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY })
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 
 // Sample topics for generating content
 const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
@@ -80,40 +74,52 @@ async function extractKeywords(url: string | null, topic: string | null): Promis
 
   if (url) {
     try {
-      if (!/^https?:\/\//.test(url)) throw new Error("Invalid URL");
-  
-      console.log("🔎 Scraping page:", url);
-      const raw = await firecrawl.scrapeUrl(url, { onlyMainContent: false });
-      
-      if (!raw.success) {
-        throw new Error(raw.error);
+      // Only try to use external APIs if we have the required API keys
+      if (!process.env.FIRECRAWL_API_KEY || !process.env.OPENAI_API_KEY) {
+        console.log("Missing API keys for URL extraction, using fallback")
+        return null
       }
-      
-      const pageText = raw.metadata?.description || '';
 
-      if (!pageText.trim()) throw new Error("No usable content from Firecrawl");
-  
-      const sysPrompt = `You are a machine that extracts short, powerful keywords and phrases relevant for Pinterest-style poster design from webpage content. Extract only eye-catching headline-like phrases. Output must be one string of comma-separated phrases, lowercase, no paragraphs.`;
-  
+      if (!/^https?:\/\//.test(url)) throw new Error("Invalid URL")
+
+      // Dynamic imports to avoid build-time issues
+      const [{ default: FirecrawlApp }, { OpenAI }] = await Promise.all([import("firecrawl"), import("openai")])
+
+      const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY })
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+      console.log("🔎 Scraping page:", url)
+      const raw = await firecrawl.scrapeUrl(url, { onlyMainContent: false })
+
+      if (!raw.success) {
+        throw new Error(raw.error)
+      }
+
+      const pageText = raw.metadata?.description || ""
+
+      if (!pageText.trim()) throw new Error("No usable content from Firecrawl")
+
+      const sysPrompt = `You are a machine that extracts short, powerful keywords and phrases relevant for Pinterest-style poster design from webpage content. Extract only eye-catching headline-like phrases. Output must be one string of comma-separated phrases, lowercase, no paragraphs.`
+
       const chat = await openai.chat.completions.create({
         model: "gpt-4o",
         temperature: 0.3,
         messages: [
           { role: "system", content: sysPrompt },
-          { role: "user", content: pageText.slice(0, 8000) }
-        ]
-      });
-  
+          { role: "user", content: pageText.slice(0, 8000) },
+        ],
+      })
+
       if (!chat.choices?.[0]?.message?.content) {
-        throw new Error("No response content from OpenAI");
+        throw new Error("No response content from OpenAI")
       }
-      
-      const keywords = chat.choices[0].message.content.trim();
-      console.log("🗝️ Extracted keywords:", keywords);
-      return keywords;
+
+      const keywords = chat.choices[0].message.content.trim()
+      console.log("🗝️ Extracted keywords:", keywords)
+      return keywords
     } catch (err: unknown) {
-      console.error("❌ Error extracting keywords:", err instanceof Error ? err.message : String(err));
-      return null;
+      console.error("❌ Error extracting keywords:", err instanceof Error ? err.message : String(err))
+      return null
     }
   }
 
@@ -146,9 +152,9 @@ export async function POST(req: Request) {
     const posts = []
     const requestedCount = Math.min(Math.max(1, count), 10) // Limit between 1 and 10
     for (let i = 0; i < requestedCount; i++) {
-      const title = generateTitle(keywords ?? '')
-      const description = generateDescription(keywords ?? '')
-      const imagePrompt = generateImagePrompt(keywords ?? '')
+      const title = generateTitle(keywords ?? "")
+      const description = generateDescription(keywords ?? "")
+      const imagePrompt = generateImagePrompt(keywords ?? "")
 
       let imageUrl
 
