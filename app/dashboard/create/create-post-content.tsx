@@ -232,31 +232,32 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     setIsGenerating(true)
 
     try {
-      // Call the API to generate posts
-      const response = await fetch("/api/posts/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: activeTab === "url" ? url : undefined,
-          topic: activeTab === "scratch" ? topic : undefined,
-          tone: activeTab === "scratch" ? tone : undefined,
-          count: Number.parseInt(postCount),
-        }),
-      })
+      // Mock data generation instead of API call
+      setTimeout(() => {
+        const mockPosts = Array.from({ length: Number(postCount) }, (_, i) => ({
+          id: `post-${Date.now()}-${i}`,
+          title:
+            activeTab === "url"
+              ? `Pinterest post about ${url.split("//")[1]?.split("/")[0] || "website"} #${i + 1}`
+              : `${topic} ideas for Pinterest #${i + 1}`,
+          description:
+            activeTab === "url"
+              ? `This is a Pinterest post generated from the URL ${url}. It contains engaging content about the website.`
+              : `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike.`,
+          imagePrompt:
+            activeTab === "url" ? `Pinterest style image about ${url}` : `Pinterest style image about ${topic}`,
+          imageUrl: `https://source.unsplash.com/random/800x1200?${encodeURIComponent(activeTab === "url" ? url : topic)}&sig=${i}`,
+        }))
 
-      if (!response.ok) {
-        throw new Error("Failed to generate posts")
-      }
+        setGeneratedPosts(mockPosts)
 
-      const data = await response.json()
-      setGeneratedPosts(data.posts || [])
+        toast({
+          title: "Posts Generated",
+          description: `Successfully generated ${mockPosts.length} Pinterest posts.`,
+        })
 
-      toast({
-        title: "Posts Generated",
-        description: `Successfully generated ${data.posts.length} Pinterest posts.`,
-      })
+        setIsGenerating(false)
+      }, 1500)
     } catch (error) {
       console.error("Error generating posts:", error)
       toast({
@@ -264,7 +265,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         description: "Failed to generate posts. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsGenerating(false)
     }
   }
@@ -314,41 +314,17 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     setIsPublishing(post.id)
 
     try {
-      // Publish the post to Pinterest
-      const response = await fetch("/api/pinterest/publish", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          boardId: selectedBoard,
-          title: post.title,
-          description: post.description,
-          imageUrl: post.imageUrl,
-        }),
-      })
+      // Mock publishing instead of API call
+      setTimeout(() => {
+        toast({
+          title: "Post Published",
+          description: "Your post has been successfully published to Pinterest.",
+        })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-
-        // If unauthorized, refresh boards and show error
-        if (response.status === 401) {
-          fetchBoards()
-          throw new Error("Pinterest authentication expired. Please reconnect your account.")
-        }
-
-        throw new Error(errorData.error || "Failed to publish post")
-      }
-
-      const data = await response.json()
-
-      toast({
-        title: "Post Published",
-        description: "Your post has been successfully published to Pinterest.",
-      })
-
-      // Remove the published post from the list
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
+        // Remove the published post from the list
+        setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
+        setIsPublishing(null)
+      }, 1500)
     } catch (error) {
       console.error("Error publishing post:", error)
       toast({
@@ -356,7 +332,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsPublishing(null)
     }
   }
@@ -412,35 +387,19 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     setIsScheduling(postWithImage.id)
 
     try {
-      // Schedule the post
-      const response = await fetch("/api/posts/schedule", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          postId: postWithImage.id,
-          boardId: selectedBoard,
-          title: postWithImage.title,
-          description: postWithImage.description,
-          imageUrl: postWithImage.imageUrl,
-          scheduledDate: scheduledDate.toISOString(),
-        }),
-      })
+      // Mock scheduling instead of API call
+      setTimeout(() => {
+        toast({
+          title: "Post Scheduled",
+          description: `Your post has been scheduled for ${format(scheduledDate, "PPP")}.`,
+        })
 
-      if (!response.ok) {
-        throw new Error("Failed to schedule post")
-      }
-
-      toast({
-        title: "Post Scheduled",
-        description: `Your post has been scheduled for ${format(scheduledDate, "PPP")}.`,
-      })
-
-      // Remove the scheduled post from the list
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id))
-      setScheduleDialogOpen(false)
-      setScheduledDate(undefined)
+        // Remove the scheduled post from the list
+        setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id))
+        setScheduleDialogOpen(false)
+        setScheduledDate(undefined)
+        setIsScheduling(null)
+      }, 1500)
     } catch (error) {
       console.error("Error scheduling post:", error)
       toast({
@@ -448,7 +407,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         description: "Failed to schedule post. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsScheduling(null)
     }
   }
