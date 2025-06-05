@@ -84,65 +84,42 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
   }, [initialUrl])
 
-  // Fetch Pinterest boards
+  // Mock Pinterest boards data
+  const mockBoards = [
+    { id: "board-1", name: "My Pinterest Board" },
+    { id: "board-2", name: "Travel Ideas" },
+    { id: "board-3", name: "Recipe Collection" },
+    { id: "board-4", name: "Home Decor" },
+  ]
+
+  // Replace the fetchBoards function with mock data
   const fetchBoards = async () => {
     setIsFetchingBoards(true)
     setBoardFetchError(null)
 
     try {
-      console.log("Fetching Pinterest boards")
-      const response = await fetch("/api/pinterest/boards")
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("Failed to fetch boards:", errorData)
-
-        // If unauthorized, redirect to auth
-        if (response.status === 401) {
-          toast({
-            title: "Authentication Required",
-            description: "Your Pinterest authentication has expired. Please reconnect your account.",
-            variant: "destructive",
-          })
-
-          // Force re-authentication
-          router.push("/dashboard?reauth=true")
-          return
+      // Simulate API delay
+      setTimeout(() => {
+        setPinterestBoards(mockBoards)
+        if (!selectedBoard && mockBoards.length > 0) {
+          setSelectedBoard(mockBoards[0].id)
         }
-
-        throw new Error(errorData.error || "Failed to fetch Pinterest boards")
-      }
-
-      const data = await response.json()
-      console.log("Boards fetched:", data)
-
-      if (!data.items || data.items.length === 0) {
-        setBoardFetchError("No Pinterest boards found. Please create a board in your Pinterest account first.")
-        setPinterestBoards([])
-        return
-      }
-
-      setPinterestBoards(data.items || [])
-
-      // Set the first board as default if available
-      if (data.items && data.items.length > 0 && !selectedBoard) {
-        setSelectedBoard(data.items[0].id)
-      }
+        setIsFetchingBoards(false)
+      }, 500)
     } catch (error) {
       console.error("Error fetching Pinterest boards:", error)
-      setBoardFetchError(error instanceof Error ? error.message : "Failed to fetch Pinterest boards. Please try again.")
-      toast({
-        title: "Error",
-        description: "Failed to fetch Pinterest boards. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
+      setBoardFetchError("Failed to fetch Pinterest boards. Please try again.")
       setIsFetchingBoards(false)
     }
   }
 
+  // Replace the useEffect with a simpler version
   useEffect(() => {
-    fetchBoards()
+    // Initialize with mock data immediately
+    setPinterestBoards(mockBoards)
+    if (!selectedBoard && mockBoards.length > 0) {
+      setSelectedBoard(mockBoards[0].id)
+    }
   }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
