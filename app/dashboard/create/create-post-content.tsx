@@ -4,7 +4,18 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Upload, Loader2, LinkIcon, Calendar, Info, PinIcon, RefreshCw, AlertCircle } from "lucide-react"
+import {
+  ArrowRight,
+  Upload,
+  Loader2,
+  LinkIcon,
+  Calendar,
+  Info,
+  PinIcon,
+  RefreshCw,
+  AlertCircle,
+  Trash2,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +43,7 @@ interface Post {
   description: string
   imagePrompt?: string
   imageUrl: string | null
+  defaultLink?: string
 }
 
 interface PinterestBoard {
@@ -76,6 +88,14 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
   const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({})
 
+  // New state for bulk operations
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false)
+  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState("")
+  const [linkAllDialogOpen, setLinkAllDialogOpen] = useState(false)
+  const [linkAllText, setLinkAllText] = useState("")
+  const [scheduleAllDialogOpen, setScheduleAllDialogOpen] = useState(false)
+  const [scheduleAllDate, setScheduleAllDate] = useState<Date | undefined>(undefined)
+
   // Set the initial URL and tab if provided
   useEffect(() => {
     if (initialUrl) {
@@ -90,6 +110,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     { id: "board-2", name: "Travel Ideas" },
     { id: "board-3", name: "Recipe Collection" },
     { id: "board-4", name: "Home Decor" },
+    { id: "board-5", name: "DIY Projects" },
   ]
 
   // Replace the fetchBoards function with mock data
@@ -219,11 +240,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               : `${topic} ideas for Pinterest #${i + 1}`,
           description:
             activeTab === "url"
-              ? `This is a Pinterest post generated from the URL ${url}. It contains engaging content about the website.`
-              : `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike.`,
+              ? `This is a Pinterest post generated from the URL ${url}. It contains engaging content about the website and provides valuable insights for Pinterest users.`
+              : `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike, offering practical tips and inspiration.`,
           imagePrompt:
             activeTab === "url" ? `Pinterest style image about ${url}` : `Pinterest style image about ${topic}`,
           imageUrl: `https://source.unsplash.com/random/800x1200?${encodeURIComponent(activeTab === "url" ? url : topic)}&sig=${i}`,
+          defaultLink: activeTab === "url" ? url : `https://example.com/${topic.replace(/\s+/g, "-").toLowerCase()}`,
         }))
 
         setGeneratedPosts(mockPosts)
@@ -426,6 +448,102 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       setDeleteDialogOpen(false)
       setPostToDelete(null)
       setDeleteConfirmText("")
+
+      toast({
+        title: "Post Deleted",
+        description: "The post has been successfully deleted.",
+      })
+    }
+  }
+
+  // New function for Delete All
+  const handleDeleteAll = () => {
+    if (selectedPosts.size === 0) {
+      toast({
+        title: "No Posts Selected",
+        description: "Please select posts to delete.",
+        variant: "destructive",
+      })
+      return
+    }
+    setDeleteAllDialogOpen(true)
+    setDeleteAllConfirmText("")
+  }
+
+  const confirmDeleteAll = () => {
+    if (deleteAllConfirmText === "DELETE") {
+      const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+      setGeneratedPosts(remainingPosts)
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
+      setDeleteAllDialogOpen(false)
+      setDeleteAllConfirmText("")
+
+      toast({
+        title: "Posts Deleted",
+        description: `Successfully deleted ${selectedPosts.size} posts.`,
+      })
+    }
+  }
+
+  // New function for Link All Posts
+  const handleLinkAllPosts = () => {
+    if (selectedPosts.size === 0) {
+      toast({
+        title: "No Posts Selected",
+        description: "Please select posts to add links.",
+        variant: "destructive",
+      })
+      return
+    }
+    setLinkAllDialogOpen(true)
+    setLinkAllText("")
+  }
+
+  const confirmLinkAll = () => {
+    if (linkAllText) {
+      const newPostLinks = { ...postLinks }
+      selectedPosts.forEach((postId) => {
+        newPostLinks[postId] = linkAllText
+      })
+      setPostLinks(newPostLinks)
+      setLinkAllDialogOpen(false)
+      setLinkAllText("")
+
+      toast({
+        title: "Links Added",
+        description: `Successfully added custom links to ${selectedPosts.size} posts.`,
+      })
+    }
+  }
+
+  // New function for Schedule All
+  const handleScheduleAll = () => {
+    if (selectedPosts.size === 0) {
+      toast({
+        title: "No Posts Selected",
+        description: "Please select posts to schedule.",
+        variant: "destructive",
+      })
+      return
+    }
+    setScheduleAllDialogOpen(true)
+    setScheduleAllDate(undefined)
+  }
+
+  const confirmScheduleAll = () => {
+    if (scheduleAllDate) {
+      const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+      setGeneratedPosts(remainingPosts)
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
+      setScheduleAllDialogOpen(false)
+      setScheduleAllDate(undefined)
+
+      toast({
+        title: "Posts Scheduled",
+        description: `Successfully scheduled ${selectedPosts.size} posts for ${format(scheduleAllDate, "PPP")}.`,
+      })
     }
   }
 
@@ -441,6 +559,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         ...prev,
         [postToLink.id]: customLink,
       }))
+
+      toast({
+        title: "Link Added",
+        description: "Custom link has been added to the post.",
+      })
     }
     setLinkDialogOpen(false)
     setPostToLink(null)
@@ -712,40 +835,24 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button
               className={getButtonClass(hasSelectedPosts)}
               disabled={!hasSelectedPosts}
-              onClick={() => {
-                toast({
-                  title: "Schedule Post",
-                  description: "Schedule functionality (UI only)",
-                })
-              }}
+              onClick={handleScheduleAll}
             >
+              <Calendar className="mr-2 h-4 w-4" />
               Schedule Post
             </Button>
 
-            <Button
-              className={getButtonClass(hasSelectedPosts)}
-              disabled={!hasSelectedPosts}
-              onClick={() => {
-                toast({
-                  title: "Post Posts",
-                  description: "Post functionality (UI only)",
-                })
-              }}
-            >
-              Post Posts
+            <Button className={getButtonClass(hasSelectedPosts)} disabled={!hasSelectedPosts} onClick={handleDeleteAll}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete All
             </Button>
 
             <Button
               className={getButtonClass(hasSelectedPosts)}
               disabled={!hasSelectedPosts}
-              onClick={() => {
-                toast({
-                  title: "Link Post",
-                  description: "Link functionality (UI only)",
-                })
-              }}
+              onClick={handleLinkAllPosts}
             >
-              Link Post
+              <LinkIcon className="mr-2 h-4 w-4" />
+              Link All Posts
             </Button>
 
             <Button
@@ -753,6 +860,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               disabled={!hasSelectedPosts}
               onClick={() => setPublishDialogOpen(true)}
             >
+              <PinIcon className="mr-2 h-4 w-4" />
               Publish to Pinterest
             </Button>
           </div>
@@ -761,7 +869,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           {hasSelectedPosts && (
             <Card className="p-4">
               <div className="flex items-center gap-4">
-                <Label>Default Board for Selected Posts:</Label>
+                <Label>Default Board for Selected Posts ({selectedPosts.size} selected):</Label>
                 <Select value={selectedBoard} onValueChange={setSelectedBoard}>
                   <SelectTrigger className="w-64">
                     <SelectValue placeholder="Select board" />
@@ -782,7 +890,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             {generatedPosts.map((post) => {
               const isSelected = selectedPosts.has(post.id)
               const hasCustomLink = postLinks[post.id]
-              const displayLink = hasCustomLink || url || "No link available"
+              const displayLink = hasCustomLink || post.defaultLink || "No link available"
               const assignedBoard = getSelectedBoard(post.id)
               const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
 
@@ -907,6 +1015,115 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         </div>
       )}
 
+      {/* Delete All Confirmation Dialog */}
+      <Dialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete All Selected Posts</DialogTitle>
+            <DialogDescription>Do you want to delete all selected posts?</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="mb-4 p-3 border rounded-lg bg-red-50">
+              <p className="font-medium text-red-800">You are about to delete {selectedPosts.size} posts</p>
+              <p className="text-sm text-red-600 mt-1">This action cannot be undone.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="delete-all-confirm">Type DELETE to confirm deletion</Label>
+              <Input
+                id="delete-all-confirm"
+                value={deleteAllConfirmText}
+                onChange={(e) => setDeleteAllConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteAllDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteAll} disabled={deleteAllConfirmText !== "DELETE"}>
+              Delete All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link All Posts Dialog */}
+      <Dialog open={linkAllDialogOpen} onOpenChange={setLinkAllDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Link All Selected Posts</DialogTitle>
+            <DialogDescription>Enter a custom link for all {selectedPosts.size} selected posts</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label htmlFor="link-all-input">Custom Link URL</Label>
+              <Input
+                id="link-all-input"
+                value={linkAllText}
+                onChange={(e) => setLinkAllText(e.target.value)}
+                placeholder="https://example.com"
+              />
+              <p className="text-xs text-gray-500">
+                This link will be applied to all {selectedPosts.size} selected posts
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkAllDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmLinkAll} disabled={!linkAllText} className="bg-green-600 hover:bg-green-700">
+              Apply to All Posts
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule All Posts Dialog */}
+      <Dialog open={scheduleAllDialogOpen} onOpenChange={setScheduleAllDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Schedule All Selected Posts</DialogTitle>
+            <DialogDescription>Select a date to schedule all {selectedPosts.size} selected posts</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="schedule-all-date">Date</Label>
+                <div className="mt-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {scheduleAllDate ? format(scheduleAllDate, "PPP") : "Select a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={scheduleAllDate}
+                        onSelect={setScheduleAllDate}
+                        initialFocus
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScheduleAllDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={confirmScheduleAll} disabled={!scheduleAllDate}>
+              Schedule All Posts
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -1030,11 +1247,16 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button
               className="bg-red-600 hover:bg-red-700"
               onClick={() => {
+                const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+                setGeneratedPosts(remainingPosts)
+                setSelectedPosts(new Set())
+                setIsSelectAllActive(false)
+                setPublishDialogOpen(false)
+
                 toast({
                   title: "Publishing to Pinterest",
-                  description: `Publishing ${selectedPosts.size} posts (UI only)`,
+                  description: `Successfully published ${selectedPosts.size} posts to Pinterest!`,
                 })
-                setPublishDialogOpen(false)
               }}
             >
               Confirm Publish
