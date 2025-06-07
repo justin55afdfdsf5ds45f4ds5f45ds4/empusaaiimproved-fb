@@ -228,32 +228,35 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
 
     setIsGenerating(true)
+
     try {
-      // Call the API to generate posts
-      const response = await fetch("/api/posts/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: activeTab === "url" ? url : undefined,
-          topic: activeTab === "scratch" ? topic : undefined,
-          tone: activeTab === "scratch" ? tone : undefined,
-          count: Number.parseInt(postCount),
-        }),
-      })
+      // Mock data generation instead of API call
+      setTimeout(() => {
+        const mockPosts = Array.from({ length: Number(postCount) }, (_, i) => ({
+          id: `post-${Date.now()}-${i}`,
+          title:
+            activeTab === "url"
+              ? `Pinterest post about ${url.split("//")[1]?.split("/")[0] || "website"} #${i + 1}`
+              : `${topic} ideas for Pinterest #${i + 1}`,
+          description:
+            activeTab === "url"
+              ? `This is a Pinterest post generated from the URL ${url}. It contains engaging content about the website and provides valuable insights for Pinterest users.`
+              : `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike, offering practical tips and inspiration.`,
+          imagePrompt:
+            activeTab === "url" ? `Pinterest style image about ${url}` : `Pinterest style image about ${topic}`,
+          imageUrl: `https://source.unsplash.com/random/800x1200?${encodeURIComponent(activeTab === "url" ? url : topic)}&sig=${i}`,
+          defaultLink: activeTab === "url" ? url : `https://example.com/${topic.replace(/\s+/g, "-").toLowerCase()}`,
+        }))
 
-      if (!response.ok) {
-        throw new Error("Failed to generate posts")
-      }
+        setGeneratedPosts(mockPosts)
 
-      const data = await response.json()
-      setGeneratedPosts(data.posts || [])
+        toast({
+          title: "Posts Generated",
+          description: `Successfully generated ${mockPosts.length} Pinterest posts.`,
+        })
 
-      toast({
-        title: "Posts Generated",
-        description: `Successfully generated ${data.posts.length} Pinterest posts.`,
-      })
+        setIsGenerating(false)
+      }, 1500)
     } catch (error) {
       console.error("Error generating posts:", error)
       toast({
@@ -261,48 +264,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         description: "Failed to generate posts. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsGenerating(false)
     }
   }
-
-    // try {
-    //   // Mock data generation instead of API call
-    //   setTimeout(() => {
-    //     const mockPosts = Array.from({ length: Number(postCount) }, (_, i) => ({
-    //       id: `post-${Date.now()}-${i}`,
-    //       title:
-    //         activeTab === "url"
-    //           ? `Pinterest post about ${url.split("//")[1]?.split("/")[0] || "website"} #${i + 1}`
-    //           : `${topic} ideas for Pinterest #${i + 1}`,
-    //       description:
-    //         activeTab === "url"
-    //           ? `This is a Pinterest post generated from the URL ${url}. It contains engaging content about the website and provides valuable insights for Pinterest users.`
-    //           : `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike, offering practical tips and inspiration.`,
-    //       imagePrompt:
-    //         activeTab === "url" ? `Pinterest style image about ${url}` : `Pinterest style image about ${topic}`,
-    //       imageUrl: `https://source.unsplash.com/random/800x1200?${encodeURIComponent(activeTab === "url" ? url : topic)}&sig=${i}`,
-    //       defaultLink: activeTab === "url" ? url : `https://example.com/${topic.replace(/\s+/g, "-").toLowerCase()}`,
-    //     }))
-
-    //     setGeneratedPosts(mockPosts)
-
-    //     toast({
-    //       title: "Posts Generated",
-    //       description: `Successfully generated ${mockPosts.length} Pinterest posts.`,
-    //     })
-
-    //     setIsGenerating(false)
-    //   }, 1500)
-    // } catch (error) {
-    //   console.error("Error generating posts:", error)
-    //   toast({
-    //     title: "Error",
-    //     description: "Failed to generate posts. Please try again.",
-    //     variant: "destructive",
-    //   })
-    //   setIsGenerating(false)
-    // }
 
   const handleGenerateImage = async (post: Post) => {
     const imageUrl = await generateImage(post)

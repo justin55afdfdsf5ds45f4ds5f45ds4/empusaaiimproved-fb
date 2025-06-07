@@ -13,8 +13,6 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,7 +20,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
 
   // Redirect if already logged in
   useEffect(() => {
@@ -49,16 +46,17 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
+        callbackUrl: "/dashboard"
       })
 
       if (result?.error) {
         toast({
-          title: "Authentication Error",
+          title: "Error",
           description: result.error,
           variant: "destructive",
         })
-      } else if (result?.ok) {
-        router.replace("/dashboard")
+      } else if (result?.url) {
+        router.replace(result.url)
       }
     } catch (error) {
       toast({
@@ -206,7 +204,6 @@ export default function LoginPage() {
           © {new Date().getFullYear()} Empusa AI. All rights reserved.
         </div>
       </footer>
-      <Toaster />
     </div>
   )
 }
