@@ -150,8 +150,8 @@ export async function POST(req: Request) {
 
     // Generate the requested number of posts
     const posts = []
-    // const requestedCount = Math.min(Math.max(1, count), 10) // Limit between 1 and 10
-    const requestedCount = 1;
+    const requestedCount = Math.min(Math.max(1, count), 10) // Limit between 1 and 10
+    
     for (let i = 0; i < requestedCount; i++) {
       const title = generateTitle(keywords ?? "").split(",")[0]
       const description = generateDescription(keywords ?? "")
