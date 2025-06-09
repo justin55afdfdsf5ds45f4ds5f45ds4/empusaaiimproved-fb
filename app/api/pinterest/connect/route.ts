@@ -14,9 +14,11 @@ export async function POST(req: Request) {
     const state = Math.random().toString(36).substring(2, 15)
 
     // Store state in a cookie for verification in the callback
-    const response = NextResponse.json({
-      url: `https://www.pinterest.com/oauth/?client_id=${process.env.AUTH_PINTEREST_ID}&redirect_uri=${encodeURIComponent(process.env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=boards:read,pins:read,pins:write&state=${state}`,
+    const response = await NextResponse.json({
+      url: `https://www.pinterest.com/oauth/?client_id=${process.env.AUTH_PINTEREST_ID}&redirect_uri=${encodeURIComponent(process.env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=user_accounts:read,boards:read,boards:write,pins:read,pins:write&state=${state}`,
     })
+
+    console.log(response);
 
     // Set cookie with state for 10 minutes
     response.cookies.set("pinterest_oauth_state", state, {

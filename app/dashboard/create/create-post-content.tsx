@@ -104,43 +104,38 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
   }, [initialUrl])
 
-  // Mock Pinterest boards data
-  const mockBoards = [
-    { id: "board-1", name: "My Pinterest Board" },
-    { id: "board-2", name: "Travel Ideas" },
-    { id: "board-3", name: "Recipe Collection" },
-    { id: "board-4", name: "Home Decor" },
-    { id: "board-5", name: "DIY Projects" },
-  ]
-
   // Replace the fetchBoards function with mock data
   const fetchBoards = async () => {
     setIsFetchingBoards(true)
     setBoardFetchError(null)
 
     try {
-      // Simulate API delay
-      setTimeout(() => {
-        setPinterestBoards(mockBoards)
-        if (!selectedBoard && mockBoards.length > 0) {
-          setSelectedBoard(mockBoards[0].id)
-        }
-        setIsFetchingBoards(false)
-      }, 500)
+      const response = await fetch("/api/pinterest/boards")
+
+      
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch Pinterest boards")
+      }
+
+      const data = await response.json()
+      console.log(data)
+      setPinterestBoards(data.boards || [])
+      
+      if (!selectedBoard && data.boards?.length > 0) {
+        setSelectedBoard(data.boards[0].id)
+      }
     } catch (error) {
       console.error("Error fetching Pinterest boards:", error)
       setBoardFetchError("Failed to fetch Pinterest boards. Please try again.")
+    } finally {
       setIsFetchingBoards(false)
     }
   }
 
   // Replace the useEffect with a simpler version
   useEffect(() => {
-    // Initialize with mock data immediately
-    setPinterestBoards(mockBoards)
-    if (!selectedBoard && mockBoards.length > 0) {
-      setSelectedBoard(mockBoards[0].id)
-    }
+    fetchBoards()
   }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,6 +180,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
 
       const data = await response.json()
+      console.log("Generating image")
+      console.log(data.images)
       return data.images?.[0]?.url || null
     } catch (error) {
       console.error("Error generating image:", error)
@@ -266,44 +263,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
   }
 
-    // try {
-    //   // Mock data generation instead of API call
-    //   setTimeout(() => {
-    //     const mockPosts = Array.from({ length: Number(postCount) }, (_, i) => ({
-    //       id: `post-${Date.now()}-${i}`,
-    //       title:
-    //         activeTab === "url"
-    //           ? `Pinterest post about ${url.split("//")[1]?.split("/")[0] || "website"} #${i + 1}`
-    //           : `${topic} ideas for Pinterest #${i + 1}`,
-    //       description:
-    //         activeTab === "url"
-    //           ? `This is a Pinterest post generated from the URL ${url}. It contains engaging content about the website and provides valuable insights for Pinterest users.`
-    //           : `Discover amazing ${topic} ideas that will transform your approach. These creative solutions are perfect for beginners and experts alike, offering practical tips and inspiration.`,
-    //       imagePrompt:
-    //         activeTab === "url" ? `Pinterest style image about ${url}` : `Pinterest style image about ${topic}`,
-    //       imageUrl: `https://source.unsplash.com/random/800x1200?${encodeURIComponent(activeTab === "url" ? url : topic)}&sig=${i}`,
-    //       defaultLink: activeTab === "url" ? url : `https://example.com/${topic.replace(/\s+/g, "-").toLowerCase()}`,
-    //     }))
-
-    //     setGeneratedPosts(mockPosts)
-
-    //     toast({
-    //       title: "Posts Generated",
-    //       description: `Successfully generated ${mockPosts.length} Pinterest posts.`,
-    //     })
-
-    //     setIsGenerating(false)
-    //   }, 1500)
-    // } catch (error) {
-    //   console.error("Error generating posts:", error)
-    //   toast({
-    //     title: "Error",
-    //     description: "Failed to generate posts. Please try again.",
-    //     variant: "destructive",
-    //   })
-    //   setIsGenerating(false)
-    // }
-
   const handleGenerateImage = async (post: Post) => {
     const imageUrl = await generateImage(post)
 
@@ -348,18 +307,41 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
     setIsPublishing(post.id)
 
-    try {
-      // Mock publishing instead of API call
-      setTimeout(() => {
-        toast({
-          title: "Post Published",
-          description: "Your post has been successfully published to Pinterest.",
-        })
+    console.log(selectedBoard)
+    console.log(post.imageUrl)
 
-        // Remove the published post from the list
-        setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
-        setIsPublishing(null)
-      }, 1500)
+    try {
+      const response = await fetch("/api/pinterest/pins/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            boardId: selectedBoard,
+            title: post.title,
+            description: post.description,
+            imageUrl: post.imageUrl,
+            link: postLinks[post.id] || post.defaultLink,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to publish post to Pinterest")
+      }
+
+      const data = await response.json()
+      console.log("----------------------------------------------")
+      console.log(data)
+      console.log("----------------------------------------------")
+
+      toast({
+        title: "Post Published",
+        description: "Your post has been successfully published to Pinterest.",
+      })
+
+      // Remove the published post from the list
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
+      setIsPublishing(null)
     } catch (error) {
       console.error("Error publishing post:", error)
       toast({

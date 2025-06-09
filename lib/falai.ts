@@ -32,37 +32,11 @@ export async function generateImage(prompt: string) {
       input: {
         prompt: prompt,
         image_size: "square_hd",
-        sync_mode: true
+        sync_mode: true,
       },
     });
-    
-    // Import node-fetch if in Node.js environment
-    // const fetchImpl = typeof window === 'undefined' ? 
-    //   (await import('node-fetch')).default : 
-    //   window.fetch;
-    
-    // const res = await fetchImpl("https://110602490-fast-sdxl.gateway.alpha.fal.ai/", {
-    //   method: "POST",
-    //   headers: {
-    //     "Authorization": `Bearer ${process.env.FALAI_API_KEY}`,
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({
-    //     prompt: prompt,
-    //     image_size: "square_hd", // or "portrait_hd" / "landscape_hd"
-    //     sync_mode: true
-    //   }),
-    // })
 
     const data = res.data
-    console.log(data);
-    // if (!res.ok) {
-    //   const errorData = await res.text()
-    //   console.error("Fal.ai request failed:", errorData)
-    //   throw new Error(`Fal.ai request failed: ${res.status} - ${errorData}`)
-    // }
-
-    // const data = await res.json()
     
     // Handle the response based on Fal.ai's actual response format
     const imageUrl = data.images?.[0]?.url

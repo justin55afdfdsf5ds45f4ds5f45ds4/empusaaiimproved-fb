@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
 import clientPromise from "@/lib/mongodb"
 import { refreshPinterestToken } from "@/lib/pinterest"
+import { uploadToCloudinary } from "../../cloudinary/upload"
 
 export async function POST(req: Request) {
   try {
@@ -41,6 +42,10 @@ export async function POST(req: Request) {
       }
     }
 
+    const cloud_url = await uploadToCloudinary(imageUrl)
+    
+    console.log('Image URL:', cloud_url);
+
     // Create a new pin on Pinterest
     const pinResponse = await fetch("https://api.pinterest.com/v5/pins", {
       method: "POST",
@@ -52,7 +57,7 @@ export async function POST(req: Request) {
         board_id: boardId,
         media_source: {
           source_type: "image_url",
-          url: imageUrl,
+          url: cloud_url,
         },
         title,
         description: description || "",

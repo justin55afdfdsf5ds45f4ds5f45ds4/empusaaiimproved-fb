@@ -150,9 +150,10 @@ export async function POST(req: Request) {
 
     // Generate the requested number of posts
     const posts = []
-    const requestedCount = Math.min(Math.max(1, count), 10) // Limit between 1 and 10
+    // const requestedCount = Math.min(Math.max(1, count), 10) // Limit between 1 and 10
+    const requestedCount = 1;
     for (let i = 0; i < requestedCount; i++) {
-      const title = generateTitle(keywords ?? "")
+      const title = generateTitle(keywords ?? "").split(",")[0]
       const description = generateDescription(keywords ?? "")
       const imagePrompt = generateImagePrompt(keywords ?? "")
 
@@ -162,7 +163,7 @@ export async function POST(req: Request) {
         // Try to generate an image with Fal.ai
         console.log(`Generating image for prompt: ${imagePrompt}`)
         imageUrl = await generateImage(imagePrompt)
-        console.log(`Generated image URL: ${imageUrl}`)
+        // console.log(`Generated image URL: ${imageUrl}`)
       } catch (error) {
         console.error("Error generating image with Fal.ai:", error)
         // Fallback to a random Unsplash image
