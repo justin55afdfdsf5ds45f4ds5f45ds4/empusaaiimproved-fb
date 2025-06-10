@@ -1603,7 +1603,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button
               className="bg-teal-600 hover:bg-teal-700"
               onClick={handleSchedule}
-              disabled={!scheduledDate || !scheduledTime}
+              disabled={!scheduledDate}
             >
               Schedule Post
             </Button>
