@@ -78,6 +78,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState<string | null>(null);
   const [isScheduling, setIsScheduling] = useState<string | null>(null);
+  const [Scheduling,setSceduling] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(
     null
   );
@@ -463,9 +464,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     setIsScheduling(postWithImage.id);
 
     try {
-      const [hours, minutes] = scheduledTime.split(":").map(Number);
-      const finalDateTime = new Date(scheduledDate);
-      finalDateTime.setHours(hours, minutes, 0, 0);
       const response = await fetch("/api/pinterest/schedule/", {
         method: "POST",
         headers: {
@@ -477,7 +475,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           description: postWithImage.description,
           imageUrl: postWithImage.imageUrl,
           link: postLinks[postWithImage.id] || postWithImage.defaultLink,
-          scheduledTime: finalDateTime,
+          scheduledTime: scheduledDate,
         }),
       });
 
@@ -633,6 +631,32 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
   const confirmScheduleAll = () => {
     if (scheduleAllDate) {
+      generatedPosts.forEach(async (post)=>{
+        if(selectedPosts.has(post.id)){
+          try {
+            const response = await fetch("/api/pinterest/schedule/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                boardId: selectedBoard,
+                title: post.title,
+                description: post.description,
+                imageUrl: post.imageUrl,
+                link: postLinks[post.id] || post.defaultLink,
+                scheduledTime: scheduleAllDate,
+              }),
+            });
+      
+            if (!response.ok) {
+              throw new Error("Failed to schedule post to Pinterest");
+            }
+          }catch(error){
+            console.log(error)
+          }
+        }
+      })
       const remainingPosts = generatedPosts.filter(
         (post) => !selectedPosts.has(post.id)
       );
@@ -1605,7 +1629,14 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               onClick={handleSchedule}
               disabled={!scheduledDate}
             >
-              Schedule Post
+              {Scheduling ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Scheduling...
+                          </>
+                        ) : (
+                          "Schedule Post"
+                        )}
             </Button>
           </DialogFooter>
         </DialogContent>
