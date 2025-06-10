@@ -25,7 +25,7 @@ export default function Home() {
               <Link href="#features" className="text-sm font-medium hover:text-teal-600 transition-colors">
                 Features
               </Link>
-              <Link href="#pricing" className="text-sm font-medium hover:text-teal-600 transition-colors">
+              <Link href="/pricing" className="text-sm font-medium hover:text-teal-600 transition-colors">
                 Pricing
               </Link>
               <Link href="/blog" className="text-sm font-medium hover:text-teal-600 transition-colors">

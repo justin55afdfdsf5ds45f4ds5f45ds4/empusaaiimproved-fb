@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import clientPromise from "@/lib/mongodb"
+import { ObjectId } from "mongodb"
 
 export async function GET() {
   try {
@@ -15,14 +16,14 @@ export async function GET() {
     const db = client.db()
 
     // Get user's posts count
-    const totalPosts = await db.collection("posts").countDocuments({
-      userId: session.user.id,
+    const totalPosts = await db.collection("pins").countDocuments({
+      userId: new ObjectId(session.user.id),
     })
 
     // Get scheduled posts count
-    const scheduledPosts = await db.collection("posts").countDocuments({
-      userId: session.user.id,
-      status: "scheduled",
+    const scheduledPosts = await db.collection("scheduled_posts").countDocuments({
+      userId: new ObjectId(session.user.id),
+      isPublished:false,
     })
 
     // For now, return 0 for engagement as we don't have Pinterest analytics yet
