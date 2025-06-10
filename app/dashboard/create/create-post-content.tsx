@@ -1580,7 +1580,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </div>
 
             {/* Time Picker */}
-            <div>
+            {/* <div>
               <Label htmlFor="schedule-time">Time</Label>
               <input
                 id="schedule-time"
@@ -1590,7 +1590,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 min={getMinTime(scheduledDate)}
                 onChange={(e) => setScheduledTime(e.target.value)}
               />
-            </div>
+            </div> */}
           </div>
 
           <DialogFooter>
