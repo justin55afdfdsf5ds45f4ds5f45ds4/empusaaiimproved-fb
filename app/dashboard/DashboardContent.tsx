@@ -3,14 +3,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { PlusCircle, ImageIcon, Clock, TrendingUp, Lightbulb, Zap, Target } from "lucide-react"
+import { PlusCircle, ImageIcon, Clock, TrendingUp, Lightbulb, Zap, Target, CalendarDays } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import type { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 
 interface DashboardMetrics {
   totalPosts: number
   scheduledPosts: number
   totalEngagement: number
 }
+
+// Helper function to generate mock metrics
+const generateMockMetrics = (): DashboardMetrics => ({
+  totalPosts: Math.floor(Math.random() * 100) + 10, // e.g., 10-110
+  scheduledPosts: Math.floor(Math.random() * 50) + 5, // e.g., 5-55
+  totalEngagement: Math.floor(Math.random() * 5000) + 1000, // e.g., 1K-6K
+})
 
 export default function DashboardContent() {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -19,36 +30,118 @@ export default function DashboardContent() {
     totalEngagement: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
 
+  // Effect for initial metrics load (can be considered default or "all time" before range selection)
   useEffect(() => {
-    async function fetchMetrics() {
-      try {
-        console.log("Fetching metrics")
-        const response = await fetch("/api/dashboard/metrics")
-        if (!response.ok) {
-          throw new Error("Failed to fetch metrics")
-        }
-        const data = await response.json()
-        console.log("Metrics fetched", data)
-        setMetrics(data)
-      } catch (error) {
-        console.error("Error fetching dashboard metrics:", error)
-      } finally {
-        setIsLoading(false)
+    async function fetchInitialMetrics() {
+      setIsLoading(true)
+      // Simulating an API call for initial load
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      const initialMetrics: DashboardMetrics = {
+        totalPosts: 78, // Default mock data
+        scheduledPosts: 23,
+        totalEngagement: 12500,
       }
+      setMetrics(initialMetrics)
+      setIsLoading(false)
     }
-
-    fetchMetrics()
+    fetchInitialMetrics()
   }, [])
+
+  // Effect to update metrics when dateRange changes
+  useEffect(() => {
+    if (dateRange?.from && dateRange?.to) {
+      setIsLoading(true)
+      // Simulate fetching data for the new range
+      setTimeout(() => {
+        setMetrics(generateMockMetrics())
+        setIsLoading(false)
+      }, 300) // Short delay to simulate loading
+    } else if (!dateRange) {
+      // Reset to default if range is cleared
+      setIsLoading(true)
+      setTimeout(() => {
+        setMetrics({
+          // Default mock data for "Last 7 days" or initial view
+          totalPosts: 55,
+          scheduledPosts: 15,
+          totalEngagement: 8700,
+        })
+        setIsLoading(false)
+      }, 300)
+    }
+  }, [dateRange])
+
+  const handleDateSelect = (range: DateRange | undefined) => {
+    setDateRange(range)
+    setIsCalendarOpen(false) // Close popover after selection
+  }
+
+  const formatDateRange = (range: DateRange | undefined): string => {
+    if (!range || !range.from) {
+      return "Showing results for Last 7 Days" // Default text
+    }
+    if (range.to) {
+      return `Showing results from ${format(range.from, "LLL dd, y")} to ${format(range.to, "LLL dd, y")}`
+    }
+    return `Showing results for ${format(range.from, "LLL dd, y")}`
+  }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg border shadow-sm mb-6">
-        <h1 className="text-3xl font-bold mb-2">Welcome to Empusa AI Dashboard</h1>
-        <p className="text-gray-500">
-          This is your command center for creating and managing Pinterest content with AI.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <div className="bg-white p-6 rounded-lg border shadow-sm flex-grow">
+          <h1 className="text-3xl font-bold mb-2">Welcome to Empusa AI Dashboard</h1>
+          <p className="text-gray-500">Your command center for creating and managing Pinterest content with AI.</p>
+        </div>
+        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto justify-start text-left font-normal bg-white border shadow-sm hover:bg-gray-50"
+            >
+              <CalendarDays className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(dateRange.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick a date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={handleDateSelect}
+              numberOfMonths={2}
+            />
+            <div className="p-2 border-t flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDateRange(undefined)
+                  setIsCalendarOpen(false)
+                }}
+              >
+                Clear
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
+
+      <p className="text-sm text-gray-600 mb-4 -mt-2 text-center sm:text-left">{formatDateRange(dateRange)}</p>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="border-2 border-teal-200 shadow-md">
@@ -58,7 +151,7 @@ export default function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? "..." : metrics.totalPosts}</div>
-            <p className="text-xs text-gray-500">Posts created</p>
+            <p className="text-xs text-gray-500">Posts created in range</p>
           </CardContent>
         </Card>
         <Card>
@@ -68,7 +161,7 @@ export default function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? "..." : metrics.scheduledPosts}</div>
-            <p className="text-xs text-gray-500">Posts scheduled</p>
+            <p className="text-xs text-gray-500">Posts scheduled in range</p>
           </CardContent>
         </Card>
         <Card>
@@ -77,8 +170,8 @@ export default function DashboardContent() {
             <TrendingUp className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : metrics.totalEngagement}</div>
-            <p className="text-xs text-gray-500">Total engagements</p>
+            <div className="text-2xl font-bold">{isLoading ? "..." : metrics.totalEngagement.toLocaleString()}</div>
+            <p className="text-xs text-gray-500">Engagements in range</p>
           </CardContent>
         </Card>
       </div>
