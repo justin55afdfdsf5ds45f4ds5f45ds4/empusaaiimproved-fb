@@ -62,7 +62,7 @@ export default function PricingPage() {
             <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
               Log in
             </Link>
-            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
           </div>
@@ -137,12 +137,14 @@ export default function PricingPage() {
                 </ul>
               </CardContent>
               <CardFooter>
+              <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
                 <Button
                   size="lg"
                   className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                 >
                   <Phone className="mr-2 h-5 w-5" /> Book a Call
                 </Button>
+                </Link>
               </CardFooter>
             </Card>
           </div>
@@ -208,7 +210,7 @@ export default function PricingPage() {
                   Pricing
                 </Link>
                 <Link
-                  href="https://calendly.com/fk146543/30min"
+                  href="https://cal.com/justin-lord-a80mr6/30min"
                   target="_blank"
                   className="text-sm text-gray-500 hover:text-gray-900"
                 >
