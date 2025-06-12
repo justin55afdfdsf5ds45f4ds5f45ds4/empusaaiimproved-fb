@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     // Parse the request body
-    const { boardId, imageUrl, title, description } = await req.json()
+    const { boardId, imageUrl, title, description, link } = await req.json()
 
     // Validate required fields
     if (!boardId || !imageUrl || !title) {
@@ -62,6 +62,7 @@ export async function POST(req: Request) {
         title,
         description: description || "",
         alt_text: title,
+        link: link
       }),
     })
 

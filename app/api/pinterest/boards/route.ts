@@ -19,7 +19,7 @@ export async function GET() {
     const user = await db.collection("users").findOne({ email: session.user.email })
 
     if (!user || !user.pinterest || !user.pinterest.accessToken) {
-      return NextResponse.json({ error: "Pinterest account not connected" }, { status: 400 })
+      return NextResponse.json({ error: "Pinterest account not connected" }, { status: 403 })
     }
 
     // Check if the token is expired and refresh if needed

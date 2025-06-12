@@ -52,6 +52,8 @@ import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Session } from "inspector/promises";
+import Link from "next/link";
 
 interface Post {
   id: string;
@@ -138,6 +140,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
     try {
       const response = await fetch("/api/pinterest/boards");
+
+      if (response.status === 403) {
+        setBoardFetchError("You haven’t connected Pinterest yet.");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Failed to fetch Pinterest boards");
@@ -382,10 +389,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
 
       const data = await response.json();
-      console.log("----------------------------------------------");
-      console.log(data);
-      console.log("----------------------------------------------");
-
       toast({
         title: "Post Published",
         description: "Your post has been successfully published to Pinterest.",
@@ -731,45 +734,66 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {boardFetchError ? (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error Fetching Boards</AlertTitle>
-              <AlertDescription>{boardFetchError}</AlertDescription>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={fetchBoards}
-                disabled={isFetchingBoards}
-              >
-                <RefreshCw
-                  className={`mr-2 h-4 w-4 ${
-                    isFetchingBoards ? "animate-spin" : ""
-                  }`}
-                />
-                Retry
+        {boardFetchError ? (
+  <Alert variant="destructive" className="mb-4">
+    <AlertCircle className="h-4 w-4" />
+    <AlertTitle>
+      {boardFetchError === "You haven’t connected Pinterest yet."
+        ? "Pinterest Not Connected"
+        : "Error Fetching Boards"}
+    </AlertTitle>
+    <AlertDescription>
+      {boardFetchError === "You haven’t connected Pinterest yet." ? (
+        <>
+          You need to connect your Pinterest account first to fetch boards.
+          <div className="mt-3">
+            <Link href="/dashboard/settings/social">
+              <Button size="sm" variant="outline">
+                Go to Settings
               </Button>
-            </Alert>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="board">Select Board</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={fetchBoards}
-                  disabled={isFetchingBoards}
-                  className="h-8 px-2 text-xs"
-                >
-                  <RefreshCw
-                    className={`mr-1 h-3 w-3 ${
-                      isFetchingBoards ? "animate-spin" : ""
-                    }`}
-                  />
-                  Refresh
-                </Button>
-              </div>
+            </Link>
+          </div>
+        </>
+      ) : (
+        <>
+          {boardFetchError}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={fetchBoards}
+            disabled={isFetchingBoards}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${
+                isFetchingBoards ? "animate-spin" : ""
+              }`}
+            />
+            Retry
+          </Button>
+        </>
+      )}
+    </AlertDescription>
+  </Alert>
+) : (
+  <div className="space-y-2">
+    <div className="flex items-center justify-between">
+      <Label htmlFor="board">Select Board</Label>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={fetchBoards}
+        disabled={isFetchingBoards}
+        className="h-8 px-2 text-xs"
+      >
+        <RefreshCw
+          className={`mr-1 h-3 w-3 ${
+            isFetchingBoards ? "animate-spin" : ""
+          }`}
+        />
+        Refresh
+      </Button>
+      </div>
               <Select
                 value={selectedBoard}
                 onValueChange={setSelectedBoard}

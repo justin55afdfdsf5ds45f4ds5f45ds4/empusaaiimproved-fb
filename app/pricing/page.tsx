@@ -2,6 +2,7 @@ import { Phone, Mail, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import Link from "next/link"
 
 const GrowthPlanFeatures = [
   { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "Up to 100 posts per day" },
@@ -28,6 +29,45 @@ const AgencyPlanFeatures = [
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 text-slate-800 dark:text-slate-200">
+      <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                  E
+                </div>
+                <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                  A
+                </div>
+                <span className="ml-2 font-bold text-xl">Empusa AI</span>
+              </div>
+            </Link>
+            <nav className="hidden md:flex gap-6">
+              <Link href="/#features" className="text-sm font-medium hover:text-teal-600 transition-colors">
+                Features
+              </Link>
+              <Link href="/pricing" className="text-sm font-medium hover:text-teal-600 transition-colors">
+                Pricing
+              </Link>
+              <Link href="/blog" className="text-sm font-medium hover:text-teal-600 transition-colors">
+                Blog
+              </Link>
+              <Link href="/about" className="text-sm font-medium hover:text-teal-600 transition-colors">
+                About
+              </Link>
+            </nav>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
+              Log in
+            </Link>
+            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+              <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
       <div className="container mx-auto px-4 py-12 sm:py-16 lg:py-24">
         {/* Section 1: Hero / Intro */}
         <section className="text-center mb-16 lg:mb-24">
@@ -126,16 +166,87 @@ export default function PricingPage() {
             >
               <Phone className="mr-2 h-5 w-5" /> Book a Call
             </Button>
+            <Link href="mailto:justinlord@empusaai.com">
             <Button
               variant="outline"
               size="lg"
               className="font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-900/30 dark:hover:text-green-400"
             >
-              <Mail className="mr-2 h-5 w-5" /> Contact Us
+              Contact Us
             </Button>
+            </Link>
           </div>
         </section>
       </div>
+      <footer className="w-full border-t bg-white py-12">
+        <div className="container px-4 md:px-6">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-4">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                    E
+                  </div>
+                  <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
+                    A
+                  </div>
+                  <span className="ml-2 font-bold text-xl">Empusa AI</span>
+                </div>
+              </Link>
+              <p className="text-sm text-gray-500">
+                Empusa AI is a web-based platform that automates Pinterest content creation and publishing from any URL,
+                helping brands and creators save time and boost engagement.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-medium">Product</h3>
+              <nav className="flex flex-col gap-2">
+                <Link href="/#features" className="text-sm text-gray-500 hover:text-gray-900">
+                  Features
+                </Link>
+                <Link href="/#pricing" className="text-sm text-gray-500 hover:text-gray-900">
+                  Pricing
+                </Link>
+                <Link
+                  href="https://calendly.com/fk146543/30min"
+                  target="_blank"
+                  className="text-sm text-gray-500 hover:text-gray-900"
+                >
+                  Enterprise
+                </Link>
+              </nav>
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-medium">Resources</h3>
+              <nav className="flex flex-col gap-2">
+                <Link href="/blog" className="text-sm text-gray-500 hover:text-gray-900">
+                  Blog
+                </Link>
+                <Link href="/help" className="text-sm text-gray-500 hover:text-gray-900">
+                  Help Center
+                </Link>
+              </nav>
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-medium">Company</h3>
+              <nav className="flex flex-col gap-2">
+                <Link href="/about" className="text-sm text-gray-500 hover:text-gray-900">
+                  About
+                </Link>
+                <Link href="/contact" className="text-sm text-gray-500 hover:text-gray-900">
+                  Contact
+                </Link>
+                <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-900">
+                  Privacy
+                </Link>
+              </nav>
+            </div>
+          </div>
+          <div className="mt-8 border-t pt-8 text-center text-sm text-gray-500">
+            © {new Date().getFullYear()} Empusa AI. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
