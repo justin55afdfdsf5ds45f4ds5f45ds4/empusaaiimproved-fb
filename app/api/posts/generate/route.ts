@@ -149,38 +149,30 @@ export async function POST(req: Request) {
     const keywords = await extractKeywords(url, topic)
 
     // Generate the requested number of posts
-    const posts = []
     const requestedCount = count // Limit between 1 and 10
-    
-    for (let i = 0; i < requestedCount; i++) {
-      const title = generateTitle(keywords ?? "").split(",")[0]
-      const description = generateDescription(keywords ?? "")
-      const imagePrompt = generateImagePrompt(keywords ?? "")
 
-      let imageUrl
-
-      try {
-        // Try to generate an image with Fal.ai
-        console.log(`Generating image for prompt: ${imagePrompt}`)
-        imageUrl = await generateImage(imagePrompt)
-        // console.log(`Generated image URL: ${imageUrl}`)
-      } catch (error) {
-        console.error("Error generating image with Fal.ai:", error)
-        // Fallback to a random Unsplash image
-        imageUrl = FALLBACK_IMAGE_URLS[Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)]
-        console.log(`Using fallback image URL: ${imageUrl}`)
-      }
-
-      const post = {
-        id: uuidv4(),
-        title,
-        description,
-        imagePrompt,
-        imageUrl,
-      }
-
-      posts.push(post)
-    }
+      const postPromises = Array.from({ length: requestedCount }).map(async () => {
+        const title = generateTitle(keywords || "").split(",")[0]
+        const description = generateDescription(keywords || "")
+        const imagePrompt = generateImagePrompt(keywords || "")
+        let imageUrl
+  
+        try {
+          imageUrl = await generateImage(imagePrompt)
+        } catch {
+          imageUrl = FALLBACK_IMAGE_URLS[Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)]
+        }
+  
+        return {
+          id: uuidv4(),
+          title,
+          description,
+          imagePrompt,
+          imageUrl,
+        }
+      })
+  
+      const posts = await Promise.all(postPromises)
 
     console.log(`Generated ${posts.length} posts`)
 
