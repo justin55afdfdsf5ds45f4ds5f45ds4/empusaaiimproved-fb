@@ -2,82 +2,228 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-export default function Register() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" })
-  const [isLoading, setIsLoading] = useState(false)
+export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get("token")
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [tokenValid, setTokenValid] = useState(false)
+  const [tokenValidating, setTokenValidating] = useState(!!token)
+  const [tokenError, setTokenError] = useState("")
+
+  // Validate token if present
+  useEffect(() => {
+    if (!token) return
+
+    const validateToken = async () => {
+      try {
+        const response = await fetch("/api/invitations/validate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        })
+
+        const data = await response.json()
+
+        if (data.valid) {
+          setTokenValid(true)
+          if (data.email) {
+            setEmail(data.email)
+          }
+        } else {
+          setTokenError(data.error || "Invalid invitation token")
+        }
+      } catch (err) {
+        setTokenError("Failed to validate invitation token")
+      } finally {
+        setTokenValidating(false)
+      }
+    }
+
+    validateToken()
+  }, [token])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setError("")
+
+    // Validate form
+    if (!name || !email || !password) {
+      setError("All fields are required")
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    setLoading(true)
 
     try {
-      const res = await fetch("/api/auth/register", {
+      // Use the appropriate endpoint based on whether we have a token
+      const endpoint = token ? "/api/auth/register-with-invitation" : "/api/auth/register"
+
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          ...(token && { token }),
+        }),
       })
 
-      setIsLoading(false)
+      const data = await response.json()
 
-      if (!res.ok) {
-        const { error } = await res.json()
-        toast({ title: "Registration failed", description: error, variant: "destructive" })
-        return
+      if (!response.ok) {
+        throw new Error(data.error || "Registration failed")
       }
 
-      toast({ title: "Account created 🎉", description: "You can now log in with your credentials" })
-      router.push("/login")
-    } catch (error) {
-      setIsLoading(false)
-      toast({
-        title: "Registration failed",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      })
+      // Redirect to login page on success
+      router.push("/login?registered=true")
+    } catch (err: any) {
+      setError(err.message || "An error occurred during registration")
+    } finally {
+      setLoading(false)
     }
   }
 
+  // Show loading state while validating token
+  if (token && tokenValidating) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle>Validating Invitation</CardTitle>
+            <CardDescription>Please wait while we validate your invitation...</CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show error if token is invalid
+  if (token && !tokenValid && !tokenValidating) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle>Invalid Invitation</CardTitle>
+            <CardDescription>There was a problem with your invitation link.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertDescription>{tokenError}</AlertDescription>
+            </Alert>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button asChild variant="outline">
+              <Link href="/login">Go to Login</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
+
+  // Regular registration form (with or without valid token)
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-50">
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 rounded-lg border bg-white p-6 shadow-md">
-        <h1 className="text-center text-2xl font-bold">Create your Empusa AI account</h1>
+    <div className="flex min-h-screen items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle>{token ? "Complete Your Registration" : "Create an Account"}</CardTitle>
+          <CardDescription>
+            {token ? "Please complete your account details below" : "Enter your information to create an account"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
 
-        {["name", "email", "password"].map((field) => (
-          <div key={field} className="space-y-2">
-            <Label htmlFor={field} className="capitalize">
-              {field}
-            </Label>
-            <Input
-              id={field}
-              type={field === "password" ? "password" : "text"}
-              value={form[field as keyof typeof form]}
-              onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-              required
-            />
-          </div>
-        ))}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={!!token && !!email} // Disable if email is pre-filled from token
+              />
+            </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign up"}
-        </Button>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-        <p className="text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link href="/login" className="font-medium text-teal-600 hover:underline">
-            Log in
-          </Link>
-        </p>
-      </form>
-    </main>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="********"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating Account..." : "Register"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-500">
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary hover:underline">
+              Log in
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
