@@ -22,4 +22,4 @@ export function middleware(request: NextRequest) {
 // Configure the middleware to run only on specific paths
 export const config = {
   matcher: '/login'
-} 
+}
