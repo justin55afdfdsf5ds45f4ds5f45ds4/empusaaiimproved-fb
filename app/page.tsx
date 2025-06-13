@@ -156,7 +156,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="/signup">
+                <Link href="/pricing">
                   <Button className="bg-white text-teal-600 hover:bg-gray-100">Get Started</Button>
                 </Link>
               </div>
