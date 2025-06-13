@@ -1,5 +1,5 @@
 import Link from "next/link"
-
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
 export default function AboutPage() {
@@ -149,7 +149,15 @@ export default function AboutPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold">Meet Our Founder</h2>
-              <div className="w-24 h-24 rounded-full bg-gray-200 mb-4"></div>
+              <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
+                <Image
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/WhatsApp%20Image%202025-05-19%20at%2010.06.49%20PM-rnLtPcchnNnHIBthx3t4gelYMoVqF9.jpeg"
+                  alt="Justin Lord"
+                  width={96}
+                  height={96}
+                  className="object-cover w-full h-full"
+                />
+              </div>
               <h3 className="text-xl font-bold">Justin Lord</h3>
               <p className="text-gray-500">Founder & CEO</p>
               <p className="text-gray-500 max-w-[700px]">
