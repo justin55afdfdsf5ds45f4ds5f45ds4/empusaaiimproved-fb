@@ -36,10 +36,7 @@ export default function ContactPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
-              Log in
-            </Link>
-            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
           </div>
@@ -82,7 +79,7 @@ export default function ContactPage() {
                   <p className="text-gray-500 mb-6">
                     See Empusa AI in action and learn how it can transform your Pinterest strategy.
                   </p>
-                  <Link href="https://calendly.com/fk146543/30min" target="_blank">
+                  <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
                     <Button className="w-full bg-teal-600 hover:bg-teal-700">
                       Book a call
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -97,7 +94,7 @@ export default function ContactPage() {
                   If you have over 100k followers on Pinterest, TikTok, YouTube, Instagram, or Facebook, you may qualify
                   for free access to Empusa AI.
                 </p>
-                <Link href="https://calendly.com/fk146543/30min" target="_blank">
+                <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
                   <Button className="bg-teal-600 hover:bg-teal-700">Check eligibility</Button>
                 </Link>
               </div>
@@ -136,7 +133,7 @@ export default function ContactPage() {
                   Pricing
                 </Link>
                 <Link
-                  href="https://calendly.com/fk146543/30min"
+                  href="https://cal.com/justin-lord-a80mr6/30min"
                   target="_blank"
                   className="text-sm text-gray-500 hover:text-gray-900"
                 >

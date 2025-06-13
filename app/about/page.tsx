@@ -35,9 +35,6 @@ export default function AboutPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
-              Log in
-            </Link>
             <Link href="https://calendly.com/fk146543/30min" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>

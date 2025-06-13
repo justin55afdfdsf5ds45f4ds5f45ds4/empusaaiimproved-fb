@@ -37,10 +37,7 @@ export default function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
-              Log in
-            </Link>
-            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
             <MobileMenu />
@@ -62,7 +59,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/signup">
+                  <Link href="/pricing">
                     <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
                       Get Started
                       <ArrowRight className="ml-2 h-5 w-5" />

@@ -59,9 +59,6 @@ export default function PricingPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
-              Log in
-            </Link>
             <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
@@ -105,12 +102,14 @@ export default function PricingPage() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button
-                  size="lg"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                >
-                  Get Started
-                </Button>
+                <Link href="/checkout">
+                  <Button
+                    size="lg"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                  >
+                    Get Started
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
 
@@ -137,14 +136,14 @@ export default function PricingPage() {
                 </ul>
               </CardContent>
               <CardFooter>
-              <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
-                <Button
-                  size="lg"
-                  className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                <a
+                  href="https://cal.com/justin-lord-a80mr6/30min"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2"
                 >
                   <Phone className="mr-2 h-5 w-5" /> Book a Call
-                </Button>
-                </Link>
+                </a>
               </CardFooter>
             </Card>
           </div>
@@ -168,15 +167,16 @@ export default function PricingPage() {
             >
               <Phone className="mr-2 h-5 w-5" /> Book a Call
             </Button>
-            <Link href="mailto:justinlord@empusaai.com">
             <Button
               variant="outline"
               size="lg"
               className="font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-900/30 dark:hover:text-green-400"
+              asChild
             >
-              Contact Us
+              <a href="mailto:justinlord@empusaai.com">
+                Contact Us
+              </a>
             </Button>
-            </Link>
           </div>
         </section>
       </div>
