@@ -55,7 +55,6 @@
     "firecrawl": "latest",
     "gcp-metadata": "latest",
     "input-otp": "latest",
-    "inspector": "latest",
     "kerberos": "latest",
     "lucide-react": "^0.454.0",
     "mongodb": "latest",
