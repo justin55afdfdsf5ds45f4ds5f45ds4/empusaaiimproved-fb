@@ -93,6 +93,23 @@ export default function Home() {
           </div>
         </section>
 
+        {/* YouTube Video Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-teal-50 to-white">
+          <div className="container px-4 md:px-6">
+            <div className="mx-auto max-w-4xl">
+              <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/X37tgx0ngQE?si=p6YX1wy0MMY6sCkf"
+                  title="Empusa AI Demo Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="w-full py-12 md:py-24 lg:py-32 bg-white" id="features">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">

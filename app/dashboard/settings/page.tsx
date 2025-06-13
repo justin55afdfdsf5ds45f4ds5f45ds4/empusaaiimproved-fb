@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { User, Share2, Shield, Bell } from "lucide-react"
+import { User, Share2, Shield } from "lucide-react"
 
 export default function SettingsPage() {
   return (
@@ -44,26 +44,6 @@ export default function SettingsPage() {
             <CardFooter>
               <Button variant="outline" className="w-full">
                 Manage Connections
-              </Button>
-            </CardFooter>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/settings/notifications">
-          <Card className="h-full hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-teal-600" />
-                Notifications
-              </CardTitle>
-              <CardDescription>Configure how you receive notifications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Manage email notifications and in-app alerts.</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full">
-                Notification Settings
               </Button>
             </CardFooter>
           </Card>

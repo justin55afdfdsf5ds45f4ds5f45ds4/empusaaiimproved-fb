@@ -684,23 +684,27 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         </CardHeader>
         <CardContent>
           {boardFetchError ? (
-            <Alert variant="default" className="mb-4">
+            <Alert
+              variant={boardFetchError === "You haven’t connected Pinterest yet." ? "default" : "destructive"}
+              className="mb-4"
+            >
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle className="text-gray-700">
-                {boardFetchError === "You haven't connected Pinterest yet."
+              <AlertTitle className={boardFetchError === "You haven’t connected Pinterest yet." ? "text-gray-700" : ""}>
+                {boardFetchError === "You haven’t connected Pinterest yet."
                   ? "Pinterest Not Connected"
                   : "Error Fetching Boards"}
               </AlertTitle>
-              <AlertDescription className="text-gray-600">
-                {boardFetchError === "You haven't connected Pinterest yet." ? (
+              <AlertDescription
+                className={boardFetchError === "You haven’t connected Pinterest yet." ? "text-gray-600" : ""}
+              >
+                {boardFetchError === "You haven’t connected Pinterest yet." ? (
                   <>
-                    You need to connect your Pinterest account first to fetch boards.
+                    Please connect your Pinterest account to continue.
                     <div className="mt-3">
                       <Button
                         size="sm"
-                        variant="outline"
                         className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() => (window.location.href = "/api/auth/signin/pinterest?callbackUrl=/dashboard")}
+                        onClick={() => router.push("/api/auth/signin/pinterest?callbackUrl=/dashboard/create")}
                       >
                         <PinIcon className="mr-2 h-4 w-4" />
                         Connect Pinterest
@@ -768,172 +772,240 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         </CardContent>
       </Card>
 
-      {generatedPosts.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate Pinterest Content</CardTitle>
-            <CardDescription>Choose how you want to create your Pinterest content</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-2 mb-6">
-                <TabsTrigger value="url">From URL</TabsTrigger>
-                <TabsTrigger value="scratch">From Scratch</TabsTrigger>
-              </TabsList>
+      {/* Always render the form section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Generate Pinterest Content</CardTitle>
+          <CardDescription>Choose how you want to create your Pinterest content</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-2 mb-6">
+              <TabsTrigger value="url">From URL</TabsTrigger>
+              <TabsTrigger value="scratch">From Scratch</TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="url" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="url">Enter URL</Label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                      <Input
-                        id="url"
-                        placeholder="https://example.com/your-content"
-                        className="pl-10"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                      />
-                    </div>
-                    <Select value={postCount} onValueChange={setPostCount}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="10 posts" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5 posts</SelectItem>
-                        <SelectItem value="10">10 posts</SelectItem>
-                        <SelectItem value="15">15 posts</SelectItem>
-                        <SelectItem value="20">20 posts</SelectItem>
-                      </SelectContent>
-                    </Select>
+            <TabsContent value="url" className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="url">Enter URL</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                    <Input
+                      id="url"
+                      placeholder="https://example.com/your-content"
+                      className="pl-10"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                    />
                   </div>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Our AI will analyze the content at this URL and generate Pinterest posts
-                  </p>
+                  <Select value={postCount} onValueChange={setPostCount}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="10 posts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 posts</SelectItem>
+                      <SelectItem value="10">10 posts</SelectItem>
+                      <SelectItem value="15">15 posts</SelectItem>
+                      <SelectItem value="20">20 posts</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="scratch" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="topic">Topic or Keywords</Label>
-                  <Input
-                    id="topic"
-                    placeholder="E.g., healthy recipes, home decor ideas, travel tips"
-                    className="w-full"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                  />
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Enter a topic or keywords for your Pinterest content
-                  </p>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="tone">Content Tone</Label>
-                    <Select value={tone} onValueChange={setTone}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select tone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="informative">Informative</SelectItem>
-                        <SelectItem value="inspirational">Inspirational</SelectItem>
-                        <SelectItem value="professional">Professional</SelectItem>
-                        <SelectItem value="casual">Casual & Friendly</SelectItem>
-                        <SelectItem value="humorous">Humorous</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="count">Number of Posts</Label>
-                    <Select value={postCount} onValueChange={setPostCount}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="10 posts" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5 posts</SelectItem>
-                        <SelectItem value="10">10 posts</SelectItem>
-                        <SelectItem value="15">15 posts</SelectItem>
-                        <SelectItem value="20">20 posts</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </TabsContent>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Our AI will analyze the content at this URL and generate Pinterest posts
+                </p>
+              </div>
 
               <div className="space-y-2 mt-6">
                 <Label>Reference Image (Optional)</Label>
                 <div
-                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative" // Added relative positioning
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
-                  onClick={() => document.getElementById("file-upload")?.click()}
+                  onClick={() => !previewUrl && document.getElementById("file-upload")?.click()} // Prevent click if previewUrl exists to allow delete button to work
                 >
                   <input id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                   {previewUrl ? (
                     <div className="flex flex-col items-center">
                       <div className="relative w-40 h-40 mb-4">
                         <img
-                          src={previewUrl || "/placeholder.svg"}
+                          src={previewUrl || "/placeholder.svg"} // Removed placeholder fallback
                           alt="Reference"
                           className="w-full h-full object-cover rounded-lg"
                         />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation() // Prevent triggering the div's onClick
+                            setReferenceImage(null)
+                            setPreviewUrl(null)
+                            // Also clear the file input value if possible
+                            const fileInput = document.getElementById("file-upload") as HTMLInputElement
+                            if (fileInput) {
+                              fileInput.value = ""
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                       <p className="text-sm text-gray-500">Click or drag to replace</p>
                     </div>
                   ) : (
+                    // ... existing code for when no image is previewed
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-gray-400 mb-2" />
                       <p className="text-sm font-medium">Click to upload or drag and drop</p>
-
                       <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
                     </div>
                   )}
                 </div>
               </div>
+            </TabsContent>
 
-              <Button
-                className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
-                onClick={handleGenerate}
-                disabled={isGenerating || !selectedBoard}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    Generate Pinterest Posts
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </Tabs>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
+            <TabsContent value="scratch" className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="topic">Topic or Keywords</Label>
+                <Input
+                  id="topic"
+                  placeholder="E.g., healthy recipes, home decor ideas, travel tips"
+                  className="w-full"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                />
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Enter a topic or keywords for your Pinterest content
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="tone">Content Tone</Label>
+                  <Select value={tone} onValueChange={setTone}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select tone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="informative">Informative</SelectItem>
+                      <SelectItem value="inspirational">Inspirational</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="casual">Casual & Friendly</SelectItem>
+                      <SelectItem value="humorous">Humorous</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="count">Number of Posts</Label>
+                  <Select value={postCount} onValueChange={setPostCount}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="10 posts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 posts</SelectItem>
+                      <SelectItem value="10">10 posts</SelectItem>
+                      <SelectItem value="15">15 posts</SelectItem>
+                      <SelectItem value="20">20 posts</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2 mt-6">
+                <Label>Reference Image (Optional)</Label>
+                <div
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative" // Added relative positioning
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onClick={() => !previewUrl && document.getElementById("file-upload")?.click()} // Prevent click if previewUrl exists to allow delete button to work
+                >
+                  <input id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                  {previewUrl ? (
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-40 h-40 mb-4">
+                        <img
+                          src={previewUrl || "/placeholder.svg"} // Removed placeholder fallback
+                          alt="Reference"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation() // Prevent triggering the div's onClick
+                            setReferenceImage(null)
+                            setPreviewUrl(null)
+                            // Also clear the file input value if possible
+                            const fileInput = document.getElementById("file-upload") as HTMLInputElement
+                            if (fileInput) {
+                              fileInput.value = ""
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-gray-500">Click or drag to replace</p>
+                    </div>
+                  ) : (
+                    // ... existing code for when no image is previewed
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                      <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+
+            <Button
+              className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
+              onClick={handleGenerate}
+              disabled={isGenerating || !selectedBoard}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  Generate Pinterest Posts
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Conditionally render the generated posts section */}
+      {generatedPosts.length > 0 && (
+        <div className="space-y-6 mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
             <Button
               variant="outline"
               onClick={() => {
-                setGeneratedPosts([])
-                setSelectedPosts(new Set())
-                setIsSelectAllActive(false)
                 setUrl("")
                 setTopic("")
                 setReferenceImage(null)
                 setPreviewUrl(null)
-                setPostLinks({})
-                setSelectedBoardForPosts({})
+                // Optionally clear generated posts or let user manage them
+                // setGeneratedPosts([]);
+                // setSelectedPosts(new Set());
+                // setIsSelectAllActive(false);
+                window.scrollTo({ top: 0, behavior: "smooth" })
+                toast({ title: "Form Cleared", description: "You can now generate new content." })
               }}
             >
-              Create New
+              Start New Generation
             </Button>
           </div>
 

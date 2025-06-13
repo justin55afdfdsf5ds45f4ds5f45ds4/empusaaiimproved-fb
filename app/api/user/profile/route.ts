@@ -1,50 +1,41 @@
-import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../auth/[...nextauth]/route"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route" // Adjust path if needed
 import clientPromise from "@/lib/mongodb"
+import { ObjectId } from "mongodb"
 
-export async function PUT(req: Request) {
+export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions)
+
+  if (!session || !session.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
-    // Check if user is authenticated
-    const session = await getServerSession(authOptions)
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { name, email, image } = await request.json() // Add image here
 
-    // Parse the request body
-    const { name, email } = await req.json()
-
-    // Validate required fields
     if (!name || !email) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return Response.json({ error: "Name and email are required" }, { status: 400 })
     }
 
-    // Update the user in the database
     const client = await clientPromise
     const db = client.db()
+    const usersCollection = db.collection("users")
 
-    // Check if the email is already taken by another user
-    if (email !== session.user.email) {
-      const existingUser = await db.collection("users").findOne({ email })
-      if (existingUser) {
-        return NextResponse.json({ error: "Email is already taken" }, { status: 409 })
-      }
+    const updateData: { name: string; email: string; image?: string } = { name, email }
+    if (image) {
+      // If image is provided, include it in update
+      updateData.image = image
     }
 
-    // Update the user
-    await db.collection("users").updateOne(
-      { email: session.user.email },
-      {
-        $set: {
-          name,
-          email,
-        },
-      },
-    )
+    const result = await usersCollection.updateOne({ _id: new ObjectId(session.user.id) }, { $set: updateData })
 
-    return NextResponse.json({ success: true })
+    if (result.matchedCount === 0) {
+      return Response.json({ error: "User not found" }, { status: 404 })
+    }
+
+    return Response.json({ message: "Profile updated successfully" }, { status: 200 })
   } catch (error) {
-    console.error("Profile update error:", error)
-    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
+    console.error("Error updating profile:", error)
+    return Response.json({ error: "Internal server error" }, { status: 500 })
   }
 }
