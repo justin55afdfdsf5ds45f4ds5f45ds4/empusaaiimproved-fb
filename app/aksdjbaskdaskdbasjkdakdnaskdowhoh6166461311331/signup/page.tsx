@@ -80,7 +80,7 @@ export default function SignupPage() {
         })
         router.push("/aksdjbaskdaskdbasjkdakdnaskdowhoh6166461311331")
       } else {
-        router.push("/dashboard")
+        router.push("/dashboard/settings/social")
       }
     } catch (error) {
       toast({
@@ -97,7 +97,7 @@ export default function SignupPage() {
     try {
       setIsLoading(true)
       await signIn("google", {
-        callbackUrl: "/dashboard",
+        callbackUrl: "/dashboard/social",
         redirect: true,
       })
     } catch (error) {

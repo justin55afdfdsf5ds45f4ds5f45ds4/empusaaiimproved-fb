@@ -272,7 +272,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
 
       const data = await response.json()
-      setGeneratedPosts(data.posts || [])
+      setGeneratedPosts(
+        (data.posts || []).map((post: Post) => ({
+          ...post,
+          defaultLink: activeTab === "url" ? url : undefined,
+        }))
+      )
 
       toast({
         title: "Posts Generated",
@@ -426,6 +431,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
 
     setIsScheduling(postWithImage.id)
+    const [hours, minutes] = scheduledTime.split(":").map(Number);
+    const finalDateTime = new Date(scheduledDate);
+    finalDateTime.setHours(hours, minutes, 0, 0);
 
     try {
       const response = await fetch("/api/pinterest/schedule/", {
@@ -439,7 +447,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           description: postWithImage.description,
           imageUrl: postWithImage.imageUrl,
           link: postLinks[postWithImage.id] || postWithImage.defaultLink,
-          scheduledTime: scheduledDate,
+          scheduledTime: finalDateTime,
         }),
       })
 
@@ -704,7 +712,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       <Button
                         size="sm"
                         className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() => router.push("/api/auth/signin/pinterest?callbackUrl=/dashboard/create")}
+                        onClick={() => router.push("/dashboard/settings/social")}
                       >
                         <PinIcon className="mr-2 h-4 w-4" />
                         Connect Pinterest
@@ -1297,6 +1305,18 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     </PopoverContent>
                   </Popover>
                 </div>
+                {/* Time Picker */}
+            <div>
+              <Label htmlFor="schedule-time">Time</Label>
+              <input
+                id="schedule-time"
+                type="time"
+                className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={scheduledTime}
+                min={getMinTime(scheduledDate)}
+                onChange={(e) => setScheduledTime(e.target.value)}
+              />
+            </div>
               </div>
             </div>
           </div>
@@ -1494,7 +1514,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </div>
 
             {/* Time Picker */}
-            {/* <div>
+            <div>
               <Label htmlFor="schedule-time">Time</Label>
               <input
                 id="schedule-time"
@@ -1504,14 +1524,14 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 min={getMinTime(scheduledDate)}
                 onChange={(e) => setScheduledTime(e.target.value)}
               />
-            </div> */}
+            </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
               Cancel
             </Button>
-            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSchedule} disabled={!scheduledDate}>
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSchedule} disabled={!scheduledDate || !scheduledTime}>
               {Scheduling ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

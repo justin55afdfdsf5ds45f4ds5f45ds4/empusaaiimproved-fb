@@ -16,7 +16,7 @@ export async function GET() {
     const db = client.db()
 
     // Get user's posts count
-    const totalPosts = await db.collection("pins").countDocuments({
+    const totalPosts = await db.collection("posts").countDocuments({
       userId: new ObjectId(session.user.id),
     })
 

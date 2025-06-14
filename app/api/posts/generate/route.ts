@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { v4 as uuidv4 } from "uuid"
 import { generateImage } from "@/lib/openai"
+import clientPromise from "@/lib/mongodb"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "../../auth/[...nextauth]/route"
 
 // Sample topics for generating content
 const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
@@ -172,7 +175,29 @@ export async function POST(req: Request) {
         }
       })
   
-      const posts = await Promise.all(postPromises)
+    const posts = await Promise.all(postPromises)
+
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const client = await clientPromise
+    const db = client.db()
+
+    const user = await db.collection("users").findOne({ email: session.user.email })
+    
+    posts.forEach(async (post)=>{
+      await db.collection("posts").insertOne({
+        userId: user?._id,
+        postId: post.id,
+        title: post.title,
+        description: post.description || "",
+        imageUrl:post.imageUrl,
+        createdAt: new Date(),
+      })
+    })
+    
 
     console.log(`Generated ${posts.length} posts`)
 
