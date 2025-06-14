@@ -97,18 +97,28 @@ export default function DashboardContent() {
   // Effect to update metrics when dateRange changes
   useEffect(() => {
     setIsLoading(true)
-    // Simulate fetching data for the new range
-    const timer = setTimeout(() => {
-      if (dateRange?.from) {
-        // Only generate new if there's a valid range
-        setMetrics(generateMockMetrics())
-      } else {
-        // Reset to some default if range is cleared
-        setMetrics({ totalPosts: 42, scheduledPosts: 32, totalEngagement: 4613 })
+    const fetchMetrics = async () => {
+      try {
+        const res = await fetch("/api/dashboard/metrics", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+  
+        if (!res.ok) throw new Error("Failed to fetch metrics")
+  
+        const data = await res.json()
+        setMetrics(data)
+      } catch (err) {
+        console.error("Error fetching metrics:", err)
+        // Optionally reset to default on error
+        setMetrics({ totalPosts: 0, scheduledPosts: 0, totalEngagement: 0 })
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
-    }, 300) // Short delay to simulate loading
-    return () => clearTimeout(timer)
+    }
+    fetchMetrics();
   }, [dateRange])
 
   const formatDateRangeDisplay = (range: DateRange | undefined): string => {
