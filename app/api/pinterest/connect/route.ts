@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     // Store state in a cookie for verification in the callback
     const response = await NextResponse.json({
-      url: `https://www.pinterest.com/oauth/?client_id=${process.env.AUTH_PINTEREST_ID}&redirect_uri=${encodeURIComponent(process.env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=user_accounts:read,boards:read,boards:write,pins:read,pins:write&state=${state}`,
+      url: `https://www.pinterest.com/oauth/?client_id=${process.env.AUTH_PINTEREST_ID}&redirect_uri=${encodeURIComponent(process.env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=user_accounts:read,boards:read,boards:write,pins:read,pins:write,analytics:read,ads:read&state=${state}`,
     })
 
     console.log(response);
