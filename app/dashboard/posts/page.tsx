@@ -1,11 +1,37 @@
+"use client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { PlusCircle, ImageIcon, Info } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export default function PostsPage() {
   // In a real app, you would fetch posts from your database
-  const posts: any[] = []
+  const [posts, setPosts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchRecentPosts = async () => {
+      try {
+        const res = await fetch("/api/posts/recentposts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+
+        if (!res.ok) throw new Error("Failed to fetch posts")
+
+        const data = await res.json()
+        setPosts(data.posts || [])
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRecentPosts()
+  }, [])
 
   return (
     <>
@@ -24,7 +50,11 @@ export default function PostsPage() {
           </Link>
         </div>
 
-        {posts.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-8">Loading posts...</div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">{error}</div>
+        ) : posts.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <Card key={post.id} className="overflow-hidden">

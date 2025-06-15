@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { getServerSession } from "next-auth"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
+import { authOptions } from "../../auth/[...nextauth]/route"
 
-export async function GET() {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -12,21 +12,35 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const body = await req.json()
+    const { from, to } = body
+
+    if (!from || !to) {
+      return NextResponse.json({ error: "Both 'from' and 'to' dates are required." }, { status: 400 })
+    }
+
+    const fromDate = new Date(from)
+    const toDate = new Date(to)
+
     const client = await clientPromise
     const db = client.db()
 
-    // Get user's posts count
+    const userId = new ObjectId(session.user.id)
+
+    // Count posts created within the date range
     const totalPosts = await db.collection("posts").countDocuments({
-      userId: new ObjectId(session.user.id),
+      userId,
+      createdAt: { $gte: fromDate, $lte: toDate },
     })
 
-    // Get scheduled posts count
+    // Count scheduled posts within the date range
     const scheduledPosts = await db.collection("scheduled_posts").countDocuments({
-      userId: new ObjectId(session.user.id),
-      isPublished:false,
+      userId,
+      isPublished: false,
+      createdAt: { $gte: fromDate, $lte: toDate },
     })
 
-    // For now, return 0 for engagement as we don't have Pinterest analytics yet
+    // Placeholder for engagement (you can update later if available)
     const totalEngagement = 0
 
     return NextResponse.json({
