@@ -104,14 +104,14 @@ export default function DashboardContent() {
           headers: {
             "Content-Type": "application/json",
           },
-          body:JSON.stringify({
+          body: JSON.stringify({
             from: dateRange?.from,
             to: dateRange?.to,
           }),
         })
-  
+
         if (!res.ok) throw new Error("Failed to fetch metrics")
-  
+
         const data = await res.json()
         setMetrics(data)
       } catch (err) {
@@ -122,7 +122,7 @@ export default function DashboardContent() {
         setIsLoading(false)
       }
     }
-    fetchMetrics();
+    fetchMetrics()
   }, [dateRange])
 
   const formatDateRangeDisplay = (range: DateRange | undefined): string => {
@@ -148,7 +148,12 @@ export default function DashboardContent() {
   const EnhancedCalendarPopover = ({
     onSelect,
     currentRange,
-  }: { onSelect: (range: DateRange | undefined) => void; currentRange: DateRange | undefined }) => (
+  }: { onSelect: (DateRange | undefined) => void;
+  currentRange: DateRange | undefined
+}
+) =>
+{
+  return (
     <PopoverContent
       className="w-auto p-0 bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden"
       align="end"
@@ -253,26 +258,53 @@ export default function DashboardContent() {
       </div>
     </PopoverContent>
   )
+}
 
-  const renderCalendarTriggerButton = (
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    icon: React.ReactNode,
-    ariaLabel: string,
-  ) => (
-    <PopoverTrigger asChild>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-label={ariaLabel}
-      >
-        {icon}
-      </Button>
-    </PopoverTrigger>
-  )
+const renderCalendarTriggerButton = (
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+  icon: React.ReactNode,
+  ariaLabel: string,
+) => (
+  <PopoverTrigger asChild>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+      onClick={() => setIsOpen((prev) => !prev)}
+      aria-label={ariaLabel}
+    >
+      {icon}
+    </Button>
+  </PopoverTrigger>
+)
 
-  return (
+// Add this dummy data array inside the DashboardContent component function
+const dummyRecentPosts = [
+  {
+    id: "1",
+    title: "Amazing Summer Vacation Ideas for 2025",
+    imageUrl: "/placeholder.svg?width=64&height=64",
+    scheduledTime: "June 20, 2025, 02:00 PM",
+    createdDate: "June 15, 2025",
+    status: "Scheduled" as const, // Use "as const" for type safety with string literals
+  },
+  {
+    id: "2",
+    title: "Top 10 Tech Gadgets You Need This Year",
+    imageUrl: "/placeholder.svg?width=64&height=64",
+    createdDate: "June 14, 2025",
+    status: "Published" as const,
+  },
+  {
+    id: "3",
+    title: "Delicious and Easy Weeknight Dinner Recipes",
+    imageUrl: "/placeholder.svg?width=64&height=64",
+    createdDate: "June 12, 2025",
+    status: "Draft" as const,
+  },
+]
+
+return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex-grow w-full sm:w-auto">
@@ -368,7 +400,7 @@ export default function DashboardContent() {
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Quick Start</h2>
-            <p className="text-gray-600">Create your first Pinterest post in minutes</p>
+            <p className="text-gray-600">Your command center for Pinterest content.</p>
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -413,17 +445,55 @@ export default function DashboardContent() {
               </Button>
             </Link>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">No posts yet</h3>
-            <p className="mt-2 text-sm text-gray-500">Create your first post to see it here.</p>
-            <Link href="/dashboard/create" className="mt-4 inline-block">
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create New Post
-              </Button>
-            </Link>
-          </div>
+          {dummyRecentPosts.length > 0 ? (
+            <div className="space-y-3">
+              {dummyRecentPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-200"
+                >
+                  <img
+                    src={post.imageUrl || "/placeholder.svg"}
+                    alt={post.title}
+                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm text-gray-800 truncate" title={post.title}>
+                      {post.title}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {post.status === "Scheduled" && post.scheduledTime
+                        ? `Scheduled: ${post.scheduledTime}`
+                        : `Created: ${post.createdDate}`}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                      post.status === "Scheduled"
+                        ? "bg-blue-100 text-blue-700"
+                        : post.status === "Published"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {post.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">No posts yet</h3>
+              <p className="mt-2 text-sm text-gray-500">Create your first post to see it here.</p>
+              <Link href="/dashboard/create" className="mt-4 inline-block">
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create New Post
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Pinterest Tips Section */}
