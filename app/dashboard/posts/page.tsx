@@ -397,7 +397,7 @@ export default function PostsPage() {
 
   return (
     <>
-      <div className="bg-black text-yellow-300 p-3 text-center text-sm mb-6 rounded-md">
+      <div className="bg-green-100 text-green-800 p-3 text-center text-sm mb-6 rounded-md">
         <Info className="inline-block h-4 w-4 mr-2" />
         Posts generated here are temporarily stored and will be cleared after 24 hours. Please publish or schedule them.
       </div>
