@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { PlusCircle, ImageIcon, Info, LinkIcon, Trash2, Calendar, Loader2, X } from "lucide-react" // Added X icon
+import { PlusCircle, ImageIcon, Info, LinkIcon, Trash2, Calendar, Loader2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
   Dialog,
@@ -35,9 +35,9 @@ export default function PostsPage() {
   const [isPublishing, setIsPublishing] = useState<string | null>(null)
   const [isScheduling, setIsScheduling] = useState<string | null>(null)
   const [selectedBoard, setSelectedBoard] = useState<string>("")
-  // const [pinterestBoards, setPinterestBoards] = useState<any[]>([]) // Not used in this snippet, kept for context
-  // const [boardFetchError, setBoardFetchError] = useState<string | null>(null) // Not used
-  // const [isFetchingBoards, setIsFetchingBoards] = useState(false) // Not used
+  // const [pinterestBoards, setPinterestBoards] = useState<any[]>([])
+  // const [boardFetchError, setBoardFetchError] = useState<string | null>(null)
+  // const [isFetchingBoards, setIsFetchingBoards] = useState(false)
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
   const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null)
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
@@ -48,7 +48,6 @@ export default function PostsPage() {
   const [postLinks, setPostLinks] = useState<Record<string, string>>({})
   const [bulkShuffleDialogOpen, setBulkShuffleDialogOpen] = useState(false)
 
-  // Updated state for dynamic link inputs
   const [shuffleLinkInputs, setShuffleLinkInputs] = useState<string[]>([""])
   const [isBulkScheduling, setIsBulkScheduling] = useState(false)
 
@@ -74,17 +73,9 @@ export default function PostsPage() {
     fetchRecentPosts()
   }, [])
 
-  // Fetch boards logic (simplified as not directly modified)
-  // useEffect(() => {
-  //   const fetchBoards = async () => { /* ... */ };
-  //   fetchBoards();
-  // }, []);
-
   const handlePublish = async (post: any) => {
     setIsPublishing(post.id)
-    // ... existing publish logic
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
       toast({
         title: "Post Published",
@@ -117,9 +108,7 @@ export default function PostsPage() {
       return
     }
     setIsScheduling(currentPostForScheduling.id)
-    // ... existing schedule logic
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
       toast({
         title: "Post Scheduled",
@@ -168,7 +157,6 @@ export default function PostsPage() {
     setCustomLink("")
   }
 
-  // Functions for dynamic link inputs
   const handleAddLinkInput = () => {
     setShuffleLinkInputs([...shuffleLinkInputs, ""])
   }
@@ -220,21 +208,17 @@ export default function PostsPage() {
       return
     }
 
-    // Simulate scheduling logic (as per "No change in logic" constraint)
-    await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API calls
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // Success Notification
     toast({
       title: "✅ Posts Scheduled!",
       description: "Posts have been scheduled out successfully!",
-      variant: "default", // Use default and style with classes if needed
-      className: "bg-green-500 border-green-500 text-white", // Rich green notification
+      variant: "default",
+      className: "bg-green-500 border-green-500 text-white",
     })
 
     setBulkShuffleDialogOpen(false)
     setIsBulkScheduling(false)
-    // In a real scenario, you would refresh posts or update UI based on actual scheduling results
-    // For now, we just close the dialog.
   }
 
   const getMinTime = (date: Date | undefined): string => {
@@ -242,7 +226,7 @@ export default function PostsPage() {
     const today = new Date()
     if (date.toDateString() === today.toDateString()) {
       const currentHour = today.getHours().toString().padStart(2, "0")
-      const currentMinute = (today.getMinutes() + 10).toString().padStart(2, "0") // Ensure it's a valid minute
+      const currentMinute = (today.getMinutes() + 10).toString().padStart(2, "0")
       return `${currentHour}:${currentMinute}`
     }
     return "00:00"
@@ -352,15 +336,22 @@ export default function PostsPage() {
       {/* Bulk Shuffle Schedule Dialog */}
       <Dialog open={bulkShuffleDialogOpen} onOpenChange={setBulkShuffleDialogOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Bulk Shuffle Schedule</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="pb-2">
+            {" "}
+            {/* Added padding-bottom to header */}
+            <DialogTitle className="mb-3">Bulk Shuffle Schedule</DialogTitle> {/* Added margin-bottom to title */}
+            <DialogDescription className="text-sm text-gray-600">
+              {" "}
+              {/* Adjusted text size for better fit if needed */}
               Enter one or more links (URLs) that contain similar content. These links will be randomly used across all
-              recent posts. All posts in "Recent Posts" will be shuffled and scheduled out within 7 days in the future,
-              during peak user activity hours, with a minimum 10-minute gap between each post.
+              recent posts. <br className="hidden sm:block" />{" "}
+              {/* Optional line break for better readability on wider screens */}
+              All posts in "Recent Posts" will be shuffled and scheduled out within 7 days in the future, during peak
+              user activity hours, with a minimum 10-minute gap between each post.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-3 max-h-60 overflow-y-auto">
+          {/* Adjusted spacing for the content area: pt-2 (reduced from py-4), added space-y-4 */}
+          <div className="pt-2 pb-4 space-y-4 max-h-60 overflow-y-auto">
             {shuffleLinkInputs.map((link, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <Input
@@ -382,25 +373,34 @@ export default function PostsPage() {
                 )}
               </div>
             ))}
+            {/* Ensured "+ Add Link" button has some top margin due to parent's space-y-4 */}
             <Button
               variant="link"
               onClick={handleAddLinkInput}
-              className="text-teal-600 hover:text-teal-700 p-0 h-auto"
+              className="text-teal-600 hover:text-teal-700 p-0 h-auto text-sm"
             >
               + Add Link
             </Button>
           </div>
-          <DialogFooter>
+          {/* Added margin-top to DialogFooter for separation */}
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setBulkShuffleDialogOpen(false)}>
               Cancel
             </Button>
             <Button
               onClick={handleBulkShuffleSchedule}
               disabled={isBulkScheduling}
-              className="bg-green-600 hover:bg-green-700 text-white 
+              className="bg-emerald-500 text-white 
+                         font-semibold
                          transition-all duration-300 ease-in-out 
-                         hover:scale-105 hover:shadow-xl hover:shadow-green-500/50
-                         active:scale-95"
+                         transform
+                         hover:bg-emerald-600 
+                         hover:scale-110 
+                         hover:shadow-2xl 
+                         hover:shadow-emerald-500/50
+                         hover:brightness-105
+                         focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75
+                         active:scale-100 active:brightness-95"
             >
               {isBulkScheduling ? (
                 <>
