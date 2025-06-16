@@ -148,163 +148,164 @@ export default function DashboardContent() {
   const EnhancedCalendarPopover = ({
     onSelect,
     currentRange,
-  }: { onSelect: (DateRange | undefined) => void;
-  currentRange: DateRange | undefined
-}
-) =>
-{
-  return (
-    <PopoverContent
-      className="w-auto p-0 bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden"
-      align="end"
-      sideOffset={8}
-    >
-      <div className="bg-white">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-gray-100 rounded-lg"
-            onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center space-x-8">
-            <h3 className="font-semibold text-gray-900 text-sm">{format(calendarMonth, "MMMM yyyy")}</h3>
-            <h3 className="font-semibold text-gray-900 text-sm">{format(addMonths(calendarMonth, 1), "MMMM yyyy")}</h3>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-gray-100 rounded-lg"
-            onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Enhanced Calendar */}
-        <div className="p-4">
-          <Calendar
-            mode="range"
-            defaultMonth={calendarMonth}
-            month={calendarMonth}
-            onMonthChange={setCalendarMonth}
-            selected={currentRange}
-            onSelect={onSelect}
-            numberOfMonths={2}
-            className={cn(
-              "flex space-x-6",
-              "[&_.rdp-months]:flex [&_.rdp-months]:space-x-6",
-              "[&_.rdp-month]:flex-1",
-              "[&_.rdp-table]:w-full",
-              "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-medium [&_.rdp-head_cell]:text-gray-500 [&_.rdp-head_cell]:text-xs [&_.rdp-head_cell]:uppercase [&_.rdp-head_cell]:tracking-wide [&_.rdp-head_cell]:pb-2",
-              "[&_.rdp-cell]:text-center [&_.rdp-cell]:relative",
-              "[&_.rdp-button]:h-9 [&_.rdp-button]:w-9 [&_.rdp-button]:rounded-lg [&_.rdp-button]:text-sm [&_.rdp-button]:font-normal [&_.rdp-button]:transition-all [&_.rdp-button]:duration-200",
-              "[&_.rdp-button:hover]:bg-blue-50 [&_.rdp-button:hover]:text-blue-600",
-              "[&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:text-white [&_.rdp-day_selected]:font-medium [&_.rdp-day_selected]:shadow-sm",
-              "[&_.rdp-day_range_start]:bg-blue-500 [&_.rdp-day_range_start]:text-white [&_.rdp-day_range_start]:rounded-lg",
-              "[&_.rdp-day_range_end]:bg-blue-500 [&_.rdp-day_range_end]:text-white [&_.rdp-day_range_end]:rounded-lg",
-              "[&_.rdp-day_range_middle]:bg-blue-100 [&_.rdp-day_range_middle]:text-blue-700 [&_.rdp-day_range_middle]:rounded-none",
-              "[&_.rdp-day_outside]:text-gray-300",
-              "[&_.rdp-day_disabled]:text-gray-300 [&_.rdp-day_disabled]:cursor-not-allowed",
-              "[&_.rdp-caption]:hidden", // Hide default caption since we have custom header
-            )}
-            showOutsideDays={true}
-            fixedWeeks={true}
-          />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50/30">
-          <div className="flex flex-wrap gap-2 justify-between items-center">
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                onClick={() => handleQuickSelect("last7")}
-              >
-                Last 7 Days
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                onClick={() => handleQuickSelect("thisMonth")}
-              >
-                This Month
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                onClick={() => handleQuickSelect("lastMonth")}
-              >
-                Last Month
-              </Button>
+  }: {
+    onSelect: (range: DateRange | undefined) => void
+    currentRange: DateRange | undefined
+  }) => {
+    return (
+      <PopoverContent
+        className="w-auto p-0 bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden"
+        align="end"
+        sideOffset={8}
+      >
+        <div className="bg-white">
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-gray-100 rounded-lg"
+              onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center space-x-8">
+              <h3 className="font-semibold text-gray-900 text-sm">{format(calendarMonth, "MMMM yyyy")}</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">
+                {format(addMonths(calendarMonth, 1), "MMMM yyyy")}
+              </h3>
             </div>
             <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-xs font-medium border-gray-200 hover:bg-gray-50 rounded-lg"
-              onClick={() => handleQuickSelect("clear")}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-gray-100 rounded-lg"
+              onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
             >
-              Clear
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Enhanced Calendar */}
+          <div className="p-4">
+            <Calendar
+              mode="range"
+              defaultMonth={calendarMonth}
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
+              selected={currentRange}
+              onSelect={onSelect}
+              numberOfMonths={2}
+              className={cn(
+                "flex space-x-6",
+                "[&_.rdp-months]:flex [&_.rdp-months]:space-x-6",
+                "[&_.rdp-month]:flex-1",
+                "[&_.rdp-table]:w-full",
+                "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-medium [&_.rdp-head_cell]:text-gray-500 [&_.rdp-head_cell]:text-xs [&_.rdp-head_cell]:uppercase [&_.rdp-head_cell]:tracking-wide [&_.rdp-head_cell]:pb-2",
+                "[&_.rdp-cell]:text-center [&_.rdp-cell]:relative",
+                "[&_.rdp-button]:h-9 [&_.rdp-button]:w-9 [&_.rdp-button]:rounded-lg [&_.rdp-button]:text-sm [&_.rdp-button]:font-normal [&_.rdp-button]:transition-all [&_.rdp-button]:duration-200",
+                "[&_.rdp-button:hover]:bg-blue-50 [&_.rdp-button:hover]:text-blue-600",
+                "[&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:text-white [&_.rdp-day_selected]:font-medium [&_.rdp-day_selected]:shadow-sm",
+                "[&_.rdp-day_range_start]:bg-blue-500 [&_.rdp-day_range_start]:text-white [&_.rdp-day_range_start]:rounded-lg",
+                "[&_.rdp-day_range_end]:bg-blue-500 [&_.rdp-day_range_end]:text-white [&_.rdp-day_range_end]:rounded-lg",
+                "[&_.rdp-day_range_middle]:bg-blue-100 [&_.rdp-day_range_middle]:text-blue-700 [&_.rdp-day_range_middle]:rounded-none",
+                "[&_.rdp-day_outside]:text-gray-300",
+                "[&_.rdp-day_disabled]:text-gray-300 [&_.rdp-day_disabled]:cursor-not-allowed",
+                "[&_.rdp-caption]:hidden", // Hide default caption since we have custom header
+              )}
+              showOutsideDays={true}
+              fixedWeeks={true}
+            />
+          </div>
+
+          {/* Quick Actions */}
+          <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+            <div className="flex flex-wrap gap-2 justify-between items-center">
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg"
+                  onClick={() => handleQuickSelect("last7")}
+                >
+                  Last 7 Days
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg"
+                  onClick={() => handleQuickSelect("thisMonth")}
+                >
+                  This Month
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg"
+                  onClick={() => handleQuickSelect("lastMonth")}
+                >
+                  Last Month
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs font-medium border-gray-200 hover:bg-gray-50 rounded-lg"
+                onClick={() => handleQuickSelect("clear")}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </PopoverContent>
+      </PopoverContent>
+    )
+  }
+
+  const renderCalendarTriggerButton = (
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+    icon: React.ReactNode,
+    ariaLabel: string,
+  ) => (
+    <PopoverTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label={ariaLabel}
+      >
+        {icon}
+      </Button>
+    </PopoverTrigger>
   )
-}
 
-const renderCalendarTriggerButton = (
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
-  icon: React.ReactNode,
-  ariaLabel: string,
-) => (
-  <PopoverTrigger asChild>
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
-      onClick={() => setIsOpen((prev) => !prev)}
-      aria-label={ariaLabel}
-    >
-      {icon}
-    </Button>
-  </PopoverTrigger>
-)
+  // Add this dummy data array inside the DashboardContent component function
+  const dummyRecentPosts = [
+    {
+      id: "1",
+      title: "Amazing Summer Vacation Ideas for 2025",
+      imageUrl: "/placeholder.svg?width=64&height=64",
+      scheduledTime: "June 20, 2025, 02:00 PM",
+      createdDate: "June 15, 2025",
+      status: "Scheduled" as const, // Use "as const" for type safety with string literals
+    },
+    {
+      id: "2",
+      title: "Top 10 Tech Gadgets You Need This Year",
+      imageUrl: "/placeholder.svg?width=64&height=64",
+      createdDate: "June 14, 2025",
+      status: "Published" as const,
+    },
+    {
+      id: "3",
+      title: "Delicious and Easy Weeknight Dinner Recipes",
+      imageUrl: "/placeholder.svg?width=64&height=64",
+      createdDate: "June 12, 2025",
+      status: "Draft" as const,
+    },
+  ]
 
-// Add this dummy data array inside the DashboardContent component function
-const dummyRecentPosts = [
-  {
-    id: "1",
-    title: "Amazing Summer Vacation Ideas for 2025",
-    imageUrl: "/placeholder.svg?width=64&height=64",
-    scheduledTime: "June 20, 2025, 02:00 PM",
-    createdDate: "June 15, 2025",
-    status: "Scheduled" as const, // Use "as const" for type safety with string literals
-  },
-  {
-    id: "2",
-    title: "Top 10 Tech Gadgets You Need This Year",
-    imageUrl: "/placeholder.svg?width=64&height=64",
-    createdDate: "June 14, 2025",
-    status: "Published" as const,
-  },
-  {
-    id: "3",
-    title: "Delicious and Easy Weeknight Dinner Recipes",
-    imageUrl: "/placeholder.svg?width=64&height=64",
-    createdDate: "June 12, 2025",
-    status: "Draft" as const,
-  },
-]
-
-return (
+  return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex-grow w-full sm:w-auto">
@@ -472,8 +473,8 @@ return (
                       post.status === "Scheduled"
                         ? "bg-blue-100 text-blue-700"
                         : post.status === "Published"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {post.status}
