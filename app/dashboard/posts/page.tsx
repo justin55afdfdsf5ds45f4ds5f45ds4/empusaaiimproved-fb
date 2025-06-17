@@ -19,6 +19,7 @@ import { toast } from "@/components/ui/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { generateImage } from "@/lib/falai"
 
 interface Post {
   id: string
@@ -74,21 +75,78 @@ export default function PostsPage() {
   }, [])
 
   const handlePublish = async (post: any) => {
-    setIsPublishing(post.id)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+    if (!selectedBoard) {
       toast({
-        title: "Post Published",
-        description: "Your post has been successfully published.",
-      })
-      setPosts(posts.filter((p) => p.id !== post.id))
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to publish post.",
+        title: "Board Required",
+        description: "Please select a Pinterest board to publish your post.",
         variant: "destructive",
       })
-    } finally {
+      return
+    }
+
+    if (!post.imageUrl) {
+      // Generate image first if not already generated
+      toast({
+        title: "Generating Image",
+        description: "Generating image before publishing...",
+      })
+
+      const imageUrl = await generateImage(post)
+
+      if (!imageUrl) {
+        toast({
+          title: "Error",
+          description: "Failed to generate image. Please try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Update the post with the generated image
+      post = { ...post, imageUrl }
+      setPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...post } : p)))
+    }
+
+    setIsPublishing(post.id)
+
+    console.log(selectedBoard)
+    console.log(post.imageUrl)
+
+    try {
+      const response = await fetch("/api/pinterest/pins/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boardId: selectedBoard,
+          title: post.title,
+          description: post.description,
+          imageUrl: post.imageUrl,
+          link: postLinks[post.id] || post.defaultLink,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to publish post to Pinterest")
+      }
+
+      const data = await response.json()
+      toast({
+        title: "Post Published",
+        description: "Your post has been successfully published to Pinterest.",
+      })
+
+      // Remove the published post from the list
+      setPosts(posts.filter((p) => p.id !== post.id))
+      setIsPublishing(null)
+    } catch (error) {
+      console.error("Error publishing post:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
+        variant: "destructive",
+      })
       setIsPublishing(null)
     }
   }

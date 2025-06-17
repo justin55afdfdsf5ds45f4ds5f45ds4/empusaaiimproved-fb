@@ -72,6 +72,7 @@
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "recharts": "latest",
+    "replicate": "^1.0.1",
     "snappy": "latest",
     "socks": "latest",
     "sonner": "latest",
