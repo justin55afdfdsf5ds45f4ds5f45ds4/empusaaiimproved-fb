@@ -102,6 +102,7 @@ async function generateImagePrompt(keywords: string): Promise<string> {
     - **Quality Enhancers:** Add terms known to boost AI image quality (e.g., "8k, ultra detailed, volumetric light, trending on Artstation, masterpiece, photorealistic, hyperrealistic, Unreal Engine, Octane render").
     - **Pinterest Aesthetic:** Incorporate words that evoke Pinterest appeal (e.g., "Pinterest worthy," "viral pin," "aesthetic," "clean composition").
     -"Pinterest style: tell it to add big text as an headline to grab the attention. should be minimalist but creative healdine text related to the topic given.
+    - ""Generate a visually creative image prompt based on the key insights and themes extracted from the Firecrawl data, ensuring the image concept reflects the core message in an imaginative, symbolic, or metaphorical way.""
 
     
     Format: The output should be a single string, ready to be passed directly to an image generation model. Do NOT include any additional text, JSON, or formatting besides the prompt itself. Always append a negative prompt at the end using the '--neg' tag.`;
