@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format } from "date-fns"
 import { generateImage } from "@/lib/falai"
 
@@ -51,6 +52,7 @@ export default function PostsPage() {
 
   const [shuffleLinkInputs, setShuffleLinkInputs] = useState<string[]>([""])
   const [isBulkScheduling, setIsBulkScheduling] = useState(false)
+  const [bulkSelectedBoard, setBulkSelectedBoard] = useState<string>("")
 
   useEffect(() => {
     const fetchRecentPosts = async () => {
@@ -395,20 +397,14 @@ export default function PostsPage() {
       <Dialog open={bulkShuffleDialogOpen} onOpenChange={setBulkShuffleDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="pb-2">
-            {" "}
-            {/* Added padding-bottom to header */}
-            <DialogTitle className="mb-3">Bulk Shuffle Schedule</DialogTitle> {/* Added margin-bottom to title */}
+            <DialogTitle className="mb-3">Bulk Shuffle Schedule</DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
-              {" "}
-              {/* Adjusted text size for better fit if needed */}
               Enter one or more links (URLs) that contain similar content. These links will be randomly used across all
-              recent posts. <br className="hidden sm:block" />{" "}
-              {/* Optional line break for better readability on wider screens */}
+              recent posts. <br className="hidden sm:block" />
               All posts in "Recent Posts" will be shuffled and scheduled out within 7 days in the future, during peak
               user activity hours, with a minimum 10-minute gap between each post.
             </DialogDescription>
           </DialogHeader>
-          {/* Adjusted spacing for the content area: pt-2 (reduced from py-4), added space-y-4 */}
           <div className="pt-2 pb-4 space-y-4 max-h-60 overflow-y-auto">
             {shuffleLinkInputs.map((link, index) => (
               <div key={index} className="flex items-center space-x-2">
@@ -431,7 +427,6 @@ export default function PostsPage() {
                 )}
               </div>
             ))}
-            {/* Ensured "+ Add Link" button has some top margin due to parent's space-y-4 */}
             <Button
               variant="link"
               onClick={handleAddLinkInput}
@@ -440,7 +435,26 @@ export default function PostsPage() {
               + Add Link
             </Button>
           </div>
-          {/* Added margin-top to DialogFooter for separation */}
+
+          {/* Board Selection Section */}
+          <div className="pb-4">
+            <Label htmlFor="bulk-board-select" className="text-sm font-medium">
+              Choose a Board
+            </Label>
+            <Select value={bulkSelectedBoard} onValueChange={setBulkSelectedBoard}>
+              <SelectTrigger className="w-full mt-2">
+                <SelectValue placeholder="Select a Pinterest board" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="board-1">My Travel Board</SelectItem>
+                <SelectItem value="board-2">Food & Recipes</SelectItem>
+                <SelectItem value="board-3">Home Decor Ideas</SelectItem>
+                <SelectItem value="board-4">Fashion Inspiration</SelectItem>
+                <SelectItem value="board-5">DIY Projects</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setBulkShuffleDialogOpen(false)}>
               Cancel
