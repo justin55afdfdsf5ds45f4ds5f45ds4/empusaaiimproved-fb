@@ -45,15 +45,15 @@ async function callLlama3(systemPrompt: string, userPrompt: string): Promise<str
 
 // Function to generate a title using Llama-3 with advanced prompt engineering
 async function generateTitle(keywords: string): Promise<string> {
-    const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert. Your goal is to generate a compelling title for an image, specifically optimized to drive high traffic and virality on Pinterest. The title should be catchy, action-oriented, and include relevant keywords. You must output ONLY the title string, without any additional text or formatting.`;
+    const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert. do never generate the same title or description twice, make it uniqe and different each time. Your goal is to generate a compelling title for an image, specifically optimized to drive high traffic and virality on Pinterest. The title should be catchy, action-oriented, and include relevant keywords. You must output ONLY the title string, without any additional text or formatting.`;
 
     const userPrompt = `Generate a title based on these keywords: "${keywords}".
     
     Consider:
     - Incorporating high-traffic keywords.
-    - Crafting a catchy, action-oriented title (e.g., "5 Ways to...", "How to Master...", "The Ultimate Guide to...").
+    - Crafting a catchy, action-oriented title.
     - Aim for conciseness and strong visual appeal in the text.
-    - If appropriate, use numbers (e.g., "10 Best...", "7 Tips...").`;
+    - If appropriate`;
 
     try {
         const title = await callLlama3(systemPrompt, userPrompt);
@@ -68,7 +68,7 @@ async function generateTitle(keywords: string): Promise<string> {
 
 // Function to generate a description using Llama-3 with advanced prompt engineering
 async function generateDescription(keywords: string): Promise<string> {
-    const systemPrompt = `You are an expert Pinterest content strategist and copywriter. Your task is to generate a keyword-rich, engaging description for a Pinterest image. The description should be benefit-driven, encourage clicks and saves, and include relevant hashtags and a call-to-action. You must output ONLY the description string, without any additional text or formatting.`;
+    const systemPrompt = `You are an expert Pinterest content strategist and copywriter. do never generate description same everytime or similar to the before one. Your task is to generate a keyword-rich, engaging description for a Pinterest image. The description should be benefit-driven, encourage clicks and saves, and include relevant hashtags and a call-to-action. You must output ONLY the description string, without any additional text or formatting.`;
 
     const userPrompt = `Generate a description based on these keywords: "${keywords}".
     
@@ -76,8 +76,8 @@ async function generateDescription(keywords: string): Promise<string> {
     - Weaving in primary and secondary keywords naturally.
     - Highlighting benefits or solutions.
     - Adding relevant hashtags (e.g., #topicideas #diyprojects #trends).
-    - Including a clear call-to-action (e.g., "Save this Pin!", "Click to learn more", "Link in bio!").
-    - Keep it concise and impactful, ideally 2-4 sentences.`;
+    - Including a clear call-to-action (e.g.,"Click to learn more").
+    - Keep it concise and impactful, ideally 2-6 sentences.`;
 
     try {
         const description = await callLlama3(systemPrompt, userPrompt);
