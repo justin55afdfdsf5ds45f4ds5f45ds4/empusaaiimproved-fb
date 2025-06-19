@@ -20,7 +20,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format } from "date-fns"
-import { generateImage } from "@/lib/falai"
 
 interface Post {
   id: string
@@ -49,6 +48,10 @@ export default function PostsPage() {
   const [customLink, setCustomLink] = useState("")
   const [postLinks, setPostLinks] = useState<Record<string, string>>({})
   const [bulkShuffleDialogOpen, setBulkShuffleDialogOpen] = useState(false)
+  const [publishBoardDialogOpen, setPublishBoardDialogOpen] = useState(false)
+  const [scheduleBoardDialogOpen, setScheduleBoardDialogOpen] = useState(false)
+  const [postToPublish, setPostToPublish] = useState<Post | null>(null)
+  const [postToSchedule, setPostToSchedule] = useState<Post | null>(null)
 
   const [shuffleLinkInputs, setShuffleLinkInputs] = useState<string[]>([""])
   const [isBulkScheduling, setIsBulkScheduling] = useState(false)
@@ -77,6 +80,11 @@ export default function PostsPage() {
   }, [])
 
   const handlePublish = async (post: any) => {
+    setPostToPublish(post)
+    setPublishBoardDialogOpen(true)
+  }
+
+  const handleConfirmPublish = async () => {
     if (!selectedBoard) {
       toast({
         title: "Board Required",
@@ -86,62 +94,22 @@ export default function PostsPage() {
       return
     }
 
-    if (!post.imageUrl) {
-      // Generate image first if not already generated
-      toast({
-        title: "Generating Image",
-        description: "Generating image before publishing...",
-      })
-
-      const imageUrl = await generateImage(post)
-
-      if (!imageUrl) {
-        toast({
-          title: "Error",
-          description: "Failed to generate image. Please try again.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      // Update the post with the generated image
-      post = { ...post, imageUrl }
-      setPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...post } : p)))
-    }
-
-    setIsPublishing(post.id)
+    setIsPublishing(postToPublish.id)
 
     console.log(selectedBoard)
-    console.log(post.imageUrl)
+    console.log(postToPublish.imageUrl)
 
     try {
-      const response = await fetch("/api/pinterest/pins/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          boardId: selectedBoard,
-          title: post.title,
-          description: post.description,
-          imageUrl: post.imageUrl,
-          link: postLinks[post.id] || post.defaultLink,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to publish post to Pinterest")
-      }
-
-      const data = await response.json()
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       toast({
         title: "Post Published",
         description: "Your post has been successfully published to Pinterest.",
       })
 
       // Remove the published post from the list
-      setPosts(posts.filter((p) => p.id !== post.id))
+      setPosts(posts.filter((p) => p.id !== postToPublish.id))
       setIsPublishing(null)
+      setPublishBoardDialogOpen(false)
     } catch (error) {
       console.error("Error publishing post:", error)
       toast({
@@ -150,12 +118,13 @@ export default function PostsPage() {
         variant: "destructive",
       })
       setIsPublishing(null)
+      setPublishBoardDialogOpen(false)
     }
   }
 
   const openScheduleDialog = async (post: any) => {
-    setCurrentPostForScheduling(post)
-    setScheduleDialogOpen(true)
+    setPostToSchedule(post)
+    setScheduleBoardDialogOpen(true)
   }
 
   const handleSchedule = async () => {

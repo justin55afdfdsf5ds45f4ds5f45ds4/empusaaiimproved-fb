@@ -276,7 +276,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         (data.posts || []).map((post: Post) => ({
           ...post,
           defaultLink: activeTab === "url" ? url : undefined,
-        }))
+        })),
       )
 
       toast({
@@ -431,9 +431,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
 
     setIsScheduling(postWithImage.id)
-    const [hours, minutes] = scheduledTime.split(":").map(Number);
-    const finalDateTime = new Date(scheduledDate);
-    finalDateTime.setHours(hours, minutes, 0, 0);
+    const [hours, minutes] = scheduledTime.split(":").map(Number)
+    const finalDateTime = new Date(scheduledDate)
+    finalDateTime.setHours(hours, minutes, 0, 0)
 
     try {
       const response = await fetch("/api/pinterest/schedule/", {
@@ -1129,7 +1129,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   <div className="aspect-[2/3] relative">
                     {post.imageUrl ? (
                       <img
-                        src={post.imageUrl || "/placeholder.svg"}
+                        src={post.imageUrl || "/placeholder.svg?height=600&width=400&query=abstract+post+image"}
                         alt={post.title}
                         className="w-full h-full object-cover"
                       />
@@ -1155,22 +1155,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
                   <CardContent className="p-4">
                     <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>
-                    <p className="text-sm text-gray-500 line-clamp-3 mb-3">{post.description}</p>
-
-                    {/* Default/Custom Link Display */}
-                    <div className="mb-3 p-2 bg-gray-50 rounded text-xs">
-                      <span className="font-medium">Link: </span>
-                      <span className={hasCustomLink ? "text-green-600" : "text-gray-600"}>{displayLink}</span>
-                      {hasCustomLink && <span className="text-green-600 ml-1">(Custom)</span>}
-                    </div>
-
-                    {/* Board Assignment Tag */}
-                    <div className="mb-3">
-                      <span className="inline-block px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                        📌 {boardName}
-                      </span>
-                    </div>
-
+                    <p className="text-sm text-gray-500 line-clamp-3 mb-4">{post.description}</p>
                     <div className="flex gap-2">
                       <Button
                         className="flex-1 bg-teal-600 hover:bg-teal-700"
@@ -1201,6 +1186,17 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                           "Schedule"
                         )}
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700"
+                        onClick={() => handleDeletePost(post)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleLinkPost(post)}>
+                        <LinkIcon className={`h-4 w-4 ${postLinks[post.id] ? "text-green-600" : "text-gray-600"}`} />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -1220,7 +1216,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           <div className="py-4">
             <div className="mb-4 p-3 border rounded-lg bg-red-50">
               <p className="font-medium text-red-800">You are about to delete {selectedPosts.size} posts</p>
-              <p className="text-sm text-red-600 mt-1">This action cannot be undone.</p>
+              <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="delete-all-confirm">Type DELETE to confirm deletion</Label>
@@ -1306,17 +1302,17 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   </Popover>
                 </div>
                 {/* Time Picker */}
-            <div>
-              <Label htmlFor="schedule-time">Time</Label>
-              <input
-                id="schedule-time"
-                type="time"
-                className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                value={scheduledTime}
-                min={getMinTime(scheduledDate)}
-                onChange={(e) => setScheduledTime(e.target.value)}
-              />
-            </div>
+                <div>
+                  <Label htmlFor="schedule-time">Time</Label>
+                  <input
+                    id="schedule-time"
+                    type="time"
+                    className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={scheduledTime}
+                    min={getMinTime(scheduledDate)}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1388,158 +1384,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={confirmLink} disabled={!customLink} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={confirmLink} disabled={!customLink} className="bg-green-600 hover:bg-green-700 text-white">
               Save Link
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Publish to Pinterest Dialog */}
-      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Publish to Pinterest</DialogTitle>
-            <DialogDescription>Select the Pinterest board to post these to:</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Pinterest Board</Label>
-                <Select value={selectedBoard} onValueChange={setSelectedBoard}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select board" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {pinterestBoards.map((board) => (
-                      <SelectItem key={board.id} value={board.id}>
-                        {board.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Posts to Publish ({selectedPosts.size})</Label>
-                <div className="max-h-40 overflow-y-auto space-y-2">
-                  {Array.from(selectedPosts).map((postId) => {
-                    const post = generatedPosts.find((p) => p.id === postId)
-                    return post ? (
-                      <div key={postId} className="flex items-center gap-3 p-2 border rounded">
-                        <div className="w-12 h-12 bg-gray-200 rounded flex-shrink-0">
-                          {post.imageUrl && (
-                            <img
-                              src={post.imageUrl || "/placeholder.svg"}
-                              alt=""
-                              className="w-full h-full object-cover rounded"
-                            />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{post.title}</p>
-                          <p className="text-xs text-gray-500 truncate">{post.description}</p>
-                        </div>
-                      </div>
-                    ) : null
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => {
-                generatedPosts.forEach((post) => {
-                  if (selectedPosts.has(post.id)) {
-                    handlePublish(post)
-                  }
-                })
-                const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
-                setGeneratedPosts(remainingPosts)
-                setSelectedPosts(new Set())
-                setIsSelectAllActive(false)
-                setPublishDialogOpen(false)
-
-                toast({
-                  title: "Publishing to Pinterest",
-                  description: `Successfully published ${selectedPosts.size} posts to Pinterest!`,
-                })
-              }}
-            >
-              Confirm Publish
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Schedule Post</DialogTitle>
-            <DialogDescription>Select a date and time to schedule your Pinterest post.</DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 space-y-6">
-            {/* Date Picker */}
-            <div>
-              <Label htmlFor="schedule-date">Date</Label>
-              <div className="mt-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {scheduledDate ? format(scheduledDate, "PPP") : "Select a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <CalendarComponent
-                      mode="single"
-                      selected={scheduledDate}
-                      onSelect={setScheduledDate}
-                      initialFocus
-                      disabled={(date) => {
-                        const today = new Date()
-                        today.setHours(0, 0, 0, 0) // Remove time portion
-                        return date < today // Only disable dates before today
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            {/* Time Picker */}
-            <div>
-              <Label htmlFor="schedule-time">Time</Label>
-              <input
-                id="schedule-time"
-                type="time"
-                className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                value={scheduledTime}
-                min={getMinTime(scheduledDate)}
-                onChange={(e) => setScheduledTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSchedule} disabled={!scheduledDate || !scheduledTime}>
-              {Scheduling ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Scheduling...
-                </>
-              ) : (
-                "Schedule Post"
-              )}
             </Button>
           </DialogFooter>
         </DialogContent>
