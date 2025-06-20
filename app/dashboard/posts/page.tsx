@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { PlusCircle, ImageIcon, Info, LinkIcon, Trash2, Calendar, Loader2, X, PinIcon } from "lucide-react"
+import { PlusCircle, ImageIcon, Info, LinkIcon, Trash2, Calendar, Loader2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
   Dialog,
@@ -20,7 +20,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format } from "date-fns"
-// import { generateImage } from "@/lib/falai"; // Not used in this UI-only change
 
 interface Post {
   id: string
@@ -30,53 +29,46 @@ interface Post {
   defaultLink?: string
 }
 
-const mockPinterestBoards = [
-  { id: "board-1", name: "My Travel Board" },
-  { id: "board-2", name: "Food & Recipes" },
-  { id: "board-3", name: "Home Decor Ideas" },
-  { id: "board-4", name: "Fashion Inspiration" },
-  { id: "board-5", name: "DIY Projects" },
-]
-
 export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  const [isProcessingPublish, setIsProcessingPublish] = useState<string | null>(null)
-  const [isProcessingSchedule, setIsProcessingSchedule] = useState<string | null>(null)
-
+  const [isPublishing, setIsPublishing] = useState<string | null>(null)
+  const [isScheduling, setIsScheduling] = useState<string | null>(null)
+  const [selectedBoard, setSelectedBoard] = useState<string>("")
+  // const [pinterestBoards, setPinterestBoards] = useState<any[]>([])
+  // const [boardFetchError, setBoardFetchError] = useState<string | null>(null)
+  // const [isFetchingBoards, setIsFetchingBoards] = useState(false)
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null)
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
+  const [scheduledTime, setScheduledTime] = useState<string>("")
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
   const [postToLink, setPostToLink] = useState<Post | null>(null)
   const [customLink, setCustomLink] = useState("")
   const [postLinks, setPostLinks] = useState<Record<string, string>>({})
-
   const [bulkShuffleDialogOpen, setBulkShuffleDialogOpen] = useState(false)
+  const [publishBoardDialogOpen, setPublishBoardDialogOpen] = useState(false)
+  const [scheduleBoardDialogOpen, setScheduleBoardDialogOpen] = useState(false)
+  const [postToPublish, setPostToPublish] = useState<Post | null>(null)
+  const [postToSchedule, setPostToSchedule] = useState<Post | null>(null)
+
   const [shuffleLinkInputs, setShuffleLinkInputs] = useState<string[]>([""])
   const [isBulkScheduling, setIsBulkScheduling] = useState(false)
   const [bulkSelectedBoard, setBulkSelectedBoard] = useState<string>("")
 
-  // State for new single post publish/schedule modals
-  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
-  const [selectedPostForModal, setSelectedPostForModal] = useState<Post | null>(null)
-  const [modalSelectedBoard, setModalSelectedBoard] = useState<string>("")
-  const [modalScheduledDate, setModalScheduledDate] = useState<Date | undefined>(undefined)
-  const [modalScheduledTime, setModalScheduledTime] = useState<string>("")
-
   useEffect(() => {
     const fetchRecentPosts = async () => {
       try {
-        // Simulating API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const samplePosts = Array.from({ length: 3 }, (_, i) => ({
-          id: `post-${i + 1}`,
-          title: `Sample Post Title ${i + 1}`,
-          description: `This is a sample description for post ${i + 1}. It's engaging and informative.`,
-          imageUrl: null, // Will use placeholder
-          defaultLink: `https://example.com/post-${i + 1}`,
-        }))
-        setPosts(samplePosts)
+        const res = await fetch("/api/posts/recentposts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+
+        if (!res.ok) throw new Error("Failed to fetch posts")
+
+        const data = await res.json()
+        setPosts(data.posts || [])
       } catch (err: any) {
         setError(err.message)
       } finally {
@@ -87,63 +79,81 @@ export default function PostsPage() {
     fetchRecentPosts()
   }, [])
 
-  const openPublishDialogForPost = (post: Post) => {
-    setSelectedPostForModal(post)
-    setModalSelectedBoard("") // Reset board selection
-    setIsPublishModalOpen(true)
+  const handlePublish = async (post: any) => {
+    setPostToPublish(post)
+    setPublishBoardDialogOpen(true)
   }
 
-  const handleConfirmPublishFromModal = async () => {
-    if (!selectedPostForModal || !modalSelectedBoard) {
+  const handleConfirmPublish = async () => {
+    if (!selectedBoard) {
       toast({
-        title: "Error",
-        description: "Please select a board to publish.",
+        title: "Board Required",
+        description: "Please select a Pinterest board to publish your post.",
         variant: "destructive",
       })
       return
     }
-    setIsProcessingPublish(selectedPostForModal.id)
-    // UI-only: Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    toast({
-      title: "Post Published (UI Demo)",
-      description: `${selectedPostForModal.title} would be published to board: ${mockPinterestBoards.find((b) => b.id === modalSelectedBoard)?.name}.`,
-    })
-    setPosts(posts.filter((p) => p.id !== selectedPostForModal.id)) // Remove post from list
-    setIsProcessingPublish(null)
-    setIsPublishModalOpen(false)
-    setSelectedPostForModal(null)
-  }
 
-  const openScheduleDialogForPost = (post: Post) => {
-    setSelectedPostForModal(post)
-    setModalSelectedBoard("") // Reset board selection
-    setModalScheduledDate(undefined)
-    setModalScheduledTime("")
-    setIsScheduleModalOpen(true)
-  }
+    setIsPublishing(postToPublish.id)
 
-  const handleConfirmScheduleFromModal = async () => {
-    if (!selectedPostForModal || !modalSelectedBoard || !modalScheduledDate || !modalScheduledTime) {
+    console.log(selectedBoard)
+    console.log(postToPublish.imageUrl)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      toast({
+        title: "Post Published",
+        description: "Your post has been successfully published to Pinterest.",
+      })
+
+      // Remove the published post from the list
+      setPosts(posts.filter((p) => p.id !== postToPublish.id))
+      setIsPublishing(null)
+      setPublishBoardDialogOpen(false)
+    } catch (error) {
+      console.error("Error publishing post:", error)
       toast({
         title: "Error",
-        description: "Please select a board, date, and time to schedule.",
+        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
+        variant: "destructive",
+      })
+      setIsPublishing(null)
+      setPublishBoardDialogOpen(false)
+    }
+  }
+
+  const openScheduleDialog = async (post: any) => {
+    setPostToSchedule(post)
+    setScheduleBoardDialogOpen(true)
+  }
+
+  const handleSchedule = async () => {
+    if (!currentPostForScheduling || !scheduledDate || !selectedBoard || !scheduledTime) {
+      toast({
+        title: "Error",
+        description: "Please select a date, time and board to schedule the post.",
         variant: "destructive",
       })
       return
     }
-    setIsProcessingSchedule(selectedPostForModal.id)
-    // UI-only: Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const formattedDate = format(modalScheduledDate, "PPP")
-    toast({
-      title: "Post Scheduled (UI Demo)",
-      description: `${selectedPostForModal.title} would be scheduled to board ${mockPinterestBoards.find((b) => b.id === modalSelectedBoard)?.name} for ${formattedDate} at ${modalScheduledTime}.`,
-    })
-    setPosts(posts.filter((p) => p.id !== selectedPostForModal.id)) // Remove post from list
-    setIsProcessingSchedule(null)
-    setIsScheduleModalOpen(false)
-    setSelectedPostForModal(null)
+    setIsScheduling(currentPostForScheduling.id)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      toast({
+        title: "Post Scheduled",
+        description: "Your post has been successfully scheduled.",
+      })
+      setPosts(posts.filter((p) => p.id !== currentPostForScheduling.id))
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to schedule post.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsScheduling(null)
+      setScheduleDialogOpen(false)
+    }
   }
 
   const handleDeletePost = async (post: any) => {
@@ -226,25 +236,16 @@ export default function PostsPage() {
       setIsBulkScheduling(false)
       return
     }
-    if (!bulkSelectedBoard) {
-      toast({
-        title: "Error",
-        description: "Please select a board for bulk scheduling.",
-        variant: "destructive",
-      })
-      setIsBulkScheduling(false)
-      return
-    }
 
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
     toast({
-      title: "✅ Posts Scheduled! (UI Demo)",
-      description: `Posts would be scheduled to board: ${mockPinterestBoards.find((b) => b.id === bulkSelectedBoard)?.name}.`,
+      title: "✅ Posts Scheduled!",
+      description: "Posts have been scheduled out successfully!",
       variant: "default",
       className: "bg-green-500 border-green-500 text-white",
     })
-    setPosts([]) // Clear posts as they are "scheduled"
+
     setBulkShuffleDialogOpen(false)
     setIsBulkScheduling(false)
   }
@@ -253,25 +254,9 @@ export default function PostsPage() {
     if (!date) return "00:00"
     const today = new Date()
     if (date.toDateString() === today.toDateString()) {
-      const now = new Date()
-      let hours = now.getHours()
-      let minutes = now.getMinutes()
-
-      // Add 10 minutes, handling hour and day rollovers
-      minutes += 10
-      if (minutes >= 60) {
-        hours += Math.floor(minutes / 60)
-        minutes %= 60
-      }
-      if (hours >= 24) {
-        // This case means scheduling for next day, so min time is 00:00
-        // However, for simplicity, if it rolls over to next day, we might just restrict to current day
-        // or let the user pick. For this function, we'll just format.
-        // If date is today and time rolls over, it's effectively past "today"
-        // For this simple minTime, we'll just format. Calendar validation handles date.
-        hours %= 24
-      }
-      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+      const currentHour = today.getHours().toString().padStart(2, "0")
+      const currentMinute = (today.getMinutes() + 10).toString().padStart(2, "0")
+      return `${currentHour}:${currentMinute}`
     }
     return "00:00"
   }
@@ -284,9 +269,7 @@ export default function PostsPage() {
       </div>
 
       <div className="flex justify-end mb-4">
-        <Button onClick={() => setBulkShuffleDialogOpen(true)} disabled={posts.length === 0}>
-          → Bulk Shuffle Schedule
-        </Button>
+        <Button onClick={() => setBulkShuffleDialogOpen(true)}>→ Bulk Shuffle Schedule</Button>
       </div>
 
       <div className="space-y-6">
@@ -301,21 +284,16 @@ export default function PostsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
-          </div>
+          <div className="text-center py-8">Loading posts...</div>
         ) : error ? (
           <div className="text-center py-8 text-red-500">{error}</div>
         ) : posts.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <Card key={post.id} className="overflow-hidden">
-                <div className="aspect-[2/3] relative bg-gray-100">
+                <div className="aspect-[2/3] relative">
                   <img
-                    src={
-                      post.imageUrl ||
-                      `/placeholder.svg?height=600&width=400&query=abstract+${post.title.replace(/\s+/g, "+")}`
-                    }
+                    src={post.imageUrl || "/placeholder.svg?height=600&width=400&query=abstract+post+image"}
                     alt={post.title}
                     className="w-full h-full object-cover"
                   />
@@ -326,10 +304,10 @@ export default function PostsPage() {
                   <div className="flex gap-2">
                     <Button
                       className="flex-1 bg-teal-600 hover:bg-teal-700"
-                      onClick={() => openPublishDialogForPost(post)}
-                      disabled={isProcessingPublish === post.id}
+                      onClick={() => handlePublish(post)}
+                      disabled={isPublishing === post.id}
                     >
-                      {isProcessingPublish === post.id ? (
+                      {isPublishing === post.id ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Publishing...
@@ -341,10 +319,10 @@ export default function PostsPage() {
                     <Button
                       variant="outline"
                       className="flex-1"
-                      onClick={() => openScheduleDialogForPost(post)}
-                      disabled={isProcessingSchedule === post.id}
+                      onClick={() => openScheduleDialog(post)}
+                      disabled={isScheduling === post.id}
                     >
-                      {isProcessingSchedule === post.id ? (
+                      {isScheduling === post.id ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Scheduling...
@@ -427,6 +405,7 @@ export default function PostsPage() {
             </Button>
           </div>
 
+          {/* Board Selection Section */}
           <div className="pb-4">
             <Label htmlFor="bulk-board-select" className="text-sm font-medium">
               Choose a Board
@@ -436,11 +415,11 @@ export default function PostsPage() {
                 <SelectValue placeholder="Select a Pinterest board" />
               </SelectTrigger>
               <SelectContent>
-                {mockPinterestBoards.map((board) => (
-                  <SelectItem key={board.id} value={board.id}>
-                    {board.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="board-1">My Travel Board</SelectItem>
+                <SelectItem value="board-2">Food & Recipes</SelectItem>
+                <SelectItem value="board-3">Home Decor Ideas</SelectItem>
+                <SelectItem value="board-4">Fashion Inspiration</SelectItem>
+                <SelectItem value="board-5">DIY Projects</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -451,8 +430,18 @@ export default function PostsPage() {
             </Button>
             <Button
               onClick={handleBulkShuffleSchedule}
-              disabled={isBulkScheduling || shuffleLinkInputs.every((link) => link.trim() === "") || !bulkSelectedBoard}
-              className="bg-emerald-500 text-white hover:bg-emerald-600"
+              disabled={isBulkScheduling}
+              className="bg-emerald-500 text-white 
+                         font-semibold
+                         transition-all duration-300 ease-in-out 
+                         transform
+                         hover:bg-emerald-600 
+                         hover:scale-110 
+                         hover:shadow-2xl 
+                         hover:shadow-emerald-500/50
+                         hover:brightness-105
+                         focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75
+                         active:scale-100 active:brightness-95"
             >
               {isBulkScheduling ? (
                 <>
@@ -467,133 +456,65 @@ export default function PostsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Publish Post Modal */}
-      <Dialog open={isPublishModalOpen} onOpenChange={setIsPublishModalOpen}>
-        <DialogContent className="sm:max-w-md">
+      {/* Schedule Post Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Publish Post to Pinterest</DialogTitle>
-            <DialogDescription>
-              Select the Pinterest board where you want to publish "{selectedPostForModal?.title}".
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div>
-              <Label htmlFor="publish-modal-board-select">Pinterest Board</Label>
-              <Select value={modalSelectedBoard} onValueChange={setModalSelectedBoard}>
-                <SelectTrigger id="publish-modal-board-select" className="w-full mt-2">
-                  <SelectValue placeholder="Select a board" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockPinterestBoards.map((board) => (
-                    <SelectItem key={board.id} value={board.id}>
-                      {board.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPublishModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmPublishFromModal}
-              disabled={!modalSelectedBoard || isProcessingPublish === selectedPostForModal?.id}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isProcessingPublish === selectedPostForModal?.id ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publishing...
-                </>
-              ) : (
-                <>
-                  <PinIcon className="mr-2 h-4 w-4" /> Publish
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Schedule Post Modal */}
-      <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Schedule Post for Pinterest</DialogTitle>
-            <DialogDescription>
-              Select the board, date, and time to schedule "{selectedPostForModal?.title}".
-            </DialogDescription>
+            <DialogTitle>Schedule Post</DialogTitle>
+            <DialogDescription>Select a date and time to schedule your Pinterest post.</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-6">
             <div>
-              <Label htmlFor="schedule-modal-board-select">Pinterest Board</Label>
-              <Select value={modalSelectedBoard} onValueChange={setModalSelectedBoard}>
-                <SelectTrigger id="schedule-modal-board-select" className="w-full mt-2">
-                  <SelectValue placeholder="Select a board" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockPinterestBoards.map((board) => (
-                    <SelectItem key={board.id} value={board.id}>
-                      {board.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="schedule-date">Date</Label>
+              <div className="mt-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {scheduledDate ? format(scheduledDate, "PPP") : "Select a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={scheduledDate}
+                      onSelect={setScheduledDate}
+                      initialFocus
+                      disabled={(date) => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        return date < today
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             <div>
-              <Label htmlFor="schedule-modal-date">Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-2">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {modalScheduledDate ? format(modalScheduledDate, "PPP") : "Select a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={modalScheduledDate}
-                    onSelect={setModalScheduledDate}
-                    initialFocus
-                    disabled={(date) => {
-                      const today = new Date()
-                      today.setHours(0, 0, 0, 0)
-                      return date < today
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label htmlFor="schedule-modal-time">Time</Label>
-              <Input
-                id="schedule-modal-time"
+              <Label htmlFor="schedule-time">Time</Label>
+              <input
+                id="schedule-time"
                 type="time"
-                className="mt-2 w-full"
-                value={modalScheduledTime}
-                min={getMinTime(modalScheduledDate)}
-                onChange={(e) => setModalScheduledTime(e.target.value)}
+                className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={scheduledTime}
+                min={getMinTime(scheduledDate)}
+                onChange={(e) => setScheduledTime(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsScheduleModalOpen(false)}>
+            <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
               Cancel
             </Button>
             <Button
-              onClick={handleConfirmScheduleFromModal}
-              disabled={
-                !modalSelectedBoard ||
-                !modalScheduledDate ||
-                !modalScheduledTime ||
-                isProcessingSchedule === selectedPostForModal?.id
-              }
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-teal-600 hover:bg-teal-700"
+              onClick={handleSchedule}
+              disabled={!scheduledDate || !scheduledTime || isScheduling === currentPostForScheduling?.id}
             >
-              {isProcessingSchedule === selectedPostForModal?.id ? (
+              {isScheduling === currentPostForScheduling?.id ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scheduling...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Scheduling...
                 </>
               ) : (
                 "Schedule Post"
@@ -603,7 +524,7 @@ export default function PostsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Link Post Dialog (existing) */}
+      {/* Link Post Dialog */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

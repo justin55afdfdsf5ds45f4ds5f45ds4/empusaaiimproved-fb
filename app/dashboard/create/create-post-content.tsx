@@ -1390,55 +1390,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Publish to Pinterest Dialog */}
-      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Publish to Pinterest</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to publish the selected {selectedPosts.size} posts to Pinterest?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="mb-4 p-3 border rounded-lg bg-red-50">
-              <p className="font-medium text-red-800">
-                You are about to publish {selectedPosts.size} posts to Pinterest
-              </p>
-              <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={() => {
-                // Existing logic for publishing selected posts
-                generatedPosts.forEach((post) => {
-                  if (selectedPosts.has(post.id)) {
-                    // Simulate publish action for UI purposes
-                    console.log(`Publishing post ${post.id} to board ${selectedBoard}`)
-                  }
-                })
-                const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
-                setGeneratedPosts(remainingPosts)
-                setSelectedPosts(new Set())
-                setIsSelectAllActive(false)
-                setPublishDialogOpen(false)
-
-                toast({
-                  title: "Publishing to Pinterest",
-                  description: `Successfully initiated publishing for ${selectedPosts.size} posts to Pinterest!`,
-                })
-              }}
-              disabled={!selectedBoard || selectedPosts.size === 0}
-            >
-              Publish
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
