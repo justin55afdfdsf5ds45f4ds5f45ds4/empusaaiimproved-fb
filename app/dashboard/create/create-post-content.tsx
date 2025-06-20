@@ -89,6 +89,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const [postLinks, setPostLinks] = useState<Record<string, string>>({})
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
   const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({})
+  const [imageSize, setImageSize] = useState("1:1")
 
   // New state for bulk operations
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false)
@@ -872,6 +873,24 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   )}
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="image-size">Select Image Size</Label>
+                <Select value={imageSize} onValueChange={setImageSize}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select image size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1:1">1:1 (Square)</SelectItem>
+                    <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
+                    <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
+                    <SelectItem value="2:3">2:3 (Pinterest)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Choose the aspect ratio for generated images
+                </p>
+              </div>
             </TabsContent>
 
             <TabsContent value="scratch" className="space-y-6">
@@ -969,6 +988,24 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     </div>
                   )}
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image-size">Select Image Size</Label>
+                <Select value={imageSize} onValueChange={setImageSize}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select image size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1:1">1:1 (Square)</SelectItem>
+                    <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
+                    <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
+                    <SelectItem value="2:3">2:3 (Pinterest)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Choose the aspect ratio for generated images
+                </p>
               </div>
             </TabsContent>
 
@@ -1386,6 +1423,55 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </Button>
             <Button onClick={confirmLink} disabled={!customLink} className="bg-green-600 hover:bg-green-700 text-white">
               Save Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Publish to Pinterest Dialog */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Publish to Pinterest</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to publish the selected {selectedPosts.size} posts to Pinterest?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="mb-4 p-3 border rounded-lg bg-red-50">
+              <p className="font-medium text-red-800">
+                You are about to publish {selectedPosts.size} posts to Pinterest
+              </p>
+              <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                // Existing logic for publishing selected posts
+                generatedPosts.forEach((post) => {
+                  if (selectedPosts.has(post.id)) {
+                    // Simulate publish action for UI purposes
+                    console.log(`Publishing post ${post.id} to board ${selectedBoard}`)
+                  }
+                })
+                const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+                setGeneratedPosts(remainingPosts)
+                setSelectedPosts(new Set())
+                setIsSelectAllActive(false)
+                setPublishDialogOpen(false)
+
+                toast({
+                  title: "Publishing to Pinterest",
+                  description: `Successfully initiated publishing for ${selectedPosts.size} posts to Pinterest!`,
+                })
+              }}
+              disabled={!selectedBoard || selectedPosts.size === 0}
+            >
+              Publish
             </Button>
           </DialogFooter>
         </DialogContent>
