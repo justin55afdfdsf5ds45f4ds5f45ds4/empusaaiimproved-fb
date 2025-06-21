@@ -23,6 +23,7 @@ import { format } from "date-fns"
 // import { generateImage } from "@/lib/falai"; // Not used in this UI-only change
 
 interface Post {
+  postId: any
   id: string
   title: string
   description: string
@@ -30,7 +31,12 @@ interface Post {
   defaultLink?: string
 }
 
-const mockPinterestBoards = [
+interface PinterestBoard {
+  id: string
+  name: string
+}
+
+const mockpinterestBoardss = [
   { id: "board-1", name: "My Travel Board" },
   { id: "board-2", name: "Food & Recipes" },
   { id: "board-3", name: "Home Decor Ideas" },
@@ -47,6 +53,7 @@ export default function PostsPage() {
   const [isProcessingSchedule, setIsProcessingSchedule] = useState<string | null>(null)
 
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([])
   const [postToLink, setPostToLink] = useState<Post | null>(null)
   const [customLink, setCustomLink] = useState("")
   const [postLinks, setPostLinks] = useState<Record<string, string>>({})
@@ -64,19 +71,28 @@ export default function PostsPage() {
   const [modalScheduledDate, setModalScheduledDate] = useState<Date | undefined>(undefined)
   const [modalScheduledTime, setModalScheduledTime] = useState<string>("")
 
+  function getRandomDateBetween(start: Date, end: Date): Date {
+    const diff = end.getTime() - start.getTime();
+    const newTime = start.getTime() + Math.random() * diff;
+    return new Date(newTime);
+  }
+  
+  function hasConflict(date: Date, scheduledDates: Date[], gapMinutes: number): boolean {
+    return scheduledDates.some((d) => Math.abs(d.getTime() - date.getTime()) < gapMinutes * 60 * 1000);
+  }
+
   useEffect(() => {
     const fetchRecentPosts = async () => {
       try {
-        // Simulating API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const samplePosts = Array.from({ length: 3 }, (_, i) => ({
-          id: `post-${i + 1}`,
-          title: `Sample Post Title ${i + 1}`,
-          description: `This is a sample description for post ${i + 1}. It's engaging and informative.`,
-          imageUrl: null, // Will use placeholder
-          defaultLink: `https://example.com/post-${i + 1}`,
-        }))
-        setPosts(samplePosts)
+        const res = await fetch("/api/posts/recentposts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+
+        if (!res.ok) throw new Error("Failed to fetch posts")
+
+        const data = await res.json()
+        setPosts(data.posts || [])
       } catch (err: any) {
         setError(err.message)
       } finally {
@@ -84,7 +100,33 @@ export default function PostsPage() {
       }
     }
 
+    const fetchBoards = async () =>{
+      try {
+        const response = await fetch("/api/pinterest/boards")
+  
+        if (response.status === 403) {
+          throw new Error("You haven't connected Pinterest yet.")
+        }
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch Pinterest boards")
+        }
+  
+        const data = await response.json()
+        console.log(data)
+        setPinterestBoards(data.boards || [])
+  
+        if (!modalSelectedBoard && data.boards?.length > 0) {
+          setModalSelectedBoard(data.boards[0].id)
+        }
+      } catch (error) {
+        console.error("Error fetching Pinterest boards:", error)
+        throw new Error("Failed to fetch Pinterest boards. Please try again.")
+      }
+    }
+
     fetchRecentPosts()
+    fetchBoards()
   }, [])
 
   const openPublishDialogForPost = (post: Post) => {
@@ -103,16 +145,44 @@ export default function PostsPage() {
       return
     }
     setIsProcessingPublish(selectedPostForModal.id)
-    // UI-only: Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    toast({
-      title: "Post Published (UI Demo)",
-      description: `${selectedPostForModal.title} would be published to board: ${mockPinterestBoards.find((b) => b.id === modalSelectedBoard)?.name}.`,
-    })
-    setPosts(posts.filter((p) => p.id !== selectedPostForModal.id)) // Remove post from list
-    setIsProcessingPublish(null)
-    setIsPublishModalOpen(false)
-    setSelectedPostForModal(null)
+    try {
+      const response = await fetch("/api/pinterest/pins/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boardId: modalSelectedBoard,
+          title: selectedPostForModal.title,
+          description: selectedPostForModal.description,
+          imageUrl: selectedPostForModal.imageUrl,
+          link: postLinks[selectedPostForModal.id] || selectedPostForModal.defaultLink,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to publish post to Pinterest")
+      }
+
+      const data = await response.json()
+      toast({
+        title: "Post Published",
+        description: "Your post has been successfully published to Pinterest.",
+      })
+      
+      // Post remains in the list - no removal
+    } catch (error) {
+      console.error("Error publishing post:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessingPublish(null)
+      setIsPublishModalOpen(false)
+      setSelectedPostForModal(null)
+    }
   }
 
   const openScheduleDialogForPost = (post: Post) => {
@@ -133,25 +203,79 @@ export default function PostsPage() {
       return
     }
     setIsProcessingSchedule(selectedPostForModal.id)
-    // UI-only: Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const formattedDate = format(modalScheduledDate, "PPP")
-    toast({
-      title: "Post Scheduled (UI Demo)",
-      description: `${selectedPostForModal.title} would be scheduled to board ${mockPinterestBoards.find((b) => b.id === modalSelectedBoard)?.name} for ${formattedDate} at ${modalScheduledTime}.`,
-    })
-    setPosts(posts.filter((p) => p.id !== selectedPostForModal.id)) // Remove post from list
-    setIsProcessingSchedule(null)
-    setIsScheduleModalOpen(false)
-    setSelectedPostForModal(null)
+    const [hours, minutes] = modalScheduledTime.split(":").map(Number);
+    const finalDateTime = new Date(modalScheduledDate)
+    finalDateTime.setHours(hours, minutes, 0, 0)
+
+    try {
+      const response = await fetch("/api/pinterest/schedule/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boardId: modalSelectedBoard,
+          title: selectedPostForModal.title,
+          description: selectedPostForModal.description,
+          imageUrl: selectedPostForModal.imageUrl,
+          link: postLinks[selectedPostForModal.id] || selectedPostForModal.defaultLink,
+          scheduledTime: finalDateTime,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to schedule post to Pinterest")
+      }
+
+      toast({
+        title: "Post Scheduled",
+        description: "Your post has been successfully scheduled to Pinterest.",
+      })
+      
+      // Post remains in the list - no removal
+    } catch (error) {
+      console.error("Error scheduling post:", error)
+      toast({
+        title: "Error",
+        description: "Failed to schedule post. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessingSchedule(null)
+      setIsScheduleModalOpen(false)
+      setSelectedPostForModal(null)
+    }
   }
 
   const handleDeletePost = async (post: any) => {
-    setPosts(posts.filter((p) => p.id !== post.id))
-    toast({
-      title: "Post Deleted",
-      description: "The post has been successfully deleted.",
-    })
+    try {
+      const res = await fetch("/api/posts/delete/", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ postId: post.postId }), // make sure to use the same field as stored
+      });
+  
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Unknown error");
+      }
+  
+      setPosts((prevPosts) => prevPosts.filter((p) => p.postId !== post.postId));
+  
+      toast({
+        title: "Post Deleted",
+        description: "The post has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete post. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   const handleLinkPost = (post: Post) => {
@@ -216,16 +340,6 @@ export default function PostsPage() {
       return
     }
 
-    const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/
-    if (!links.every((link) => urlRegex.test(link))) {
-      toast({
-        title: "Error",
-        description: "One or more links are invalid.",
-        variant: "destructive",
-      })
-      setIsBulkScheduling(false)
-      return
-    }
     if (!bulkSelectedBoard) {
       toast({
         title: "Error",
@@ -236,17 +350,85 @@ export default function PostsPage() {
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/
+    if (!links.every((link) => urlRegex.test(link))) {
+      toast({
+        title: "Error",
+        description: "One or more links are invalid.",
+        variant: "destructive",
+      })
+      setIsBulkScheduling(false)
+      return
+    }
 
-    toast({
-      title: "✅ Posts Scheduled! (UI Demo)",
-      description: `Posts would be scheduled to board: ${mockPinterestBoards.find((b) => b.id === bulkSelectedBoard)?.name}.`,
-      variant: "default",
-      className: "bg-green-500 border-green-500 text-white",
-    })
-    setPosts([]) // Clear posts as they are "scheduled"
-    setBulkShuffleDialogOpen(false)
-    setIsBulkScheduling(false)
+    try {
+      const now = new Date();
+      const sevenDaysLater = new Date(now);
+      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+
+      const scheduledDates: Date[] = [];
+      const successfullyScheduledPosts: string[] = [];
+
+      for (const post of posts) {
+        let scheduledTime: Date;
+
+        // Try up to 10 times to find a time without conflict
+        let attempts = 0;
+        do {
+          scheduledTime = getRandomDateBetween(now, sevenDaysLater);
+          attempts++;
+          if (attempts > 10) {
+            // If can't find non-conflicting time after 10 tries, just proceed anyway
+            break;
+          }
+        } while (hasConflict(scheduledTime, scheduledDates, 10));
+
+        scheduledDates.push(scheduledTime);
+        let randomLink;
+        if(links.length > 0){
+          randomLink = links[Math.floor(Math.random() * links.length)];
+        }
+
+        const response = await fetch("/api/pinterest/schedule/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            boardId: bulkSelectedBoard,
+            title: post.title,
+            description: post.description,
+            imageUrl: post.imageUrl,
+            link: postLinks[post.id] || randomLink || post.defaultLink,
+            scheduledTime: scheduledTime,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to schedule post to Pinterest")
+        }
+
+        successfullyScheduledPosts.push(post.postId);
+      }
+
+      // Posts remain in the list - no removal
+      toast({
+        title: "✅ Posts Scheduled!",
+        description: `${successfullyScheduledPosts.length} posts have been scheduled to board: ${pinterestBoards.find((b) => b.id === bulkSelectedBoard)?.name}.`,
+        variant: "default",
+        className: "bg-green-500 border-green-500 text-white",
+      })
+    } catch (err) {
+      console.error("Error in shuffleAndSchedule:", err);
+      toast({
+        title: "Error",
+        description: "Failed to schedule posts. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setBulkShuffleDialogOpen(false)
+      setIsBulkScheduling(false)
+    }
   }
 
   const getMinTime = (date: Date | undefined): string => {
@@ -436,7 +618,7 @@ export default function PostsPage() {
                 <SelectValue placeholder="Select a Pinterest board" />
               </SelectTrigger>
               <SelectContent>
-                {mockPinterestBoards.map((board) => (
+                {pinterestBoards.map((board) => (
                   <SelectItem key={board.id} value={board.id}>
                     {board.name}
                   </SelectItem>
@@ -484,7 +666,7 @@ export default function PostsPage() {
                   <SelectValue placeholder="Select a board" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockPinterestBoards.map((board) => (
+                  {pinterestBoards.map((board) => (
                     <SelectItem key={board.id} value={board.id}>
                       {board.name}
                     </SelectItem>
@@ -533,7 +715,7 @@ export default function PostsPage() {
                   <SelectValue placeholder="Select a board" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockPinterestBoards.map((board) => (
+                  {pinterestBoards.map((board) => (
                     <SelectItem key={board.id} value={board.id}>
                       {board.name}
                     </SelectItem>
