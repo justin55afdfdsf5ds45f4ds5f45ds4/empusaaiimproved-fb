@@ -168,15 +168,7 @@ async function extractKeywords(
       if (!pageText.trim()) throw new Error("No usable content from Firecrawl");
 
       // --- IMPROVED SYSTEM PROMPT FOR KEYWORD EXTRACTION (FROM PREVIOUS ROUND) ---
-      const sysPrompt = `You are an expert Pinterest content strategist and SEO specialist. Your task is to analyze webpage content and extract a diverse set of highly relevant, high-traffic keywords and short phrases. These keywords should be optimized for Pinterest search, aiming for virality and strong engagement.
-Prioritize:
-1. Long-tail keywords (e.g., "easy vegan dinner recipes for families").
-2. Trending topics related to the content.
-3. Action-oriented phrases (e.g., "how to master [topic]", "DIY [item]").
-4. Keywords that evoke positive emotions or inspire action.
-5. Specific nouns and adjectives that are visually descriptive.
-
-Output a single string of comma-separated keywords and phrases, all lowercase, no paragraphs. Ensure the list is comprehensive yet concise, containing 5-15 highly impactful terms.`;
+      const sysPrompt = `exctract content from webpage to what it's contains.`;
       // --- END IMPROVED SYSTEM PROMPT ---
 
       const userPrompt = pageText.slice(0, 8000); // Limit user prompt to 8000 characters
