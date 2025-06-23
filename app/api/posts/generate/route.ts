@@ -168,7 +168,7 @@ async function extractKeywords(
       if (!pageText.trim()) throw new Error("No usable content from Firecrawl");
 
       // --- IMPROVED SYSTEM PROMPT FOR KEYWORD EXTRACTION (FROM PREVIOUS ROUND) ---
-      const sysPrompt = `exctract content from webpage to what it's contains.`;
+      const sysPrompt = `As an expert SEO analyst and data extractor, your task is to meticulously analyze the provided web page content. Your primary objective is to identify the core topics discussed and then, based on these themes, generate a comprehensive list of specific, intent-focused long-tail keywords. These keywords should be detailed, often three or more words, and should reflect natural user queries, including question-based and problem-oriented searches. For the top 5-10 most significant long-tail keywords you identify, you must extract a corresponding concise text snippet from the source that directly answers or relates to that keyword. Following this, you will group all generated long-tail keywords into logical categories based on the content's main themes. Finally, provide a brief, bulleted summary of the most critical information, key takeaways, statistics, or actionable advice found on the page. The entire output must be analytical, data-driven, and structured with clear headings for "Core Topics," "Long-Tail Keywords" by category, "Top Long-Tail Keywords and Relevant Snippets," and "Key Information Summary," while ensuring the total response remains under 2000 words..`;
       // --- END IMPROVED SYSTEM PROMPT ---
 
       const userPrompt = pageText.slice(0, 8000); // Limit user prompt to 8000 characters
