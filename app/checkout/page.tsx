@@ -67,8 +67,8 @@ export default function CheckoutPage() {
       </section>
 
       {/* Right Panel */}
-      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center justify-center p-8 overflow-y-auto">
-        <div className="w-full max-w-sm text-center">
+      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center justify-start p-8 overflow-y-auto">
+        <div className="w-full max-w-sm text-center" style={{ minHeight: 0, height: '100%', overflow: 'visible' }}>
           {paymentStatus === 'paying' ? (
             <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
               <h2 className="text-2xl font-extrabold text-gray-800 mb-6">Pay with PayPal</h2>
