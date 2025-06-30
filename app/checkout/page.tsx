@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { OnApproveData, OnApproveActions } from "@paypal/paypal-js";
 
+// IMPORTANT: For security, move this to a .env.local file
+// Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
 
 export default function CheckoutPage() {
@@ -65,7 +67,7 @@ export default function CheckoutPage() {
       </section>
 
       {/* Right Panel */}
-      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center justify-center p-8">
+      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-sm text-center">
           {paymentStatus === 'paying' ? (
             <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
