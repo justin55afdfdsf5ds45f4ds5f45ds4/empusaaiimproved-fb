@@ -7,7 +7,7 @@ import type { OnApproveData, OnApproveActions } from "@paypal/paypal-js";
 
 // IMPORTANT: For security, move this to a .env.local file
 // Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ARze3QZCv1Oh-xpRK-A-1QoaSlGI-bA7S2Mw7Gp--AWXHJ-fYG0UWRgtcZT18gIU7OFQ7moexbZFMGYX";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -75,8 +75,8 @@ export default function CheckoutPage() {
       </section>
 
       {/* Right Panel */}
-      <section className="lg:ml-[50%] lg:min-h-screen w-full bg-white flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-sm text-center">
+      <section className="lg:ml-[50%] lg:min-h-screen w-full bg-white flex flex-col items-center justify-start p-8">
+        <div className="w-full max-w-sm text-center min-h-[460px]">
             {paymentStatus === 'paying' ? (
               <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
                 <h2 className="text-2xl font-extrabold text-gray-800 mb-6">Pay with PayPal</h2>
