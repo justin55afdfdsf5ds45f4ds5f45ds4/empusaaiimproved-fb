@@ -6,7 +6,6 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { OnApproveData, OnApproveActions } from "@paypal/paypal-js";
 
 // IMPORTANT: For security, move this to a .env.local file
-// Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
 
 export default function CheckoutPage() {
@@ -67,47 +66,53 @@ export default function CheckoutPage() {
       </section>
 
       {/* Right Panel */}
-      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center justify-start p-8 overflow-y-auto">
-        <div className="w-full max-w-sm text-center" style={{ minHeight: 0, height: '100%', overflow: 'visible' }}>
-          {paymentStatus === 'paying' ? (
-            <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
-              <h2 className="text-2xl font-extrabold text-gray-800 mb-6">Pay with PayPal</h2>
-              <PayPalButtons
-                style={{ layout: "vertical", shape: "rect", height: 55 }}
-                createOrder={(data, actions) => {
-                  return actions.order.create({
-                    purchase_units: [{
-                      description: 'Empusa AI - Growth Plan (One-Time Charge)',
-                      amount: { value: '500.00' }
-                    }]
-                  });
-                }}
-                onApprove={handleApprove}
-                onError={(err) => {
-                  setPaymentError('An error occurred. Please try another payment method.');
-                  return Promise.reject(err);
-                }}
-              />
-              {paymentError && <p className="text-red-500 text-sm my-4">{paymentError}</p>}
-              <p className="text-xs text-gray-500 mt-4">
-                This is a one-time charge for the Growth Plan, not a recurring subscription. By confirming your payment, you agree to our Terms of Service.
-              </p>
-            </PayPalScriptProvider>
-          ) : (
-            <div id="success-message">
-              <svg className="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h2 className="text-2xl font-extrabold text-gray-800 mt-4">Payment Successful!</h2>
-              <p className="text-gray-600 mt-2">Thank you! Redirecting you to the dashboard...</p>
-              <div className="mt-6 text-sm">
-                <p className="text-gray-500">Your transaction has been completed.</p>
-                <p className="text-gray-700 font-mono mt-2 bg-gray-100 p-2 rounded-md break-all">
-                  Transaction ID: {transactionId}
+      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center p-8 overflow-y-auto">
+        {/* 
+          Outer flex: grow to fill height, items-center for horizontal centering
+          Inner flex: flex-col, justify-center for vertical centering, min-h-full ensures full height, w-full for PayPal form to be centered
+        */}
+        <div className="flex flex-col justify-center min-h-full w-full">
+          <div className="w-full max-w-sm mx-auto text-center">
+            {paymentStatus === 'paying' ? (
+              <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
+                <h2 className="text-2xl font-extrabold text-gray-800 mb-6">Pay with PayPal</h2>
+                <PayPalButtons
+                  style={{ layout: "vertical", shape: "rect", height: 55 }}
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      purchase_units: [{
+                        description: 'Empusa AI - Growth Plan (One-Time Charge)',
+                        amount: { value: '500.00' }
+                      }]
+                    });
+                  }}
+                  onApprove={handleApprove}
+                  onError={(err) => {
+                    setPaymentError('An error occurred. Please try another payment method.');
+                    return Promise.reject(err);
+                  }}
+                />
+                {paymentError && <p className="text-red-500 text-sm my-4">{paymentError}</p>}
+                <p className="text-xs text-gray-500 mt-4">
+                  This is a one-time charge for the Growth Plan, not a recurring subscription. By confirming your payment, you agree to our Terms of Service.
                 </p>
+              </PayPalScriptProvider>
+            ) : (
+              <div id="success-message">
+                <svg className="w-16 h-16 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h2 className="text-2xl font-extrabold text-gray-800 mt-4">Payment Successful!</h2>
+                <p className="text-gray-600 mt-2">Thank you! Redirecting you to the dashboard...</p>
+                <div className="mt-6 text-sm">
+                  <p className="text-gray-500">Your transaction has been completed.</p>
+                  <p className="text-gray-700 font-mono mt-2 bg-gray-100 p-2 rounded-md break-all">
+                    Transaction ID: {transactionId}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
     </main>
