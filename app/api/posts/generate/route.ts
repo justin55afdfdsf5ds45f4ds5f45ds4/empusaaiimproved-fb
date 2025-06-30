@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { generateIdeogramV2TurboImage } from "@/lib/replicate"; // This will still generate the actual image
+import { generateFluxSchnellImage } from "@/lib/replicate"; // This will still generate the actual image
 import clientPromise from "@/lib/mongodb";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
@@ -29,28 +29,25 @@ const TOPICS = [
 // based on the sophisticated prompts..
 
 // Helper function to call Replicate's Llama-3 model with a system/user prompt structure
-async function callLlama3(
-  systemPrompt: string,
-  userPrompt: string
-): Promise<string> {
-  const fullPrompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n${userPrompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n`;
-
-  const output = await replicate.run("meta/meta-llama-3-8b-instruct", {
-    input: {
-      prompt: fullPrompt,
-      max_new_tokens: 512, // Increased token limit for more detailed responses
-      temperature: 0.7, // Slightly higher temperature for creativity, balance with 0.3 if needed
-      top_p: 0.9,
-    },
-  });
-  return (output as string[]).join("").trim();
+async function callLlama3(systemPrompt: string, userPrompt: string): Promise<string> {
+    const fullPrompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n${userPrompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n`;
+    
+    const output = await replicate.run("meta/meta-llama-3-8b-instruct", {
+        input: {
+            prompt: fullPrompt,
+            max_new_tokens: 512, // Increased token limit for more detailed responses
+            temperature: 0.7, // Slightly higher temperature for creativity, balance with 0.3 if needed
+            top_p: 0.9,
+        },
+    });
+    return (output as string[]).join("").trim();
 }
 
 // Function to generate a title using Llama-3 with advanced prompt engineering
 async function generateTitle(keywords: string): Promise<string> {
-  const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert. do never generate the same title or description twice, make it uniqe and different each time. Your goal is to generate a compelling title for an image, specifically optimized to drive high traffic and virality on Pinterest. The title should be catchy, action-oriented, and include relevant keywords. You must output ONLY the title string, without any additional text or formatting.`;
+    const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert. do never generate the same title or description twice, make it uniqe and different each time. Your goal is to generate a compelling title for an image, specifically optimized to drive high traffic and virality on Pinterest. The title should be catchy, action-oriented, and include relevant keywords. You must output ONLY the title string, without any additional text or formatting.`;
 
-  const userPrompt = `Generate a title based on these keywords: "${keywords}".
+    const userPrompt = `Generate a title based on these keywords: "${keywords}".
     
     Consider:
     - Incorporating high-traffic keywords.
@@ -58,24 +55,22 @@ async function generateTitle(keywords: string): Promise<string> {
     - Aim for conciseness and strong visual appeal in the text.
     - If appropriate`;
 
-  try {
-    const title = await callLlama3(systemPrompt, userPrompt);
-    return title.replace(/"/g, ""); // Remove any lingering quotes if the model outputs them
-  } catch (error) {
-    console.error("Error generating title with Llama-3:", error);
-    // Fallback to a simpler, template-based title if LLM fails
-    const primaryKeyword =
-      keywords.split(",")[0]?.trim() ||
-      TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    return `Amazing ${primaryKeyword} Ideas for Your Next Project`;
-  }
+    try {
+        const title = await callLlama3(systemPrompt, userPrompt);
+        return title.replace(/"/g, ''); // Remove any lingering quotes if the model outputs them
+    } catch (error) {
+        console.error("Error generating title with Llama-3:", error);
+        // Fallback to a simpler, template-based title if LLM fails
+        const primaryKeyword = keywords.split(',')[0]?.trim() || TOPICS[Math.floor(Math.random() * TOPICS.length)];
+        return `Amazing ${primaryKeyword} Ideas for Your Next Project`;
+    }
 }
 
 // Function to generate a description using Llama-3 with advanced prompt engineering
 async function generateDescription(keywords: string): Promise<string> {
-  const systemPrompt = `You are an expert Pinterest content strategist and copywriter. do never generate description same everytime or similar to the before one. Your task is to generate a keyword-rich, engaging description for a Pinterest image. The description should be benefit-driven, encourage clicks and saves, and include relevant hashtags and a call-to-action. You must output ONLY the description string, without any additional text or formatting.`;
+    const systemPrompt = `You are an expert Pinterest content strategist and copywriter. do never generate description same everytime or similar to the before one. Your task is to generate a keyword-rich, engaging description for a Pinterest image. The description should be benefit-driven, encourage clicks and saves, and include relevant hashtags and a call-to-action. You must output ONLY the description string, without any additional text or formatting.`;
 
-  const userPrompt = `Generate a description based on these keywords: "${keywords}".
+    const userPrompt = `Generate a description based on these keywords: "${keywords}".
     
     Consider:
     - Weaving in primary and secondary keywords naturally.
@@ -84,22 +79,20 @@ async function generateDescription(keywords: string): Promise<string> {
     - Including a clear call-to-action (e.g.,"Click to learn more").
     - Keep it concise and impactful, ideally 2-6 sentences.`;
 
-  try {
-    const description = await callLlama3(systemPrompt, userPrompt);
-    return description.replace(/"/g, ""); // Remove any lingering quotes
-  } catch (error) {
-    console.error("Error generating description with Llama-3:", error);
-    // Fallback to a simpler, template-based description if LLM fails
-    const primaryKeyword =
-      keywords.split(",")[0]?.trim() ||
-      TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    return `Discover amazing ${primaryKeyword} ideas that will transform your approach. Save this pin for later!`;
-  }
+    try {
+        const description = await callLlama3(systemPrompt, userPrompt);
+        return description.replace(/"/g, ''); // Remove any lingering quotes
+    } catch (error) {
+        console.error("Error generating description with Llama-3:", error);
+        // Fallback to a simpler, template-based description if LLM fails
+        const primaryKeyword = keywords.split(',')[0]?.trim() || TOPICS[Math.floor(Math.random() * TOPICS.length)];
+        return `Discover amazing ${primaryKeyword} ideas that will transform your approach. Save this pin for later!`;
+    }
 }
 
 // Function to generate an image prompt using Llama-3 with advanced prompt engineering
 async function generateImagePrompt(keywords: string): Promise<string> {
-  const systemPrompt = `You are an AI image generation prompt expert, specializing in creating high-quality, visually stunning prompts for diffusion models like Stable Diffusion or Flux Schnell. Your task is to generate a single, vivid, and highly detailed image prompt based on the provided keywords. The prompt must be optimized for generating captivating and traffic-driving Pinterest-style images.
+    const systemPrompt = `You are an AI image generation prompt expert, specializing in creating high-quality, visually stunning prompts for diffusion models like Stable Diffusion or Flux Schnell. Your task is to generate a single, vivid, and highly detailed image prompt based on the provided keywords. The prompt must be optimized for generating captivating and traffic-driving Pinterest-style images.
     
     Include:
     - **Main Subject & Key Elements:** Clearly describe the central focus and important objects.
@@ -114,30 +107,25 @@ async function generateImagePrompt(keywords: string): Promise<string> {
     
     Format: The output should be a single string, ready to be passed directly to an image generation model. Do NOT include any additional text, JSON, or formatting besides the prompt itself. Always append a negative prompt at the end using the '--neg' tag.`;
 
-  const userPrompt = `Generate one detailed image prompt for a Pinterest post based on these keywords: "${keywords}".`;
+    const userPrompt = `Generate one detailed image prompt for a Pinterest post based on these keywords: "${keywords}".`;
 
-  try {
-    const generatedPrompt = await callLlama3(systemPrompt, userPrompt);
-    // Ensure the negative prompt is always appended. If the LLM already included it, fine.
-    // If not, add a standard one.
-    const negativePrompt =
-      "blurry, low resolution, bad anatomy, deformed, disfigured, poor lighting, text, watermark, signature, ugly, tiling, duplicate, worst quality, low quality, pixelated, error, out of frame, out of focus, noisy, cartoon, 3d, render, painting, drawing, cropped, distortion, surreal, abstract, over-saturated, mundane, boring";
-
-    // Check if the generated prompt already contains a --neg part
-    if (!generatedPrompt.includes("--neg")) {
-      return `${generatedPrompt
-        .replace(/"/g, "")
-        .trim()} --neg ${negativePrompt}`;
+    try {
+        const generatedPrompt = await callLlama3(systemPrompt, userPrompt);
+        // Ensure the negative prompt is always appended. If the LLM already included it, fine.
+        // If not, add a standard one.
+        const negativePrompt = "blurry, low resolution, bad anatomy, deformed, disfigured, poor lighting, text, watermark, signature, ugly, tiling, duplicate, worst quality, low quality, pixelated, error, out of frame, out of focus, noisy, cartoon, 3d, render, painting, drawing, cropped, distortion, surreal, abstract, over-saturated, mundane, boring";
+        
+        // Check if the generated prompt already contains a --neg part
+        if (!generatedPrompt.includes("--neg")) {
+            return `${generatedPrompt.replace(/"/g, '').trim()} --neg ${negativePrompt}`;
+        }
+        return generatedPrompt.replace(/"/g, '').trim(); // Just clean up quotes if present
+    } catch (error) {
+        console.error("Error generating image prompt with Llama-3:", error);
+        // Fallback to a simpler, template-based image prompt if LLM fails
+        const primaryKeyword = keywords.split(',')[0]?.trim() || TOPICS[Math.floor(Math.random() * TOPICS.length)];
+        return `Beautiful ${primaryKeyword} photography with natural lighting, professional quality, trending on Pinterest --neg ${"blurry, low resolution, bad anatomy, deformed, disfigured, poor lighting"}`;
     }
-    return generatedPrompt.replace(/"/g, "").trim(); // Just clean up quotes if present
-  } catch (error) {
-    console.error("Error generating image prompt with Llama-3:", error);
-    // Fallback to a simpler, template-based image prompt if LLM fails
-    const primaryKeyword =
-      keywords.split(",")[0]?.trim() ||
-      TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    return `Beautiful ${primaryKeyword} photography with natural lighting, professional quality, trending on Pinterest --neg ${"blurry, low resolution, bad anatomy, deformed, disfigured, poor lighting"}`;
-  }
 }
 
 // Function to extract keywords from URL or use provided topic (System Prompt Enhanced)
@@ -184,7 +172,7 @@ async function extractKeywords(
       // --- END IMPROVED SYSTEM PROMPT ---
 
       const userPrompt = pageText.slice(0, 8000); // Limit user prompt to 8000 characters
-
+      
       const output = await callLlama3(sysPrompt, userPrompt);
       const textOutput = output; // callLlama3 already handles joining the string array and trimming
       console.log("🗝️ Extracted keywords:", textOutput);
@@ -220,8 +208,7 @@ export async function POST(req: Request) {
 
     // Step 1: Extract keywords using Llama-3 with the improved prompt
     const extractedKeywords = await extractKeywords(url, topic);
-    const keywordsToUse =
-      extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)]; // Ensure a string is always passed
+    const keywordsToUse = extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)]; // Ensure a string is always passed
 
     const requestedCount = count;
 
@@ -237,12 +224,12 @@ export async function POST(req: Request) {
           descriptionPromise,
           imagePromptPromise,
         ]);
-
+        
         let imageUrl;
 
         try {
-          imageUrl = await generateIdeogramV2TurboImage(imagePrompt);
-        } catch (error) {
+          imageUrl = await generateFluxSchnellImage(imagePrompt);
+        } catch(error) {
           console.error("Error generating image from Replicate:", error);
           imageUrl =
             FALLBACK_IMAGE_URLS[
@@ -275,7 +262,7 @@ export async function POST(req: Request) {
       .findOne({ email: session.user.email });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     posts.forEach(async (post) => {
