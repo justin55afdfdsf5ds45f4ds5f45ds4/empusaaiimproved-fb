@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { OnApproveData, OnApproveActions } from "@paypal/paypal-js";
 
-// IMPORTANT: For security, move this to a .env.local file
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
 
 export default function CheckoutPage() {
@@ -66,13 +65,13 @@ export default function CheckoutPage() {
       </section>
 
       {/* Right Panel */}
-      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col items-center p-8 overflow-y-auto">
+      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col p-0">
         {/* 
-          Outer flex: grow to fill height, items-center for horizontal centering
-          Inner flex: flex-col, justify-center for vertical centering, min-h-full ensures full height, w-full for PayPal form to be centered
+          This wrapper allows vertical scrolling if needed (for long forms),
+          and naturally centers the payment method if short.
         */}
-        <div className="flex flex-col justify-center min-h-full w-full">
-          <div className="w-full max-w-sm mx-auto text-center">
+        <div className="flex-1 flex flex-col overflow-y-auto items-center p-8">
+          <div className="w-full max-w-sm my-auto">
             {paymentStatus === 'paying' ? (
               <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
                 <h2 className="text-2xl font-extrabold text-gray-800 mb-6">Pay with PayPal</h2>
