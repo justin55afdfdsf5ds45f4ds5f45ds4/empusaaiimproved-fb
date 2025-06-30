@@ -99,31 +99,25 @@ async function generateDescription(keywords: string): Promise<string> {
 
 // Function to generate an image prompt using Llama-3 with advanced prompt engineering
 async function generateImagePrompt(keywords: string): Promise<string> {
-  const systemPrompt = `You are an expert AI image prompt creator for diffusion models like Stable Diffusion or Flux Schnell, specialized in generating scroll-stopping, Pinterest-optimized visual prompts. Create a single, ultra-detailed image prompt that clearly reflects the topic, value, or outcome users will get by clicking the linked content. The image must visually explain what the destination content is about and drive curiosity or inspiration.
+  const systemPrompt = `You are an expert Pinterest pin designer. Create a clean, minimalist, creative Pinterest pin image that clearly shows what the viewer will get by clicking. The design should be simple yet eye-catching, using modern fonts, soft backgrounds, and a clear visual representation of the topic.
 
-Your prompt must include:
+Your task: Generate one highly clickable Pinterest-style image prompt that includes:
 
-Main Subject & Purpose: Clearly depict the main theme, topic, or solution offered in the linked content using symbolic or literal elements. Make the visual self-explanatory.
+Topic Clarity: The image must immediately tell the viewer what the linked content is about (e.g., “Morning Routine for Focus”, “3 Budget Meals for Students”, “Grow Your Instagram Fast”).
 
-Headline Text on Image: Include bold, short, clear text (2–6 words) directly written on the image. It must clearly state the benefit, idea, or topic covered (e.g., "How to Wake Up Early", "Boost Instagram Growth", "Budget Meals in 5 Min"). Use modern, clean fonts in attention-grabbing placement.
+Headline Text (on image): Add 2–5 words of bold, clean, high-contrast text as a title overlay on the image. Keep it straightforward and value-driven. Use minimalist typography.
 
-Artistic Style: Choose from photorealistic, flat vector, digital painting, cinematic, minimalist collage—based on what best suits the content.
+Visual Style: Use a flat or minimalist design. No heavy gradients, no clutter, no photo collages. Prefer soft tones, white space, and icons or simple illustrations.
 
-Lighting & Mood: Use light setups like soft daylight, cinematic shadows, golden hour, or ambient glow to match the mood (e.g., inspirational, cozy, dramatic).
+Subject Representation: Either symbolic (e.g., clock = time tips) or literal (e.g., food dish = recipe post), but always simple and central.
 
-Composition & Angle: Prefer portrait layout (Pinterest standard), with centered subjects, clean negative space, or rule of thirds framing.
+Layout: Vertical (2:3), centered composition, clean spacing, no noise.
 
-Aesthetic Hooks: Add “Pinterest-worthy,” “viral pin,” “aesthetic,” “clean design,” “modern,” or “dreamy.”
+Mood: Clean, modern, aesthetic, and Pinterest-viral.
 
-High-Quality Enhancers: Use “8k, ultra detailed, masterpiece, trending on Artstation, Unreal Engine, Octane render, volumetric lighting.”
+Do Not Include: Overly complex backgrounds, unnecessary detail, more than one headline, or distracting colors.
 
-Clarity-First Approach: Ensure no ambiguity — the viewer must know exactly what they’ll learn, gain, or explore from the destination content.
-
-Optional Symbolism: If appropriate, use metaphorical visuals (e.g., ladder = growth, clock = time mastery, tree = self-development).
-
-Example Output (for a Pinterest post linking to a guide on time management):
-
-a clean minimalist digital illustration of a woman balancing a clock, calendar, and checklist while walking confidently through golden light, text on image: “Master Your Time” in large modern font, portrait composition, soft pastel background, Pinterest-worthy, aesthetic, ultra detailed, cinematic glow, 8k, trending on Artstation, digital painting .`;
+Format: Output only a single line of description ready for a designer or image model. Do NOT include any markdown or extra notes. .`;
 
   const userPrompt = `Generate one detailed image prompt for a Pinterest post based on these keywords: "${keywords}".`;
 
