@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { OnApproveData, OnApproveActions } from "@paypal/paypal-js";
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
+// IMPORTANT: For security, move this to a .env.local file
+// Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ARze3QZCv1Oh-xpRK-A-1QoaSlGI-bA7S2Mw7Gp--AWXHJ-fYG0UWRgtcZT18gIU7OFQ7moexbZFMGYX";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -15,26 +17,33 @@ export default function CheckoutPage() {
 
   const handleApprove = (data: OnApproveData, actions: OnApproveActions) => {
     return actions.order!.capture().then((details) => {
+      console.log('Capture result', details);
       setPaymentStatus('success');
       setPaymentError(null);
       setTransactionId(details.id);
-      document.cookie = "purchase_completed=true; path=/; max-age=31536000";
+      // Set purchase cookie
+      document.cookie = "purchase_completed=true; path=/; max-age=31536000"; // 1 year expiry
+
+      // Redirect to dashboard after a short delay to show the success message
       setTimeout(() => {
         router.push('/dashboard');
-      }, 3000);
+      }, 3000); // 3-second delay
+
     }).catch((err) => {
+      console.error('Error capturing the order:', err);
       setPaymentError('An error occurred while processing your payment. Please try again.');
       return Promise.reject(err);
     });
   };
 
   return (
-    <main className="font-inter flex flex-col lg:flex-row h-screen w-screen overflow-hidden">
+    <main className="relative font-inter">
       {/* Left Panel */}
-      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-black text-white flex flex-col p-8 lg:p-12">
+      <section className="lg:fixed lg:top-0 lg:left-0 lg:w-1/2 lg:h-screen w-full bg-black text-white flex flex-col p-8 lg:p-12">
         <header className="flex-shrink-0">
           <h1 className="text-xl font-extrabold">Empusa AI</h1>
         </header>
+
         <div className="flex-grow flex items-center justify-center">
           <div className="w-full max-w-sm">
             <p className="text-base font-semibold text-gray-300">Subscribe to Growth Plan</p>
@@ -59,19 +68,15 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
+
         <footer className="flex-shrink-0">
           <p className="text-xs text-gray-500">&copy; 2025 Empusa AI. All rights reserved.</p>
         </footer>
       </section>
 
       {/* Right Panel */}
-      <section className="w-full lg:w-1/2 h-[50vh] lg:h-full bg-white flex flex-col p-0">
-        {/* 
-          This wrapper allows vertical scrolling if needed (for long forms),
-          and naturally centers the payment method if short.
-        */}
-        <div className="flex-1 flex flex-col overflow-y-auto items-center p-8">
-          <div className="w-full max-w-sm my-auto">
+      <section className="lg:ml-[50%] lg:min-h-screen w-full bg-white flex flex-col items-center justify-center p-8">
+        <div className="w-full max-w-sm text-center">
             {paymentStatus === 'paying' ? (
               <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "USD" }}>
                 <h2 className="text-2xl font-extrabold text-gray-800 mb-6">Pay with PayPal</h2>
@@ -87,6 +92,7 @@ export default function CheckoutPage() {
                   }}
                   onApprove={handleApprove}
                   onError={(err) => {
+                    console.error('PayPal Button Error:', err);
                     setPaymentError('An error occurred. Please try another payment method.');
                     return Promise.reject(err);
                   }}
@@ -111,7 +117,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </section>
     </main>
