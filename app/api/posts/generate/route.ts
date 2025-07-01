@@ -139,7 +139,7 @@ Only output 4 line of prompt. No explanation. No formatting..`;
     // Ensure the negative prompt is always appended. If the LLM already included it, fine.
     // If not, add a standard one.
     const negativePrompt =
-      "blurry, low resolution, bad anatomy, deformed, disfigured, poor lighting, text, watermark, signature, ugly, tiling, duplicate, worst quality, low quality, pixelated, error, out of frame, out of focus, noisy, cartoon, 3d, render, painting, drawing, cropped, distortion, surreal, abstract, over-saturated, mundane, boring";
+      " ";
 
     // Check if the generated prompt already contains a --neg part
     if (!generatedPrompt.includes("--neg")) {
