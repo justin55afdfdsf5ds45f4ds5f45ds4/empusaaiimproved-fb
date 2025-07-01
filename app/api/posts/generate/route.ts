@@ -132,7 +132,7 @@ async function generateImagePrompt(keywords: string): Promise<string> {
 - ✅ You always value the importance of putting "put" to emphasize that putting headline is important always in big and bold text in the image and that's why you always never forget to include "put" and "big" phrase to always emphasize the importance of the image prompt 
 Only output 4 line of prompt. No explanation. No formatting..`;
 
-  const userPrompt = `Generate one detailed image prompt for a Pinterest post based on these keywords: "${keywords}".`;
+  const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${keywords}".`;
 
   try {
     const generatedPrompt = await callLlama3(systemPrompt, userPrompt);
