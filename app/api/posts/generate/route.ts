@@ -162,7 +162,7 @@ Only output the **final description string**, nothing else.`;
     const primaryKeyword =
       keywords.split(",")[0]?.trim() ||
       TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    return `Discover amazing ${primaryKeyword} ideas that will transform your approach. Save this pin for later!`;
+    return ` ${primaryKeyword} `;
   }
 }
 
