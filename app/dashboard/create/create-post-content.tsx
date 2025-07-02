@@ -680,6 +680,59 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       isActive ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
     }`
 
+    // CSV Download logic
+  function generateRandomUniqueDates(count: number): string[] {
+    const now = new Date();
+    const sevenDaysLater = new Date(now);
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    const usedTimestamps = new Set<number>();
+    const dates: string[] = [];
+    while (dates.length < count) {
+      const randomTime = now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime());
+      const rounded = Math.floor(randomTime / 1000) * 1000; // round to nearest second
+      if (!usedTimestamps.has(rounded)) {
+        usedTimestamps.add(rounded);
+        const d = new Date(rounded);
+        dates.push(d.toISOString().slice(0, 19)); // 'YYYY-MM-DDTHH:MM:SS'
+      }
+    }
+    return dates;
+  }
+
+  function downloadCSV() {
+    if (!generatedPosts.length) return;
+    const randomDates = generateRandomUniqueDates(generatedPosts.length);
+    const headers = [
+      "Title",
+      "Media URL",
+      "Pinterest board",
+      "Description",
+      "Link",
+      "Publish date",
+    ];
+    const boardName = pinterestBoards[0]?.name || "My Pinterest Board";
+    const rows = generatedPosts.map((post, idx) => [
+      post.title,
+      post.imageUrl && !post.imageUrl.startsWith('data:') ? post.imageUrl : '',
+      boardName,
+      post.description,
+      postLinks[post.id] || post.defaultLink || "",
+      randomDates[idx],
+    ]);
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pinterest-posts-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       {/* Pinterest Board Selection */}
@@ -1125,6 +1178,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               const displayLink = hasCustomLink || post.defaultLink || "No link available"
               const assignedBoard = getSelectedBoard(post.id)
               const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
+                {generatedPosts.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <Button onClick={downloadCSV} variant="outline">
+            Download CSV
+          </Button>
+        </div>
+      )}
 
               return (
                 <Card
