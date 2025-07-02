@@ -1090,27 +1090,32 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
       {/* Conditionally render the generated posts section */}
       {generatedPosts.length > 0 && (
-        <div className="space-y-6 mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setUrl("")
-                setTopic("")
-                setReferenceImage(null)
-                setPreviewUrl(null)
-                // Optionally clear generated posts or let user manage them
-                // setGeneratedPosts([]);
-                // setSelectedPosts(new Set());
-                // setIsSelectAllActive(false);
-                window.scrollTo({ top: 0, behavior: "smooth" })
-                toast({ title: "Form Cleared", description: "You can now generate new content." })
-              }}
-            >
-              Start New Generation
-            </Button>
-          </div>
+  <div className="space-y-6 mt-6">
+    <div className="flex items-center justify-between">
+      <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setUrl("")
+          setTopic("")
+          setReferenceImage(null)
+          setPreviewUrl(null)
+          // Optionally clear generated posts or let user manage them
+          // setGeneratedPosts([]);
+          // setSelectedPosts(new Set());
+          // setIsSelectAllActive(false);
+          window.scrollTo({ top: 0, behavior: "smooth" })
+          toast({ title: "Form Cleared", description: "You can now generate new content." })
+        }}
+      >
+        Start New Generation
+      </Button>
+    </div>
+    <div className="flex justify-end mb-4">
+      <Button onClick={downloadCSV} variant="outline">
+        Download CSV
+      </Button>
+    </div>
 
           {/* Action Buttons Row */}
           <div className="flex gap-3 flex-wrap">
