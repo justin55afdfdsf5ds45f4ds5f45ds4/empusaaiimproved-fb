@@ -1089,33 +1089,71 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       </Card>
 
       {/* Conditionally render the generated posts section */}
-      {generatedPosts.length > 0 && (
-  <div className="space-y-6 mt-6">
-    <div className="flex items-center justify-between">
-      <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
-      <Button
-        variant="outline"
-        onClick={() => {
-          setUrl("")
-          setTopic("")
-          setReferenceImage(null)
-          setPreviewUrl(null)
-          // Optionally clear generated posts or let user manage them
-          // setGeneratedPosts([]);
-          // setSelectedPosts(new Set());
-          // setIsSelectAllActive(false);
-          window.scrollTo({ top: 0, behavior: "smooth" })
-          toast({ title: "Form Cleared", description: "You can now generate new content." })
-        }}
-      >
-        Start New Generation
-      </Button>
-    </div>
-    <div className="flex justify-end mb-4">
-      <Button onClick={downloadCSV} variant="outline">
-        Download CSV
-      </Button>
-    </div>
+     {generatedPosts.length > 0 && (
+        <div className="space-y-6 mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setUrl("")
+                setTopic("")
+                setReferenceImage(null)
+                setPreviewUrl(null)
+                // Optionally clear generated posts or let user manage them
+                // setGeneratedPosts([]);
+                // setSelectedPosts(new Set());
+                // setIsSelectAllActive(false);
+                window.scrollTo({ top: 0, behavior: "smooth" })
+                toast({ title: "Form Cleared", description: "You can now generate new content." })
+              }}
+            >
+              Start New Generation
+            </Button>
+          </div>
+
+          {/* --- FIX: Download CSV Button should always show when content is generated --- */}
+          <div className="flex justify-end mb-4">
+            <Button onClick={downloadCSV} variant="outline">
+              Download CSV
+            </Button>
+          </div>
+
+          {/* Action Buttons Row */}
+          <div className="flex gap-3 flex-wrap">
+            {/* ...[rest of the action buttons]... */}
+          </div>
+
+          {/* Board Selection for Selected Posts */}
+          {/* ...[unchanged]... */}
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {generatedPosts.map((post) => {
+              const isSelected = selectedPosts.has(post.id)
+              const hasCustomLink = postLinks[post.id]
+              const displayLink = hasCustomLink || post.defaultLink || "No link available"
+              const assignedBoard = getSelectedBoard(post.id)
+              const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
+
+              return (
+                <Card
+                  key={post.id}
+                  className={`overflow-hidden relative transition-all ${
+                    isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""
+                  }`}
+                >
+                  {/* ...[rest of the post card code unchanged]... */}
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ...[all dialogs and rest of code remain unchanged]... */}
+    </>
+  )
+}
 
           {/* Action Buttons Row */}
           <div className="flex gap-3 flex-wrap">
