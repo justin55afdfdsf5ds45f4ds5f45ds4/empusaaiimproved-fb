@@ -710,15 +710,20 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       "Link",
       "Publish date",
     ];
-    const boardName = pinterestBoards[0]?.name || "My Pinterest Board";
-    const rows = generatedPosts.map((post, idx) => [
+      const rows = generatedPosts.map((post, idx) => {
+    // Get the board ID for this post (adjust the state name if needed)
+    const boardId = selectedBoardForPosts[post.id] || pinterestBoards[0]?.id;
+    // Find the board name
+    const boardName = pinterestBoards.find(b => b.id === boardId)?.name || "My Pinterest Board";
+    return [
       post.title,
       post.imageUrl && !post.imageUrl.startsWith('data:') ? post.imageUrl : '',
       boardName,
       post.description,
       postLinks[post.id] || post.defaultLink || "",
       randomDates[idx],
-    ]);
+    ];
+  });
     const csvContent = [headers, ...rows]
       .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
       .join("\r\n");
