@@ -1089,72 +1089,128 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       </Card>
 
       {/* Conditionally render the generated posts section */}
-     {generatedPosts.length > 0 && (
-        <div className="space-y-6 mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setUrl("")
-                setTopic("")
-                setReferenceImage(null)
-                setPreviewUrl(null)
-                // Optionally clear generated posts or let user manage them
-                // setGeneratedPosts([]);
-                // setSelectedPosts(new Set());
-                // setIsSelectAllActive(false);
-                window.scrollTo({ top: 0, behavior: "smooth" })
-                toast({ title: "Form Cleared", description: "You can now generate new content." })
-              }}
-            >
-              Start New Generation
-            </Button>
-          </div>
+    {generatedPosts.length > 0 && (
+  <div className="space-y-6 mt-6">
+    {/* Header Row */}
+    <div className="flex items-center justify-between">
+      <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setUrl("")
+          setTopic("")
+          setReferenceImage(null)
+          setPreviewUrl(null)
+          // Optionally clear generated posts or let user manage them
+          // setGeneratedPosts([]);
+          // setSelectedPosts(new Set());
+          // setIsSelectAllActive(false);
+          window.scrollTo({ top: 0, behavior: "smooth" })
+          toast({ title: "Form Cleared", description: "You can now generate new content." })
+        }}
+      >
+        Start New Generation
+      </Button>
+    </div>
 
-          {/* --- FIX: Download CSV Button should always show when content is generated --- */}
-          <div className="flex justify-end mb-4">
-            <Button onClick={downloadCSV} variant="outline">
-              Download CSV
-            </Button>
-          </div>
+    {/* Download CSV Button */}
+    <div className="flex justify-end mb-4">
+      <Button onClick={downloadCSV} variant="outline">
+        Download CSV
+      </Button>
+    </div>
 
-          {/* Action Buttons Row */}
-          <div className="flex gap-3 flex-wrap">
-            {/* ...[rest of the action buttons]... */}
-          </div>
+    {/* Action Buttons Row */}
+    <div className="flex gap-3 flex-wrap">
+      <Button
+        onClick={handleSelectAll}
+        variant={isSelectAllActive ? "default" : "outline"}
+        className={isSelectAllActive ? "bg-blue-600 hover:bg-blue-700" : ""}
+      >
+        {isSelectAllActive ? "Deselect All" : "Select All"}
+      </Button>
 
-          {/* Board Selection for Selected Posts */}
-          {/* ...[unchanged]... */}
+      <Button
+        className={getButtonClass(hasSelectedPosts)}
+        disabled={!hasSelectedPosts}
+        onClick={handleScheduleAll}
+      >
+        <Calendar className="mr-2 h-4 w-4" />
+        Schedule Post
+      </Button>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {generatedPosts.map((post) => {
-              const isSelected = selectedPosts.has(post.id)
-              const hasCustomLink = postLinks[post.id]
-              const displayLink = hasCustomLink || post.defaultLink || "No link available"
-              const assignedBoard = getSelectedBoard(post.id)
-              const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
+      <Button
+        className={getButtonClass(hasSelectedPosts)}
+        disabled={!hasSelectedPosts}
+        onClick={handleDeleteAll}
+      >
+        <Trash2 className="mr-2 h-4 w-4" />
+        Delete All
+      </Button>
 
-              return (
-                <Card
-                  key={post.id}
-                  className={`overflow-hidden relative transition-all ${
-                    isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""
-                  }`}
-                >
-                  {/* ...[rest of the post card code unchanged]... */}
-                </Card>
-              )
-            })}
-          </div>
+      <Button
+        className={getButtonClass(hasSelectedPosts)}
+        disabled={!hasSelectedPosts}
+        onClick={handleLinkAllPosts}
+      >
+        <LinkIcon className="mr-2 h-4 w-4" />
+        Link All Posts
+      </Button>
+
+      <Button
+        className={getButtonClass(hasSelectedPosts)}
+        disabled={!hasSelectedPosts}
+        onClick={() => setPublishDialogOpen(true)}
+      >
+        <PinIcon className="mr-2 h-4 w-4" />
+        Publish to Pinterest
+      </Button>
+    </div>
+
+    {/* Board Selection for Selected Posts */}
+    {hasSelectedPosts && (
+      <Card className="p-4">
+        <div className="flex items-center gap-4">
+          <Label>Default Board for Selected Posts ({selectedPosts.size} selected):</Label>
+          <Select value={selectedBoard} onValueChange={setSelectedBoard}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Select board" />
+            </SelectTrigger>
+            <SelectContent>
+              {pinterestBoards.map((board) => (
+                <SelectItem key={board.id} value={board.id}>
+                  {board.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      )}
+      </Card>
+    )}
 
-      {/* ...[all dialogs and rest of code remain unchanged]... */}
-    </>
-  )
-}
+    {/* Posts Grid */}
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {generatedPosts.map((post) => {
+        const isSelected = selectedPosts.has(post.id)
+        const hasCustomLink = postLinks[post.id]
+        const displayLink = hasCustomLink || post.defaultLink || "No link available"
+        const assignedBoard = getSelectedBoard(post.id)
+        const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
 
+        return (
+          <Card
+            key={post.id}
+            className={`overflow-hidden relative transition-all ${
+              isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""
+            }`}
+          >
+            {/* ...[rest of the post card code unchanged]... */}
+          </Card>
+        )
+      })}
+    </div>
+  </div>
+)}
           {/* Action Buttons Row */}
           <div className="flex gap-3 flex-wrap">
             <Button
@@ -1226,13 +1282,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               const displayLink = hasCustomLink || post.defaultLink || "No link available"
               const assignedBoard = getSelectedBoard(post.id)
               const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
-                {generatedPosts.length > 0 && (
-        <div className="flex justify-end mb-4">
-          <Button onClick={downloadCSV} variant="outline">
-            Download CSV
-          </Button>
-        </div>
-      )}
+                
 
               return (
                 <Card
