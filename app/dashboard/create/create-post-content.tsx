@@ -275,13 +275,22 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
 
       const data = await response.json();
-      setGeneratedPosts(
-        (data.posts || []).map((post: Post) => ({
-          ...post,
-          defaultLink: activeTab === "url" ? url : undefined,
-        }))
-      );
-
+// Remove the old setGeneratedPosts line!
+const postsWithImages = await Promise.all(
+  (data.posts || []).map(async (post: Post) => {
+    if (!post.imageUrl) {
+      const imageUrl = await generateImage(post);
+      return { ...post, imageUrl };
+    }
+    return post;
+  })
+);
+setGeneratedPosts(
+  postsWithImages.map((post: Post) => ({
+    ...post,
+    defaultLink: activeTab === "url" ? url : undefined,
+  }))
+);
       toast({
         title: "Posts Generated",
         description: `Successfully generated ${data.posts.length} Pinterest posts.`,
@@ -697,6 +706,15 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
   function downloadCSV() {
     if (!generatedPosts.length) return;
+    const missingImages = generatedPosts.filter(post => !post.imageUrl);
+if (missingImages.length > 0) {
+  toast({
+    title: "Images Not Ready",
+    description: "Please wait for all images to generate before downloading CSV",
+    variant: "warning",
+  });
+  return;
+}
     const randomDates = generateRandomUniqueDates(generatedPosts.length);
     const headers = [
       "Title",
@@ -712,7 +730,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
       return [
         post.title,
-        post.imageUrl && !post.imageUrl.startsWith("data:") ? post.imageUrl : "",
+        post.imageUrl || "",
         boardName,
         post.description,
         postLinks[post.id] || post.defaultLink || "",
