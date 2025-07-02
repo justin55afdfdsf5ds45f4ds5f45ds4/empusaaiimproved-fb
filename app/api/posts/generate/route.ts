@@ -48,15 +48,51 @@ async function callLlama3(
 
 // Function to generate a title using Llama-3 with advanced prompt engineering
 async function generateTitle(keywords: string): Promise<string> {
-  const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert. do never generate the same title or description twice, make it uniqe and different each time. Your goal is to generate a compelling title for an image, specifically optimized to drive high traffic and virality on Pinterest. The title should be catchy, action-oriented, and include relevant keywords. You must output ONLY the title string, without any additional text or formatting.`;
+  const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert.
 
-  const userPrompt = `Generate a title based on these keywords: "${keywords}".
+Your task is to write a **catchy, action-oriented, keyword-rich title** for a Pinterest image post.
+
+🔒 RULES (always follow):
+- Always include **powerful action words.
+- Always make the title **clear, benefit-focused**, and **clickable** — it should create curiosity or promise a result.
+- Always include **relevant keywords** that users are likely to search (SEO intent).
+- Always make the title **unique** — never repeat or copy previous outputs, even if the topic is similar.
+- Always keep the title between **5–12 words**, concise and easy to read.
+
+🎯 GOAL:
+Drive high Pinterest engagement (clicks, saves, shares) and perform well in search.
+
+🚫 NEVER:
+- Never include punctuation unless needed (no “!”, “.” unless essential).
+- Never include hashtags, emojis, formatting, or extra notes.
+- Never write generic, vague, or flat phrases.
+- Never output anything except the **title string**.
+- do not use the word "transform" at all.
+- do not use the word "Unlock" at all.
+- do not use the word "Shed" at all.
+- do not use the word "Crush" at all.
+- do not use the sign colon at all.
+- do not use the sign comma at all.
+- do not use the word "Embrace" at the start at all.
+- do not use the word "Unleash " at the start at all.
+- do not use the sign ":" colon at all.
+- do not use the sign ":" colon at all i am repeatedly saying it so listen to it and follow.
+
+- do not use the phrase "Discover the ultimate guide" as a whole but you can use each letters without combining them.
+- do not use the phrase "Discover the power" as a whole but you can use each letters without combining them.
+- do not use the phrase "Get ready to be inspired!" as a whole but you can use each letters without combining them.
+- do not use the phrase "Discover the secret to" as a whole but you can use each letters without combining them.
+- do not use the phrase "Learn the secrets" as a whole but you can use each letters without combining them.
+- do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
+Only output the final **title string** — no explanation, no formatting.
+don't make the title too long that you need comma to support the phrase because you should never use comma
+don't use colan at all in the title, we are not using colan at all
+
+.`;
+
+  const userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${keywords}".
     
-    Consider:
-    - Incorporating high-traffic keywords.
-    - Crafting a catchy, action-oriented title.
-    - Aim for conciseness and strong visual appeal in the text.
-    - If appropriate`;
+    ""`;
 
   try {
     const title = await callLlama3(systemPrompt, userPrompt);
@@ -73,16 +109,49 @@ async function generateTitle(keywords: string): Promise<string> {
 
 // Function to generate a description using Llama-3 with advanced prompt engineering
 async function generateDescription(keywords: string): Promise<string> {
-  const systemPrompt = `You are an expert Pinterest content strategist and copywriter. do never generate description same everytime or similar to the before one. Your task is to generate a keyword-rich, engaging description for a Pinterest image. The description should be benefit-driven, encourage clicks and saves, and include relevant hashtags and a call-to-action. You must output ONLY the description string, without any additional text or formatting.`;
+  const systemPrompt = `You are an expert Pinterest content strategist and copywriter.
 
-  const userPrompt = `Generate a description based on these keywords: "${keywords}".
+Your task is to write a **concise, engaging, keyword-rich description** for a Pinterest post based on a given title and image topic.
+
+🔒 RULES (always follow):
+- Always **repeat key phrases** from the title in the description (especially the core benefit and action keywords).
+- Always **highlight the main benefit** clearly — what the viewer will learn or gain.
+- Always write in a **human, minimal, and conversational tone** — no robotic language.
+- Always make each description **unique** — never repeat the same wording or phrasing across prompts.
+- Always include a **soft call to action** (e.g., “Try it now,” “Read more,” “Save this pin”).
+- Always include **1–3 relevant hashtags** at the end (e.g., #weightloss #fitness #healthyliving).
+- Always keep the description **easy to scan**, **clean**, and **not more than 3–4 lines**.
+
+🚫 NEVER:
+- Never add extra formatting (no bullets, no bold, no markdown).
+- Never write off-topic or include information not related to the title.
+- Never use clickbait or false promises.
+- Never start with “This post…” or similar meta language.
+- do not use the word "transform" at all.
+- do not use the word "Shed" at all.
+- do not use the word "Join Me" at all.
+- do not use the word "Crush" at all.
+- do not use the word "Unlock" at all.
+- do not use the word "Embrace" at the start at all.
+- do not use the word "Unleash " at the start at all.
+
+
+- do not use the sign comma at all.
+- do not use the word "Unlock" at in the start.
+- do not use the sign colon at all.
+- do not use the sign ":" colon at all.
+- do not use the phrase "Unlock the Power" at all in the start"
+- do not use the phrase "Get ready to" as a whole but you can use each letters without combining them.
+- do not use the phrase "Discover the ultimate guide" as a whole but you can use each letters without combining them.
+- do not use the word "Discover" at the start of the description, but you are feel free to use anywhere but at the start.
+- do not use the word "Unlock" at the start of the description at all, you should know that to never use the word at the start
+- do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
+
+Only output the **final description string**, nothing else.`;
+
+  const userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${keywords}".
     
-    Consider:
-    - Weaving in primary and secondary keywords naturally.
-    - Highlighting benefits or solutions.
-    - Adding relevant hashtags (e.g., #topicideas #diyprojects #trends).
-    - Including a clear call-to-action (e.g.,"Click to learn more").
-    - Keep it concise and impactful, ideally 2-6 sentences.`;
+   "" `;
 
   try {
     const description = await callLlama3(systemPrompt, userPrompt);
