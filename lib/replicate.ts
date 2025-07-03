@@ -1,5 +1,6 @@
 import Replicate from "replicate";
-import fetch from "node-fetch";
+import fetch from "node-fetch"; // Only needed for base64 conversion
+import { generateIdeogramV2TurboImageAndUpload } from "@/lib/replicate";
 
 type ReplicateFileOutput = {
   url(): string;
@@ -9,38 +10,34 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-export async function generateIdeogramV2TurboImage(prompt: string) {
+export async function generateIdeogramV2TurboImage(
+  prompt: string,
+  returnBase64 = true
+) {
   try {
-    // 1. Generate the image
+    console.log("Generating image using ideogram-v2-turbo...");
+
     const output = (await replicate.run("ideogram-ai/ideogram-v2-turbo", {
       input: { prompt, aspect_ratio: "9:16" },
     })) as ReplicateFileOutput;
 
     const imageUrl = output.url();
-    if (!imageUrl) throw new Error("No image returned from Replicate.");
 
-    // 2. Get base64 data
+    if (!imageUrl) {
+      throw new Error("No image returned from Replicate.");
+    }
+
+    if (!returnBase64) {
+      return imageUrl; // return direct image URL
+    }
+
+    // Convert to base64 if requested
     const imageResponse = await fetch(imageUrl);
     const buffer = await imageResponse.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
-    const dataUrl = `data:image/png;base64,${base64}`;
-
-    // 3. Upload to Cloudinary
-    const cloudinaryRes = await fetch(
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_ENDPOINT || '/api/upload-image',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64: dataUrl }),
-      }
-    );
-    const { url } = await cloudinaryRes.json();
-    if (!url) throw new Error("Cloudinary upload failed");
-
-    // 4. Return Cloudinary URL
-    return url;
+    return `data:image/png;base64,${base64}`;
   } catch (error) {
-    console.error("Error generating/uploading image:", error);
+    console.error("Error generating image with Replicate:", error);
     throw error;
   }
 }
