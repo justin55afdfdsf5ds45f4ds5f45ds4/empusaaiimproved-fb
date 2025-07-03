@@ -328,7 +328,7 @@ export async function POST(req: Request) {
         let imageUrl;
 
         try {
-          imageUrl = await generateIdeogramV2TurboImage(imagePrompt);
+           imageUrl = await generateIdeogramV2TurboImage(imagePrompt, false);
         } catch (error) {
           console.error("Error generating image from Replicate:", error);
           imageUrl =
