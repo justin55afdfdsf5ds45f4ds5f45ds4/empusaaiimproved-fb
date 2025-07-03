@@ -730,7 +730,7 @@ if (missingImages.length > 0) {
         pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
       return [
         post.title,
-        post.imageUrl || "",
+        post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
         boardName,
         post.description,
         postLinks[post.id] || post.defaultLink || "",
