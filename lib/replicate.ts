@@ -9,7 +9,7 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-export async function generateIdeogramV2TurboImageAndUpload(prompt: string) {
+export async function generateIdeogramV2TurboImage(prompt: string) {
   try {
     // 1. Generate the image
     const output = (await replicate.run("ideogram-ai/ideogram-v2-turbo", {
