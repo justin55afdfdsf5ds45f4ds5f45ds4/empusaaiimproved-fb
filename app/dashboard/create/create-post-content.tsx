@@ -56,6 +56,7 @@ interface Post {
   imagePrompt?: string;
   imageUrl: string | null;
   defaultLink?: string;
+  assignedBoard?: string;
 }
 
 interface PinterestBoard {
@@ -289,6 +290,7 @@ setGeneratedPosts(
   postsWithImages.map((post: Post) => ({
     ...post,
     defaultLink: activeTab === "url" ? url : undefined,
+    assignedBoard: selectedBoard, // <-- Save the selected board at generation time
   }))
 );
       toast({
@@ -725,18 +727,18 @@ if (missingImages.length > 0) {
       "Publish date",
     ];
     const rows = generatedPosts.map((post, idx) => {
-      const boardId = selectedBoardForPosts[post.id] || pinterestBoards[0]?.id;
-      const boardName =
-        pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
-      return [
-        post.title,
-        post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
-        boardName,
-        post.description,
-        postLinks[post.id] || post.defaultLink || "",
-        randomDates[idx],
-      ];
-    });
+  const boardId = post.assignedBoard || pinterestBoards[0]?.id; // <-- Use assignedBoard
+  const boardName =
+    pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
+  return [
+    post.title,
+    post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
+    boardName,
+    post.description,
+    postLinks[post.id] || post.defaultLink || "",
+    randomDates[idx],
+  ];
+});
     const csvContent = [headers, ...rows]
       .map((row) =>
         row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
