@@ -1270,7 +1270,7 @@ if (missingImages.length > 0) {
                     </Button>
                   </div>
 
-                  <div className="aspect-[2/3] relative">
+                  <div className="aspect-[9/6] relative">
                     {post.imageUrl ? (
                       <img
                         src={
@@ -1304,9 +1304,7 @@ if (missingImages.length > 0) {
                     <h3 className="font-semibold line-clamp-2 mb-2">
                       {post.title}
                     </h3>
-                    <p className="text-sm text-gray-500 line-clamp-3 mb-4">
-                      {post.description}
-                    </p>
+                     <ExpandableDescription description={post.description} />
                     <div className="flex gap-2">
                       <Button
                         className="flex-1 bg-teal-600 hover:bg-teal-700"
@@ -1507,5 +1505,25 @@ if (missingImages.length > 0) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// ExpandableDescription component
+function ExpandableDescription({ description }: { description: string }) {
+  const [expanded, setExpanded] = useState(false);
+  // Estimate if truncation is needed (simple heuristic: > 5 lines ~ 400 chars)
+  const shouldTruncate = description.length > 120;
+  return (
+    <div className="mb-4">
+      <p className={`text-sm text-gray-500 ${!expanded && shouldTruncate ? 'line-clamp-5' : ''}`}>{description}</p>
+      {shouldTruncate && (
+        <button
+          className="text-xs text-gray-500 hover:underline ml-1 mt-1"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
   );
 }
