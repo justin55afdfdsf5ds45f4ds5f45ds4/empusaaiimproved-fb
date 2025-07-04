@@ -187,6 +187,7 @@ async function generateImagePrompt(keywords: string): Promise<string> {
 - The layout should always be vertical (2:3 ratio), like a Pinterest pin
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
+- do not use any trademark logos or name.
 - do not include any formal or overlay text like these - "Here is a Pinterest image prompt for the given keywords, Here is a Pinterest image prompt for the given keywords:" instead just give the final prompt
 - always look into keywords and the information provided to you so you can craft the best prompt and always feature the core words as eye catching 5-6 words headline
 - Always say in the prompt that is should be minimalist and creative with text so it can become eye catching image
