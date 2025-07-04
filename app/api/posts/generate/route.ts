@@ -49,7 +49,7 @@ async function callLlama3(
 }
 
 // Function to generate a title using Llama-3 with advanced prompt engineering
-async function generateTitle(keywords: string): Promise<string> {
+async function generateTitle(keywords: string, hint?: string): Promise<string> {
   const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert.
 
 Your task is to write a **catchy, action-oriented, keyword-rich title** for a Pinterest image post.
@@ -92,9 +92,13 @@ don't use colan at all in the title, we are not using colan at all
 
 .`;
 
-  const userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${keywords}".
+  let userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${keywords}".`;
+  if (hint) {
+    userPrompt += `\n\nAvoid these titles: ${hint}`;
+  }
+  userPrompt += `\n\n" "`;
     
-    ""`;
+    
 
   try {
     const title = await callLlama3(systemPrompt, userPrompt);
@@ -110,7 +114,7 @@ don't use colan at all in the title, we are not using colan at all
 }
 
 // Function to generate a description using Llama-3 with advanced prompt engineering
-async function generateDescription(keywords: string): Promise<string> {
+async function generateDescription(keywords: string, hint?: string): Promise<string> {
   const systemPrompt = `You are an expert Pinterest content strategist and copywriter.
 
 Your task is to write a **concise, engaging, keyword-rich description** for a Pinterest post based on a given title and image topic.
@@ -151,9 +155,11 @@ Your task is to write a **concise, engaging, keyword-rich description** for a Pi
 
 Only output the **final description string**, nothing else.`;
 
-  const userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${keywords}".
-    
-   "" `;
+  let userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${keywords}".`;
+  if (hint) {
+    userPrompt += `\n\nAvoid these descriptions: ${hint}`;
+  }
+  userPrompt += `\n\n" "`;
 
   try {
     const description = await callLlama3(systemPrompt, userPrompt);
@@ -314,18 +320,29 @@ export async function POST(req: Request) {
 
     const requestedCount = count;
 
+     // Sets to track uniqueness
+    const usedTitles: Set<string> = new Set();
+    const usedDescriptions: Set<string> = new Set();
+
+    async function getUniqueValue(generateFn: (hint?: string) => Promise<string>, usedSet: Set<string>, type: string, maxRetries = 5) {
+      let value = await generateFn();
+      let retries = 0;
+      while (usedSet.has(value) && retries < maxRetries) {
+        // Regenerate with a hint to be unique
+        value = await generateFn(`Please generate a ${type} that is different from: ${[...usedSet].join('; ')}`);
+        retries++;
+      }
+      usedSet.add(value);
+      return value;
+    }
+
     const postPromises = Array.from({ length: requestedCount }).map(
       async () => {
         // Step 2: Generate title, description, and image prompt using Llama-3
-        const titlePromise = generateTitle(keywordsToUse);
-        const descriptionPromise = generateDescription(keywordsToUse);
-        const imagePromptPromise = generateImagePrompt(keywordsToUse);
-
-        const [title, description, imagePrompt] = await Promise.all([
-          titlePromise,
-          descriptionPromise,
-          imagePromptPromise,
-        ]);
+       // Step 2: Generate unique title, description, and image prompt using Llama-3
+        const title = await getUniqueValue(() => generateTitle(keywordsToUse), usedTitles, 'title');
+        const description = await getUniqueValue(() => generateDescription(keywordsToUse), usedDescriptions, 'description');
+        const imagePrompt = await generateImagePrompt(keywordsToUse);
 
         let imageUrl;
         let cloudinaryUrl = null;
