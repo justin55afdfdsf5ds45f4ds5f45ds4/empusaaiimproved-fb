@@ -706,8 +706,15 @@ setGeneratedPosts(
     return dates;
   }
 
-  // Helper to generate a random string for UTM
-  function generateRandomUTM(length = 8) {
+  // Helper to generate a random string for URL fragment
+  function generateRandomFragment(length = 8) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < length; i++) {
@@ -740,11 +747,11 @@ if (missingImages.length > 0) {
   const boardId = post.assignedBoard || pinterestBoards[0]?.id; // <-- Use assignedBoard
   const boardName =
     pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
-       // Make link unique with UTM
+       // Make link unique with a random fragment
       let link = postLinks[post.id] || post.defaultLink || "";
       if (link) {
-        const utm = generateRandomUTM(10);
-        link += (link.includes('?') ? '&' : '?') + `utm_source=empusa&utm_id=${utm}`;
+        const frag = generateRandomFragment(10);
+        link += `#${frag}`;
       }
   return [
     post.title,
