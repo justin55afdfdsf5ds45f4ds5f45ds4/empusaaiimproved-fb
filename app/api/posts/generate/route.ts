@@ -341,7 +341,21 @@ export async function POST(req: Request) {
           const uploadResult = await uploadImageBase64(base64String, 'pinterest');
           cloudinaryUrl = uploadResult.url;
           cloudinaryPublicId = uploadResult.public_id;
+
+          // Store Cloudinary image info in DB for deletion automation
+          try {
+            const client = await clientPromise;
+            const db = client.db();
+            await db.collection('cloudinary_images').insertOne({
+              public_id: cloudinaryPublicId,
+              createdAt: new Date(),
+              deleted: false,
+            });
+          } catch (dbErr) {
+            console.error('Failed to record Cloudinary image in DB:', dbErr);
+          }
           // TODO: Schedule deletion of this image from Cloudinary after 4 hours
+          
         } catch (error) {
           console.error("Error generating or uploading image:", error);
           imageUrl =
