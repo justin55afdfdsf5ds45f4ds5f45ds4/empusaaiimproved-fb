@@ -95,6 +95,7 @@ don't use colan at all in the title, we are not using colan at all
   let userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${keywords}".`;
   if (hint) {
     userPrompt += `\n\nAvoid these titles: ${hint}`;
+    userPrompt += `\n\n${hint}`; // Prepend hint to user prompt
   }
   userPrompt += `\n\n" "`;
     
@@ -102,7 +103,7 @@ don't use colan at all in the title, we are not using colan at all
 
   try {
     const title = await callLlama3(systemPrompt, userPrompt);
-    return title.replace(/"/g, ""); // Remove any lingering quotes if the model outputs them
+   return cleanLLMOutput(title.replace(/"/g, "")); // Clean LLM tokens and stars
   } catch (error) {
     console.error("Error generating title with Llama-3:", error);
     // Fallback to a simpler, template-based title if LLM fails
@@ -158,12 +159,13 @@ Only output the **final description string**, nothing else.`;
   let userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${keywords}".`;
   if (hint) {
     userPrompt += `\n\nAvoid these descriptions: ${hint}`;
+    userPrompt += `\n\n${hint}`; // Prepend hint to user prompt
   }
   userPrompt += `\n\n" "`;
 
   try {
     const description = await callLlama3(systemPrompt, userPrompt);
-    return description.replace(/"/g, ""); // Remove any lingering quotes
+     return cleanLLMOutput(description.replace(/"/g, "")); // Clean LLM tokens and stars
   } catch (error) {
     console.error("Error generating description with Llama-3:", error);
     // Fallback to a simpler, template-based description if LLM fails
@@ -306,6 +308,15 @@ const FALLBACK_IMAGE_URLS = [
   "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&h=1200&fit=crop",
 ];
 
+// Utility to clean LLM output (removes special tokens and Markdown stars)
+function cleanLLMOutput(text: string): string {
+  // Remove LLM special tokens like <|eot_id|>, <|begin_of_text|>, etc.
+  let cleaned = text.replace(/<\|.*?\|>/g, '');
+  // Remove leading/trailing stars and whitespace
+  cleaned = cleaned.replace(/^\*+|\*+$/g, '').trim();
+  return cleaned;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -328,8 +339,9 @@ export async function POST(req: Request) {
       let value = await generateFn();
       let retries = 0;
       while (usedSet.has(value) && retries < maxRetries) {
-        // Regenerate with a hint to be unique
-        value = await generateFn(`Please generate a ${type} that is different from: ${[...usedSet].join('; ')}`);
+       // Stronger hint, placed at the start
+        const hint = `IMPORTANT: Do NOT repeat or use any of these ${type}s: [${[...usedSet].join('; ')}]. Generate a completely new, unique ${type} that is different from all of them.`;
+        value = await generateFn(hint);
         retries++;
       }
       usedSet.add(value);
@@ -339,9 +351,8 @@ export async function POST(req: Request) {
     const postPromises = Array.from({ length: requestedCount }).map(
       async () => {
         // Step 2: Generate title, description, and image prompt using Llama-3
-       // Step 2: Generate unique title, description, and image prompt using Llama-3
-        const title = await getUniqueValue(() => generateTitle(keywordsToUse), usedTitles, 'title');
-        const description = await getUniqueValue(() => generateDescription(keywordsToUse), usedDescriptions, 'description');
+        const title = await generateTitle(keywordsToUse);
+        const description = await generateDescription(keywordsToUse);
         const imagePrompt = await generateImagePrompt(keywordsToUse);
 
         let imageUrl;
@@ -393,7 +404,38 @@ export async function POST(req: Request) {
       }
     );
 
-    const posts = await Promise.all(postPromises);
+     let posts = await Promise.all(postPromises);
+
+    // Uniqueness enforcement after generation
+    const maxRetries = 5;
+    let retry = 0;
+    while (retry < maxRetries) {
+      let titles = posts.map(p => p.title);
+      let descriptions = posts.map(p => p.description);
+      let titleSet = new Set();
+      let descSet = new Set();
+      let duplicateTitleIndexes: number[] = [];
+      let duplicateDescIndexes: number[] = [];
+      titles.forEach((t, i) => {
+        if (titleSet.has(t)) duplicateTitleIndexes.push(i);
+        else titleSet.add(t);
+      });
+      descriptions.forEach((d, i) => {
+        if (descSet.has(d)) duplicateDescIndexes.push(i);
+        else descSet.add(d);
+      });
+      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break;
+      // Regenerate duplicates
+      for (const i of duplicateTitleIndexes) {
+        const usedTitles = posts.map(p => p.title);
+        posts[i].title = await generateTitle(keywordsToUse, `Here are all the titles already used: [${usedTitles.join('; ')}]. Generate a new, unique title that is not in this list.`);
+      }
+      for (const i of duplicateDescIndexes) {
+        const usedDescs = posts.map(p => p.description);
+        posts[i].description = await generateDescription(keywordsToUse, `Here are all the descriptions already used: [${usedDescs.join('; ')}]. Generate a new, unique description that is not in this list.`);
+      }
+      retry++;
+    }
 
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
