@@ -5,6 +5,8 @@ import clientPromise from "@/lib/mongodb";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import Replicate from "replicate";
+import { uploadImageBase64 } from "@/lib/cloudinary1";
+import fetch from "node-fetch";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -326,15 +328,27 @@ export async function POST(req: Request) {
         ]);
 
         let imageUrl;
-
+        let cloudinaryUrl = null;
+        let cloudinaryPublicId = null;
         try {
-           imageUrl = await generateIdeogramV2TurboImage(imagePrompt, false);
+          imageUrl = await generateIdeogramV2TurboImage(imagePrompt, false); // get direct URL
+          // Download image and convert to base64
+          const imageResponse = await fetch(imageUrl);
+          const buffer = await imageResponse.arrayBuffer();
+          const base64 = Buffer.from(buffer).toString("base64");
+          const base64String = `data:image/png;base64,${base64}`;
+          // Upload to Cloudinary
+          const uploadResult = await uploadImageBase64(base64String, 'pinterest');
+          cloudinaryUrl = uploadResult.url;
+          cloudinaryPublicId = uploadResult.public_id;
+          // TODO: Schedule deletion of this image from Cloudinary after 4 hours
         } catch (error) {
-          console.error("Error generating image from Replicate:", error);
+          console.error("Error generating or uploading image:", error);
           imageUrl =
             FALLBACK_IMAGE_URLS[
               Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)
             ];
+          cloudinaryUrl = imageUrl;
         }
 
         return {
@@ -342,7 +356,8 @@ export async function POST(req: Request) {
           title,
           description,
           imagePrompt, // Store the generated image prompt for logging/debugging
-          imageUrl,
+          imageUrl: cloudinaryUrl,
+          cloudinaryPublicId,
         };
       }
     );
