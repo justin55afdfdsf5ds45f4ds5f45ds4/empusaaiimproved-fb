@@ -37,7 +37,7 @@ async function callLlama3(
 ): Promise<string> {
   const fullPrompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n${userPrompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n`;
 
-  const output = await replicate.run("meta/meta-llama-3-8b-instruct", {
+  const output = await replicate.run("openai/gpt-4o-mini", {
     input: {
       prompt: fullPrompt,
       max_new_tokens: 512, // Increased token limit for more detailed responses
