@@ -706,6 +706,16 @@ setGeneratedPosts(
     return dates;
   }
 
+  // Helper to generate a random string for UTM
+  function generateRandomUTM(length = 8) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
   function downloadCSV() {
     if (!generatedPosts.length) return;
     const missingImages = generatedPosts.filter(post => !post.imageUrl);
@@ -730,12 +740,18 @@ if (missingImages.length > 0) {
   const boardId = post.assignedBoard || pinterestBoards[0]?.id; // <-- Use assignedBoard
   const boardName =
     pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
+       // Make link unique with UTM
+      let link = postLinks[post.id] || post.defaultLink || "";
+      if (link) {
+        const utm = generateRandomUTM(10);
+        link += (link.includes('?') ? '&' : '?') + `utm_source=empusa&utm_id=${utm}`;
+      }
   return [
     post.title,
     post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
     boardName,
     post.description,
-    postLinks[post.id] || post.defaultLink || "",
+    link,
     randomDates[idx],
   ];
 });
