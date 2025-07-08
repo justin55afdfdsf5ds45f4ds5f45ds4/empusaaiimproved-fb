@@ -56,7 +56,6 @@ interface Post {
   imagePrompt?: string;
   imageUrl: string | null;
   defaultLink?: string;
-  assignedBoard?: string;
 }
 
 interface PinterestBoard {
@@ -127,7 +126,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       const response = await fetch("/api/pinterest/boards");
 
       if (response.status === 403) {
-        setBoardFetchError("You haven’t connected Pinterest yet.");
+        setBoardFetchError("You haven't connected Pinterest yet.");
         return;
       }
 
@@ -247,15 +246,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       return;
     }
 
-    if (!selectedBoard) {
-      toast({
-        title: "Board Required",
-        description: "Please select a Pinterest board to publish your posts.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsGenerating(true);
     try {
       const response = await fetch("/api/posts/generate", {
@@ -267,7 +257,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           url: activeTab === "url" ? url : undefined,
           topic: activeTab === "scratch" ? topic : undefined,
           tone: activeTab === "scratch" ? tone : undefined,
-          count: Number.parseInt(postCount),
+          count: 2,
         }),
       });
 
@@ -276,23 +266,21 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
 
       const data = await response.json();
-// Remove the old setGeneratedPosts line!
-const postsWithImages = await Promise.all(
-  (data.posts || []).map(async (post: Post) => {
-    if (!post.imageUrl) {
-      const imageUrl = await generateImage(post);
-      return { ...post, imageUrl };
-    }
-    return post;
-  })
-);
-setGeneratedPosts(
-  postsWithImages.map((post: Post) => ({
-    ...post,
-    defaultLink: activeTab === "url" ? url : undefined,
-    assignedBoard: selectedBoard, // <-- Save the selected board at generation time
-  }))
-);
+      const postsWithImages = await Promise.all(
+        (data.posts || []).map(async (post: Post) => {
+          if (!post.imageUrl) {
+            const imageUrl = await generateImage(post);
+            return { ...post, imageUrl };
+          }
+          return post;
+        })
+      );
+      setGeneratedPosts(
+        postsWithImages.map((post: Post) => ({
+          ...post,
+          defaultLink: activeTab === "url" ? url : undefined,
+        }))
+      );
       toast({
         title: "Posts Generated",
         description: `Successfully generated ${data.posts.length} Pinterest posts.`,
@@ -715,25 +703,18 @@ setGeneratedPosts(
     }
     return result;
   }
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }
 
   function downloadCSV() {
     if (!generatedPosts.length) return;
     const missingImages = generatedPosts.filter(post => !post.imageUrl);
-if (missingImages.length > 0) {
-  toast({
-    title: "Images Not Ready",
-    description: "Please wait for all images to generate before downloading CSV",
-    variant: "warning",
-  });
-  return;
-}
+    if (missingImages.length > 0) {
+      toast({
+        title: "Images Not Ready",
+        description: "Please wait for all images to generate before downloading CSV",
+        variant: "warning",
+      });
+      return;
+    }
     const randomDates = generateRandomUniqueDates(generatedPosts.length);
     const headers = [
       "Title",
@@ -744,24 +725,24 @@ if (missingImages.length > 0) {
       "Publish date",
     ];
     const rows = generatedPosts.map((post, idx) => {
-  const boardId = post.assignedBoard || pinterestBoards[0]?.id; // <-- Use assignedBoard
-  const boardName =
-    pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board";
-       // Make link unique with a random fragment
+      const boardId = selectedBoardForPosts[post.id] || pinterestBoards[0]?.id;
+      const boardName =
+        pinterestBoards.find((b) => b.id === boardId)?.name || "Weight Loss";
+      // Make link unique with a random fragment
       let link = postLinks[post.id] || post.defaultLink || "";
       if (link) {
         const frag = generateRandomFragment(10);
         link += `#${frag}`;
       }
-  return [
-    post.title,
-    post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
-    boardName,
-    post.description,
-    link,
-    randomDates[idx],
-  ];
-});
+      return [
+        post.title,
+        post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
+        boardName,
+        post.description,
+        link,
+        randomDates[idx],
+      ];
+    });
     const csvContent = [headers, ...rows]
       .map((row) =>
         row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
@@ -795,7 +776,7 @@ if (missingImages.length > 0) {
           {boardFetchError ? (
             <Alert
               variant={
-                boardFetchError === "You haven’t connected Pinterest yet."
+                boardFetchError === "You haven't connected Pinterest yet."
                   ? "default"
                   : "destructive"
               }
@@ -804,23 +785,23 @@ if (missingImages.length > 0) {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle
                 className={
-                  boardFetchError === "You haven’t connected Pinterest yet."
+                  boardFetchError === "You haven't connected Pinterest yet."
                     ? "text-gray-700"
                     : ""
                 }
               >
-                {boardFetchError === "You haven’t connected Pinterest yet."
+                {boardFetchError === "You haven't connected Pinterest yet."
                   ? "Pinterest Not Connected"
                   : "Error Fetching Boards"}
               </AlertTitle>
               <AlertDescription
                 className={
-                  boardFetchError === "You haven’t connected Pinterest yet."
+                  boardFetchError === "You haven't connected Pinterest yet."
                     ? "text-gray-600"
                     : ""
                 }
               >
-                {boardFetchError === "You haven’t connected Pinterest yet." ? (
+                {boardFetchError === "You haven't connected Pinterest yet." ? (
                   <>
                     Please connect your Pinterest account to continue.
                     <div className="mt-3">
@@ -1100,7 +1081,7 @@ if (missingImages.length > 0) {
             <Button
               className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
               onClick={handleGenerate}
-              disabled={isGenerating || !selectedBoard}
+              disabled={isGenerating}
             >
               {isGenerating ? (
                 <>
@@ -1270,7 +1251,7 @@ if (missingImages.length > 0) {
                     </Button>
                   </div>
 
-                  <div className="aspect-[9/6] relative">
+                  <div className="aspect-[9/16] relative">
                     {post.imageUrl ? (
                       <img
                         src={
@@ -1304,7 +1285,7 @@ if (missingImages.length > 0) {
                     <h3 className="font-semibold line-clamp-2 mb-2">
                       {post.title}
                     </h3>
-                     <ExpandableDescription description={post.description} />
+                    <ExpandableDescription description={post.description} />
                     <div className="flex gap-2">
                       <Button
                         className="flex-1 bg-teal-600 hover:bg-teal-700"
