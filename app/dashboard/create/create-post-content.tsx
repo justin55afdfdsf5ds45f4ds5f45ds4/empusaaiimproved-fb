@@ -257,7 +257,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           url: activeTab === "url" ? url : undefined,
           topic: activeTab === "scratch" ? topic : undefined,
           tone: activeTab === "scratch" ? tone : undefined,
-          count: 2,
+          count: parseInt(postCount, 10),
+          boardId: selectedBoard,
         }),
       });
 
@@ -725,9 +726,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       "Publish date",
     ];
     const rows = generatedPosts.map((post, idx) => {
-      const boardId = selectedBoardForPosts[post.id] || pinterestBoards[0]?.id;
+      // Use the board selected at generation time
       const boardName =
-        pinterestBoards.find((b) => b.id === boardId)?.name || "Weight Loss";
+        pinterestBoards.find((b) => b.id === selectedBoard)?.name || "Weight Loss";
       // Make link unique with a random fragment
       let link = postLinks[post.id] || post.defaultLink || "";
       if (link) {
