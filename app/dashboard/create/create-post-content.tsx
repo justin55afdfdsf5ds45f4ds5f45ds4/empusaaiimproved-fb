@@ -819,20 +819,22 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           <Alert variant="default">
             <AlertTitle>Loading free trial status...</AlertTitle>
           </Alert>
-        ) : freeTrialRemaining === 0 ? (
-          <Alert variant="destructive">
-            <AlertTitle>You have exhausted your free trial posts.</AlertTitle>
-            <AlertDescription>
-              <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Book a call to upgrade</a>
-            </AlertDescription>
-          </Alert>
         ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
-          <Alert variant="default">
-            <AlertTitle>Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</AlertTitle>
-            <AlertDescription>
-              Use your free posts to try out the platform. When you reach the limit, you can upgrade.
-            </AlertDescription>
-          </Alert>
+          freeTrialRemaining === 0 ? (
+            <Alert variant="destructive">
+              <AlertTitle>You have exhausted your free trial posts.</AlertTitle>
+              <AlertDescription>
+                <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Book a call to upgrade</a>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert variant="default">
+              <AlertTitle>Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</AlertTitle>
+              <AlertDescription>
+                Use your free posts to try out the platform. When you reach the limit, you can upgrade.
+              </AlertDescription>
+            </Alert>
+          )
         ) : null}
       </div>
 
