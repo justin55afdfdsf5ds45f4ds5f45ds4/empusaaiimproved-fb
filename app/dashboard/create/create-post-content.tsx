@@ -118,6 +118,28 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
   }, [initialUrl]);
 
+  const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(null);
+  const [freeTrialLimit, setFreeTrialLimit] = useState<number | null>(null);
+  const [freeTrialLoading, setFreeTrialLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFreeTrialStatus() {
+      setFreeTrialLoading(true);
+      try {
+        const res = await fetch("/api/user/free-trial-status");
+        const data = await res.json();
+        setFreeTrialRemaining(data.remaining);
+        setFreeTrialLimit(data.limit);
+      } catch (e) {
+        setFreeTrialRemaining(null);
+        setFreeTrialLimit(null);
+      } finally {
+        setFreeTrialLoading(false);
+      }
+    }
+    fetchFreeTrialStatus();
+  }, []);
+
   const fetchBoards = async () => {
     setIsFetchingBoards(true);
     setBoardFetchError(null);
@@ -228,6 +250,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   };
 
   const handleGenerate = async () => {
+    if (freeTrialRemaining !== null && parseInt(postCount, 10) > freeTrialRemaining) {
+      toast({
+        title: "Free Trial Limit Reached",
+        description: `You only have ${freeTrialRemaining} free trial post${freeTrialRemaining === 1 ? '' : 's'} remaining. Book a call to upgrade.`,
+        action: (
+          <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700 ml-2">Book a call</a>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+    if (freeTrialRemaining === 0) {
+      toast({
+        title: "Free Trial Exhausted",
+        description: "You have exhausted your free trial posts. Book a call to upgrade.",
+        action: (
+          <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700 ml-2">Book a call</a>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (activeTab === "url" && !url) {
       toast({
         title: "URL Required",
@@ -897,6 +942,20 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         </CardContent>
       </Card>
 
+      {/* Free trial remaining UI */}
+      <div className="mb-4">
+        {freeTrialLoading ? (
+          <span>Loading free trial status...</span>
+        ) : freeTrialRemaining === 0 ? (
+          <div className="bg-red-100 text-red-700 p-3 rounded flex flex-col items-center">
+            <span>You have exhausted your free trial posts.</span>
+            <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="mt-2 underline text-blue-700">Book a call to upgrade</a>
+          </div>
+        ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
+          <span className="text-sm text-gray-600">Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</span>
+        ) : null}
+      </div>
+
       {/* Form Section */}
       <Card>
         <CardHeader>
@@ -1082,7 +1141,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button
               className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
               onClick={handleGenerate}
-              disabled={isGenerating}
+              disabled={isGenerating || freeTrialRemaining === 0 || (freeTrialRemaining !== null && parseInt(postCount, 10) > freeTrialRemaining)}
             >
               {isGenerating ? (
                 <>

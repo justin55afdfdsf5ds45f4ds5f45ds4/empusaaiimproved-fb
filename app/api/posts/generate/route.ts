@@ -333,11 +333,12 @@ export async function POST(req: Request) {
     }
     const userId = session.user.id;
     const body = await req.json();
+    const { url, topic, tone = "informative", count = 2, boardId } = body;
+    const requestedCount = count;
     // Free trial enforcement
     if (await isFreeTrialUser(userId)) {
       const used = await getFreeTrialPostsUsed(userId);
       const limit = getFreeTrialLimit();
-      const requestedCount = body.count || 1;
       if (used >= limit) {
         return NextResponse.json({
           error: 'You have exhausted your free trial credits. Book a call here to work with us.',
@@ -346,12 +347,11 @@ export async function POST(req: Request) {
       }
       if (used + requestedCount > limit) {
         return NextResponse.json({
-          error: `You only have ${limit - used} free trial post${limit - used === 1 ? '' : 's'} left.`,
+          error: `You only have ${limit - used} free trial post${limit - used === 1 ? '' : 's'} remaining.`,
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
         }, { status: 403 });
       }
     }
-    const { url, topic, tone = "informative", count = 2, boardId } = body;
 
     console.log("Generating posts with:", { url, topic, count, tone });
 
@@ -359,8 +359,6 @@ export async function POST(req: Request) {
     const extractedKeywords = await extractKeywords(url, topic);
     const keywordsToUse =
       extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)]; // Ensure a string is always passed
-
-    const requestedCount = count;
 
     // Sets to track uniqueness
     const usedTitles: Set<string> = new Set();
