@@ -43,12 +43,14 @@ export async function incrementFreeTrialPostsAtomic(userId: string | ObjectId, c
   const client = await clientPromise;
   const db = client.db(DB_NAME);
   const userObjectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
-  const user = await db.collection(USERS_COLLECTION).findOne({ _id: userObjectId });
-  if (!user || !user.isFreeTrial) return false;
-  const used = user.freeTrialPostsUsed || 0;
-  if (used + count > FREE_TRIAL_LIMIT) return false;
+  // Ensure freeTrialPostsUsed is initialized to 0 if missing
+  await db.collection(USERS_COLLECTION).updateOne(
+    { _id: userObjectId, isFreeTrial: true, freeTrialPostsUsed: { $exists: false } },
+    { $set: { freeTrialPostsUsed: 0 } }
+  );
+  // Atomically increment if under the limit
   const result = await db.collection(USERS_COLLECTION).updateOne(
-    { _id: userObjectId, freeTrialPostsUsed: used },
+    { _id: userObjectId, isFreeTrial: true, freeTrialPostsUsed: { $lt: FREE_TRIAL_LIMIT } },
     { $inc: { freeTrialPostsUsed: count } }
   );
   return result.modifiedCount === 1;
