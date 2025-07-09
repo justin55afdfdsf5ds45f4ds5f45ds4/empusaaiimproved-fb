@@ -45,4 +45,4 @@ export async function hasExhaustedFreeTrial(userId: string | ObjectId) {
 
 export function getFreeTrialLimit() {
   return FREE_TRIAL_LIMIT;
-} 
+}
