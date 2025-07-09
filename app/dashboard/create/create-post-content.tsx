@@ -1000,17 +1000,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       onChange={(e) => setUrl(e.target.value)}
                     />
                   </div>
-                  <Select value={postCount} onValueChange={setPostCount}>
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="10 posts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 posts</SelectItem>
-                      <SelectItem value="10">10 posts</SelectItem>
-                      <SelectItem value="15">15 posts</SelectItem>
-                      <SelectItem value="20">20 posts</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {/* Remove the post count dropdown from URL tab */}
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Info className="h-3 w-3" />
@@ -1135,27 +1125,14 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="count">Number of Posts</Label>
-                  <Select value={postCount} onValueChange={setPostCount}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="10 posts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 posts</SelectItem>
-                      <SelectItem value="10">10 posts</SelectItem>
-                      <SelectItem value="15">15 posts</SelectItem>
-                      <SelectItem value="20">20 posts</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Remove the post count dropdown from scratch tab */}
               </div>
             </TabsContent>
 
             <Button
               className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
               onClick={handleGenerate}
-              disabled={isGenerating || freeTrialRemaining === 0 || (freeTrialRemaining !== null && parseInt(postCount, 10) > freeTrialRemaining)}
+              disabled={isGenerating || freeTrialRemaining === 0}
             >
               {isGenerating ? (
                 <>
