@@ -9,10 +9,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const userId = session.user.id;
-  if (!(await isFreeTrialUser(userId))) {
-    return NextResponse.json({ remaining: null, limit: null });
+  let used = 0;
+  let limit = getFreeTrialLimit();
+  if (await isFreeTrialUser(userId)) {
+    used = await getFreeTrialPostsUsed(userId);
   }
-  const used = await getFreeTrialPostsUsed(userId);
-  const limit = getFreeTrialLimit();
   return NextResponse.json({ remaining: Math.max(0, limit - used), limit });
 }
