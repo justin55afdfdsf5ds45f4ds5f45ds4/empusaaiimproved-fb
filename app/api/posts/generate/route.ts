@@ -6,8 +6,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import Replicate from "replicate";
 import { uploadImageBase64 } from "@/lib/cloudinary1";
-import sharp from "sharp";
-import fetch from "node-fetch";
 import { isFreeTrialUser, getFreeTrialPostsUsed, incrementFreeTrialPosts, hasExhaustedFreeTrial, getFreeTrialLimit } from '@/lib/freeTrial';
 
 const replicate = new Replicate({
@@ -325,6 +323,9 @@ function cleanLLMOutput(text: string): string {
 }
 
 export async function POST(req: Request) {
+  // Dynamically import sharp and node-fetch inside the handler
+  const sharp = (await import("sharp")).default;
+  const fetch = (await import("node-fetch")).default;
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.id) {
@@ -463,37 +464,6 @@ export async function POST(req: Request) {
       for (let i = 0; i < posts.length; i++) {
         await incrementFreeTrialPosts(userId);
       }
-    }
-
-    // Uniqueness enforcement after generation
-    const maxRetries = 5;
-    let retry = 0;
-    while (retry < maxRetries) {
-      let titles = posts.map(p => p.title);
-      let descriptions = posts.map(p => p.description);
-      let titleSet = new Set();
-      let descSet = new Set();
-      let duplicateTitleIndexes: number[] = [];
-      let duplicateDescIndexes: number[] = [];
-      titles.forEach((t, i) => {
-        if (titleSet.has(t)) duplicateTitleIndexes.push(i);
-        else titleSet.add(t);
-      });
-      descriptions.forEach((d, i) => {
-        if (descSet.has(d)) duplicateDescIndexes.push(i);
-        else descSet.add(d);
-      });
-      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break;
-      // Regenerate duplicates
-      for (const i of duplicateTitleIndexes) {
-        const usedTitles = posts.map(p => p.title);
-        posts[i].title = await generateTitle(keywordsToUse, `Here are all the titles already used: [${usedTitles.join('; ')}]. Generate a new, unique title that is not in this list.`);
-      }
-      for (const i of duplicateDescIndexes) {
-        const usedDescs = posts.map(p => p.description);
-        posts[i].description = await generateDescription(keywordsToUse, `Here are all the descriptions already used: [${usedDescs.join('; ')}]. Generate a new, unique description that is not in this list.`);
-      }
-      retry++;
     }
 
     console.log(`Generated ${posts.length} posts`);
