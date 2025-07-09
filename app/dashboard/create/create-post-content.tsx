@@ -813,6 +813,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
   return (
     <>
+      {/* Free trial remaining prominent alert */}
+      <div className="mb-4">
+        {freeTrialLoading ? (
+          <Alert variant="default">
+            <AlertTitle>Loading free trial status...</AlertTitle>
+          </Alert>
+        ) : freeTrialRemaining === 0 ? (
+          <Alert variant="destructive">
+            <AlertTitle>You have exhausted your free trial posts.</AlertTitle>
+            <AlertDescription>
+              <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Book a call to upgrade</a>
+            </AlertDescription>
+          </Alert>
+        ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
+          <Alert variant="default">
+            <AlertTitle>Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</AlertTitle>
+            <AlertDescription>
+              Use your free posts to try out the platform. When you reach the limit, you can upgrade.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+      </div>
+
       {/* Pinterest Board Selection */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
@@ -947,20 +970,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           )}
         </CardContent>
       </Card>
-
-      {/* Free trial remaining UI */}
-      <div className="mb-4">
-        {freeTrialLoading ? (
-          <span>Loading free trial status...</span>
-        ) : freeTrialRemaining === 0 ? (
-          <div className="bg-red-100 text-red-700 p-3 rounded flex flex-col items-center">
-            <span>You have exhausted your free trial posts.</span>
-            <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="mt-2 underline text-blue-700">Book a call to upgrade</a>
-          </div>
-        ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
-          <span className="text-sm text-gray-600">Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</span>
-        ) : null}
-      </div>
 
       {/* Form Section */}
       <Card>
