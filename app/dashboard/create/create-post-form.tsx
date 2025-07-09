@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, RefreshCw } from "lucide-react"
+import Link from "next/link"
 
 interface Board {
   id: string
@@ -43,6 +44,9 @@ export function CreatePostForm() {
   const [boards, setBoards] = useState<Board[]>([])
   const [selectedBoard, setSelectedBoard] = useState<string>("")
   const [activeTab, setActiveTab] = useState(initialUrl ? "url" : "topic")
+  const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(null)
+  const [freeTrialLimit, setFreeTrialLimit] = useState<number | null>(null)
+  const [freeTrialLoading, setFreeTrialLoading] = useState(true)
 
   // Set initial URL from search params
   useEffect(() => {
@@ -84,6 +88,24 @@ export function CreatePostForm() {
       fetchBoards()
     }
   }, [status, toast])
+
+  useEffect(() => {
+    async function fetchFreeTrialStatus() {
+      setFreeTrialLoading(true)
+      try {
+        const res = await fetch("/api/user/free-trial-status")
+        const data = await res.json()
+        setFreeTrialRemaining(data.remaining)
+        setFreeTrialLimit(data.limit)
+      } catch (e) {
+        setFreeTrialRemaining(null)
+        setFreeTrialLimit(null)
+      } finally {
+        setFreeTrialLoading(false)
+      }
+    }
+    fetchFreeTrialStatus()
+  }, [])
 
   const handleGeneratePosts = async () => {
     try {
@@ -212,6 +234,19 @@ export function CreatePostForm() {
 
   return (
     <div className="space-y-6">
+      {/* Free trial remaining UI */}
+      <div className="mb-4">
+        {freeTrialLoading ? (
+          <span>Loading free trial status...</span>
+        ) : freeTrialRemaining === 0 ? (
+          <div className="bg-red-100 text-red-700 p-3 rounded flex flex-col items-center">
+            <span>You have exhausted your free trial posts.</span>
+            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="mt-2 underline text-blue-700">Book a call to upgrade</Link>
+          </div>
+        ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
+          <span className="text-sm text-gray-600">Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</span>
+        ) : null}
+      </div>
       <Card>
         <CardContent className="pt-6">
           <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
@@ -250,7 +285,7 @@ export function CreatePostForm() {
           </Tabs>
 
           <div className="mt-6">
-            <Button onClick={handleGeneratePosts} disabled={isGenerating} className="w-full">
+            <Button onClick={handleGeneratePosts} disabled={isGenerating || freeTrialRemaining === 0} className="w-full">
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

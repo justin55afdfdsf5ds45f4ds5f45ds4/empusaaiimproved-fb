@@ -332,16 +332,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
+    const body = await req.json();
     // Free trial enforcement
     if (await isFreeTrialUser(userId)) {
-      if (await hasExhaustedFreeTrial(userId)) {
+      const used = await getFreeTrialPostsUsed(userId);
+      const limit = getFreeTrialLimit();
+      const requestedCount = body.count || 1;
+      if (used >= limit) {
         return NextResponse.json({
           error: 'You have exhausted your free trial credits. Book a call here to work with us.',
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
         }, { status: 403 });
       }
+      if (used + requestedCount > limit) {
+        return NextResponse.json({
+          error: `You only have ${limit - used} free trial post${limit - used === 1 ? '' : 's'} left.`,
+          bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
+        }, { status: 403 });
+      }
     }
-    const body = await req.json();
     const { url, topic, tone = "informative", count = 2, boardId } = body;
 
     console.log("Generating posts with:", { url, topic, count, tone });
