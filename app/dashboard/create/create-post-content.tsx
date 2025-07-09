@@ -252,17 +252,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   };
 
   const handleGenerate = async () => {
-    if (freeTrialRemaining !== null && parseInt(postCount, 10) > freeTrialRemaining) {
-      toast({
-        title: "Free Trial Limit Reached",
-        description: `You only have ${freeTrialRemaining} free trial post${freeTrialRemaining === 1 ? '' : 's'} remaining. Book a call to upgrade.`,
-        action: (
-          <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700 ml-2">Book a call</a>
-        ),
-        variant: "destructive",
-      });
-      return;
-    }
     if (freeTrialRemaining === 0) {
       toast({
         title: "Free Trial Exhausted",
