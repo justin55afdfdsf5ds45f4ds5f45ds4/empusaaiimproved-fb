@@ -57,8 +57,6 @@ export default function SocialSettingsPage() {
 
     if (status === "authenticated") {
       checkPinterestConnection()
-    } else if (status === "unauthenticated") {
-      router.push("/login?callbackUrl=/dashboard/settings/social")
     }
   }, [status, router])
 

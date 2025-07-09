@@ -5,6 +5,11 @@ import clientPromise from "@/lib/mongodb";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import Replicate from "replicate";
+import { uploadImageBase64 } from "@/lib/cloudinary1";
+import sharp from "sharp";
+import fetch from "node-fetch";
+import { isFreeTrialUser, getFreeTrialPostsUsed, incrementFreeTrialPosts, hasExhaustedFreeTrial, getFreeTrialLimit } from '@/lib/freeTrial';
+
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -24,6 +29,9 @@ const TOPICS = [
   "diy",
 ];
 
+
+
+
 // --- REMOVED: ADJECTIVES, ADJECTIVES_FOR_TITLES, VISUAL_STYLES, MOODS_AND_COLORS, COMPOSITIONS ---
 // These lists are no longer needed here because the LLM will dynamically generate these elements
 // based on the sophisticated prompts..
@@ -35,7 +43,7 @@ async function callLlama3(
 ): Promise<string> {
   const fullPrompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n${userPrompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n`;
 
-  const output = await replicate.run("meta/meta-llama-3-8b-instruct", {
+  const output = await replicate.run("openai/gpt-4o-mini", {
     input: {
       prompt: fullPrompt,
       max_new_tokens: 512, // Increased token limit for more detailed responses
@@ -47,105 +55,186 @@ async function callLlama3(
 }
 
 // Function to generate a title using Llama-3 with advanced prompt engineering
-async function generateTitle(keywords: string): Promise<string> {
-  const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert. do never generate the same title or description twice, make it uniqe and different each time. Your goal is to generate a compelling title for an image, specifically optimized to drive high traffic and virality on Pinterest. The title should be catchy, action-oriented, and include relevant keywords. You must output ONLY the title string, without any additional text or formatting.`;
+async function generateTitle(keywords: string, hint?: string): Promise<string> {
+  const systemPrompt = `You are a highly skilled Pinterest content creator and SEO expert.
 
-  const userPrompt = `Generate a title based on these keywords: "${keywords}".
-    
-    Consider:
-    - Incorporating high-traffic keywords.
-    - Crafting a catchy, action-oriented title.
-    - Aim for conciseness and strong visual appeal in the text.
-    - If appropriate`;
+Your task is to write a **catchy, action-oriented, keyword-rich title** for a Pinterest image post.
+
+🔒 RULES (always follow):
+- Always include **powerful action words.
+- Always make the title **clear, benefit-focused**, and **clickable** — it should create curiosity or promise a result.
+- Always include **relevant keywords** that users are likely to search (SEO intent).
+- Always make the title **unique** — never repeat or copy previous outputs, even if the topic is similar.
+- Always keep the title between **5–12 words**, concise and easy to read.
+
+🎯 GOAL:
+Drive high Pinterest engagement (clicks, saves, shares) and perform well in search.
+
+🚫 NEVER:
+- Never include punctuation unless needed (no “!”, “.” unless essential).
+- Never include hashtags, emojis, formatting, or extra notes.
+- Never write generic, vague, or flat phrases.
+- Never output anything except the **title string**.
+- do not use the word "transform" at all.
+- do not use the word "Unlock" at all.
+- do not use the word "Shed" at all.
+- do not use the word "Crush" at all.
+- do not use the sign colon at all.
+- do not use the sign comma at all.
+- do not use the word "Embrace" at the start at all.
+- do not use the word "Unleash " at the start at all.
+- do not use the sign ":" colon at all.
+- Get the information from the provided headlines and pick any of those to craft the title each time unique.
+- do not use the sign ":" colon at all i am repeatedly saying it so listen to it and follow.
+- You will always use the given titles and headlines as a title for the title big headline or title. use title from the given titles, just fetct and add 1 or two words of your own..
+- You should not give "here is the title" phrases or any formal AI words like you're saying here is the thing you should not do that instead you should only provide the original title and nothing else of you saying anything.
+- You should not say "Here is a catchy, action-oriented" or anything formal words, instruction from you that here is the title, you should only give the original title and not overlay text of you saying anything.
+
+
+- do not use the phrase "Discover the ultimate guide" as a whole but you can use each letters without combining them.
+- do not use the phrase "Discover the power" as a whole but you can use each letters without combining them.
+- do not use the phrase "Get ready to be inspired!" as a whole but you can use each letters without combining them.
+- do not use the phrase "Discover the secret to" as a whole but you can use each letters without combining them.
+- do not use the phrase "Learn the secrets" as a whole but you can use each letters without combining them.
+- do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
+Only output the final **title string** — no explanation, no formatting.
+don't make the title too long that you need comma to support the phrase because you should never use comma
+don't use colan at all in the title, we are not using colan at all
+
+.`;
+
+  let userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${keywords}".`;
+  if (hint) {
+    userPrompt += `\n\n${hint}`; // Prepend hint to user prompt
+  }
+  userPrompt += `\n\n" "`;
 
   try {
     const title = await callLlama3(systemPrompt, userPrompt);
-    return title.replace(/"/g, ""); // Remove any lingering quotes if the model outputs them
+    return cleanLLMOutput(title.replace(/"/g, "")); // Clean LLM tokens and stars
   } catch (error) {
     console.error("Error generating title with Llama-3:", error);
     // Fallback to a simpler, template-based title if LLM fails
     const primaryKeyword =
       keywords.split(",")[0]?.trim() ||
       TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    return `Amazing ${primaryKeyword} Ideas for Your Next Project`;
+    return ` ${primaryKeyword} `;
   }
 }
 
 // Function to generate a description using Llama-3 with advanced prompt engineering
-async function generateDescription(keywords: string): Promise<string> {
-  const systemPrompt = `You are an expert Pinterest content strategist and copywriter. do never generate description same everytime or similar to the before one. Your task is to generate a keyword-rich, engaging description for a Pinterest image. The description should be benefit-driven, encourage clicks and saves, and include relevant hashtags and a call-to-action. You must output ONLY the description string, without any additional text or formatting.`;
+async function generateDescription(keywords: string, hint?: string): Promise<string> {
+  const systemPrompt = `You are an expert Pinterest content strategist and copywriter.
 
-  const userPrompt = `Generate a description based on these keywords: "${keywords}".
-    
-    Consider:
-    - Weaving in primary and secondary keywords naturally.
-    - Highlighting benefits or solutions.
-    - Adding relevant hashtags (e.g., #topicideas #diyprojects #trends).
-    - Including a clear call-to-action (e.g.,"Click to learn more").
-    - Keep it concise and impactful, ideally 2-6 sentences.`;
+Your task is to write a **concise, engaging, keyword-rich description** for a Pinterest post based on a given title and image topic.
+
+🔒 RULES (always follow):
+- Always **repeat key phrases** from the title in the description (especially the core benefit and action keywords).
+- Always **highlight the main benefit** clearly — what the viewer will learn or gain.
+- Always write in a **human, minimal, and conversational tone** — no robotic language.
+- Always make each description **unique** — never repeat the same wording or phrasing across prompts.
+- Always include a **soft call to action** (e.g., “Try it now,” “Read more,” “Save this pin”).
+- Always include **1–3 relevant hashtags** at the end (e.g., #weightloss #fitness #healthyliving).
+- Always keep the description **easy to scan**, **clean**, and **not more than 3–4 lines**.
+
+🚫 NEVER:
+- Never add extra formatting (no bullets, no bold, no markdown).
+- Never write off-topic or include information not related to the title.
+- Never use clickbait or false promises.
+- Never start with “This post…” or similar meta language.
+- do not use the word "transform" at all.
+- do not use the word "Shed" at all.
+- do not use the word "Join Me" at all.
+- do not use the word "Crush" at all.
+- do not use the word "Unlock" at all.
+- do not use the word "Embrace" at the start at all.
+- do not use the word "Unleash " at the start at all.
+- i am kept repeating to not give any overlay text like "Here is a concise, engaging, and keyword-rich description:" only give the description itself.
+- You should not say "Here is a catchy, action-oriented" or anything formal words, instruction from you that here is the description, you should only give the original description and not overlay text of you saying anything.
+- You should not give "here is the description" phrases or any formal AI words like you're saying here is the thing you should not do that instead you should only provide the original description and nothing else of you saying anything.
+- You will always use the given titles and headlines as a consice information for the description big headline or title. use information from the given titles.
+- Get the information from the provided headlines and pick any of those to craft the description each time unique.
+
+
+
+- do not use the sign comma at all.
+- do not use the word "Unlock" at in the start.
+- do not use the sign colon at all.
+- do not use the sign ":" colon at all.
+- do not use the phrase "Unlock the Power" at all in the start"
+- do not use the phrase "Get ready to" as a whole but you can use each letters without combining them.
+- do not use the phrase "Discover the ultimate guide" as a whole but you can use each letters without combining them.
+- do not use the word "Discover" at the start of the description, but you are feel free to use anywhere but at the start.
+- do not use the word "Unlock" at the start of the description at all, you should know that to never use the word at the start
+- do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
+
+Only output the **final description string**, nothing else.
+`;
+
+  let userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${keywords}".`;
+  if (hint) {
+    userPrompt += `\n\n${hint}`; // Prepend hint to user prompt
+  }
+  userPrompt += `\n\n" "`;
 
   try {
     const description = await callLlama3(systemPrompt, userPrompt);
-    return description.replace(/"/g, ""); // Remove any lingering quotes
+    return cleanLLMOutput(description.replace(/"/g, "")); // Clean LLM tokens and stars
   } catch (error) {
     console.error("Error generating description with Llama-3:", error);
     // Fallback to a simpler, template-based description if LLM fails
     const primaryKeyword =
       keywords.split(",")[0]?.trim() ||
       TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    return `Discover amazing ${primaryKeyword} ideas that will transform your approach. Save this pin for later!`;
+    return ` ${primaryKeyword} `;
   }
 }
 
 // Function to generate an image prompt using Llama-3 with advanced prompt engineering
 async function generateImagePrompt(keywords: string): Promise<string> {
-  const systemPrompt = `You are an expert Pinterest image creator. Your task is to generate a single Pinterest-style image prompt that is:
+  const systemPrompt = `You are an expert Pinterest image prompt creator. Your job is to write a single-line prompt for a text-to-image AI model like ideogram-v2-turbo. The image should be a vertical Pinterest-style poster with the following qualities:
 
-Minimalist in design
+- Always use headline text that you will use from keywords that will be provided to you, so in prompt always say to the model to use that headline with 5-6 eye catching words in the top in a creative yet minimalist way
+- The prompt must include a minimal visual layout: one clean central subject, soft or solid background, centered composition
+- The overall design should be simple, modern, and scroll-stopping — no clutter, no complexity, no over-detailing
+- Use flat illustration, digital vector style, or futuristic clean visuals
+- The layout should always be vertical (2:3 ratio), like a Pinterest pin
+- do not use any trademark logos or name.
+- So do not use too much long image headline/title that will be in the image, make them short as possible but informative.
+- Do not include fonts, color codes, or layout instructions — only describe the look and feel
+- Always mention that this prompt is for pinterest post
+- do not include any formal or overlay text like these - "Here is a Pinterest image prompt for the given keywords, Here is a Pinterest image prompt for the given keywords:" instead just give the final prompt
+- always look into keywords and the information provided to you so you can craft the best prompt and always feature the core words as eye catching 5-6 words headline
+- Always say in the prompt that is should be minimalist and creative with text so it can become eye catching image
+- the 5-6 words of headline should be minimalist but it's text should be bold and eye catching, creative.
+- when you give headline in the prompt as specefic to put in the image then give in "" so it can distinct and understood by the image gen model
+-✅ Always put a **bold, headline-style text** at the top or center of the image. 
+  → This must be short, clear (7–8 words max), and exactly what the image is about. 
 
-Clear in message
+- ✅ Always put a **single centered subject** — either a photo or illustration — that directly supports the text. 
 
-Creative but simple
+- ✅ Always put a **clean, minimalist layout** with **soft, solid, or gradient background** (no clutter, no harsh contrast, no busy textures).
 
-Optimized to drive clicks
+- ✅ Always put the image in a **2:3 vertical Pinterest format**, optimized for mobile viewing.
 
-Instructions:
+- ✅ Always put a **scroll-stopping aesthetic** with high readability, bold composition, and realistic design quality (well-lit, sharp subject, no distortion or cartoonish elements).
 
-Start with a Bold Headline/Text:
-Always begin the image with a clear, short title or headline (2–5 words) placed at the top or center of the image.
-✅ This text must clearly state what the content is about — no vagueness. Examples:
+- ✅ Always keep the style **modern, flat, or vector**, unless realism is requested by the topic.
+- ✅ Always put a 7-8 headline from related keywords in the image in an creative way.
+- ✅ Always use the headline from the data provided to you and use headline as a top of the image headline
+- ✅ You are a very greedy salesman that always only reads information and generate prompt that will result in a image that tells the people about just making them click somehow by indirectly using the best headlines and eye catching phrases to attract them and make them click the image 
+- You will always use the given titles and headlines as a title for the image big headline or title. use information from the given titles.
+Only output 4 line of prompt. No explanation. No formatting.
+`;
 
-“Study Plan That Works”
-
-“Instagram Growth Tips”
-
-“5-Min Healthy Meals”
-
-“Sleep Better at Night”
-
-Design Style:
-Use minimalist flat or digital design — soft background, modern clean font, central subject, no clutter, and lots of white space.
-
-Visuals:
-Use a single, relevant object or icon that clearly supports the headline. Either literal (e.g., bed for sleep tips) or symbolic (e.g., clock for time management).
-
-Mood & Layout:
-Soft colors, vertical layout (2:3), centered design, Pinterest-worthy, aesthetic.
-
-No Extras:
-Do NOT include complex details, busy backgrounds, or too many elements. Keep it clean, clear, and scroll-stopping.
-
-Output Format:
-One single-line prompt. No markdown, no notes, no formatting — just the image prompt itself. .`;
-
-  const userPrompt = `Generate one detailed image prompt for a Pinterest post based on these keywords: "${keywords}".`;
+  const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${keywords}".`;
 
   try {
     const generatedPrompt = await callLlama3(systemPrompt, userPrompt);
     // Ensure the negative prompt is always appended. If the LLM already included it, fine.
     // If not, add a standard one.
     const negativePrompt =
-      "blurry, low resolution, bad anatomy, deformed, disfigured, poor lighting, text, watermark, signature, ugly, tiling, duplicate, worst quality, low quality, pixelated, error, out of frame, out of focus, noisy, cartoon, 3d, render, painting, drawing, cropped, distortion, surreal, abstract, over-saturated, mundane, boring";
+      " ";
 
     // Check if the generated prompt already contains a --neg part
     if (!generatedPrompt.includes("--neg")) {
@@ -204,7 +293,7 @@ async function extractKeywords(
       if (!pageText.trim()) throw new Error("No usable content from Firecrawl");
 
       // --- IMPROVED SYSTEM PROMPT FOR KEYWORD EXTRACTION (FROM PREVIOUS ROUND) ---
-      const sysPrompt = `As an expert SEO analyst and data extractor, your task is to meticulously analyze the provided web page content. Your primary objective is to identify the core topics discussed and then, based on these themes, generate a comprehensive list of specific, intent-focused long-tail keywords. These keywords should be detailed, often three or more words, and should reflect natural user queries, including question-based and problem-oriented searches. For the top 5-10 most significant long-tail keywords you identify, you must extract a corresponding concise text snippet from the source that directly answers or relates to that keyword. Following this, you will group all generated long-tail keywords into logical categories based on the content's main themes. Finally, provide a brief, bulleted summary of the most critical information, key takeaways, statistics, or actionable advice found on the page. The entire output must be analytical, data-driven, and structured with clear headings for "Core Topics," "Long-Tail Keywords" by category, "Top Long-Tail Keywords and Relevant Snippets," and "Key Information Summary," while ensuring the total response remains under 2000 words..`;
+      const sysPrompt = `you are a greedy salesman that exctract headline of the information in the webpage and always provide the headline first and then a summery of what the page is all about and nothing else and you keep the output in only 800 words. and always make sure you give a headline tag and then tell what is the headline of the page specifically. always present the big headings of the page first that are in bold big letters and the heading 1 the big headings the title of the page. you are a salesman that always wants the visitor to visit the page you extract and that's why you always need to give the other salesman the information about the page in a way so he can craft the best marketing to market the site to get traffic, you never miss any key information that can result in a mislead information about the what the webpage is all about. your job is the first is always to first extract the first heading of the page no matter what you always extract that first the big first heading the main heading, you need to always make sure that you give 15-20 big headlines of what the blog is blog and each should be distinct from each other because you are a greedy salesman and you don't want anyone to see that one boring headline each time and that's why you not only get that big headline but also it's content to generate headlines of the base content inside the webpage and you always do this because you are the best salesman in the world so you never miss anything, your mission is to list out 15-20 headlines title that you extract from the webpage even if you don't find any big headlines to make up 15-20 headlines you always make sure you get the data from the body content and make up some 15-20 headlines from that instead`;
       // --- END IMPROVED SYSTEM PROMPT ---
 
       const userPrompt = pageText.slice(0, 8000); // Limit user prompt to 8000 characters
@@ -235,10 +324,65 @@ const FALLBACK_IMAGE_URLS = [
   "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&h=1200&fit=crop",
 ];
 
+// Utility to clean LLM output (removes special tokens and Markdown stars)
+function cleanLLMOutput(text: string): string {
+  // Remove LLM special tokens like <|eot_id|>, <|begin_of_text|>, etc.
+  let cleaned = text.replace(/<\|.*?\|>/g, '');
+  // Remove leading/trailing stars and whitespace
+  cleaned = cleaned.replace(/^\*+|\*+$/g, '').trim();
+  return cleaned;
+}
+
+// TEST FUNCTION: Run this manually to check for duplicate titles/descriptions
+async function testUniqueness() {
+  const keywords = 'test, sample, pinterest, post';
+  const usedTitles = new Set();
+  const usedDescriptions = new Set();
+  const results = [];
+  for (let i = 0; i < 20; i++) {
+    const title = await generateTitle(keywords);
+    const description = await generateDescription(keywords);
+    results.push({ title, description });
+    usedTitles.add(title);
+    usedDescriptions.add(description);
+  }
+  const titleDupes = results.length - usedTitles.size;
+  const descDupes = results.length - usedDescriptions.size;
+  console.log('Unique titles:', usedTitles.size, 'of', results.length);
+  console.log('Unique descriptions:', usedDescriptions.size, 'of', results.length);
+  if (titleDupes > 0) {
+    console.log('DUPLICATE TITLES FOUND!');
+  }
+  if (descDupes > 0) {
+    console.log('DUPLICATE DESCRIPTIONS FOUND!');
+  }
+  if (titleDupes === 0 && descDupes === 0) {
+    console.log('All titles and descriptions are unique.');
+  }
+  // Optionally, print all results
+  // console.log(results);
+}
+// Uncomment to run the test
+// testUniqueness();
+
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+    // Free trial enforcement
+    if (await isFreeTrialUser(userId)) {
+      if (await hasExhaustedFreeTrial(userId)) {
+        return NextResponse.json({
+          error: 'You have exhausted your free trial credits. Book a call here to work with us.',
+          bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
+        }, { status: 403 });
+      }
+    }
     const body = await req.json();
-    const { url, topic, count = 10, tone = "informative" } = body;
+    const { url, topic, tone = "informative", count = 2, boardId } = body;
 
     console.log("Generating posts with:", { url, topic, count, tone });
 
@@ -249,29 +393,64 @@ export async function POST(req: Request) {
 
     const requestedCount = count;
 
-    const postPromises = Array.from({ length: requestedCount }).map(
-      async () => {
-        // Step 2: Generate title, description, and image prompt using Llama-3
-        const titlePromise = generateTitle(keywordsToUse);
-        const descriptionPromise = generateDescription(keywordsToUse);
-        const imagePromptPromise = generateImagePrompt(keywordsToUse);
+    // Step 1.5: Generate unique, creative headlines for each post
+    async function generateUniqueHeadlines(keywords: string, n: number): Promise<string[]> {
+      const systemPrompt = `You are a creative Pinterest marketer. Generate ${n} unique, creative, and distinct headlines for Pinterest posts based on the following keywords or topic. Each headline should be different in style, text, and focus. Do not repeat phrases or structure. Make them scroll-stopping, modern, and highly clickable. Output as a numbered list, one per line.`;
+      const userPrompt = `Keywords or topic: ${keywords}`;
+      const raw = await callLlama3(systemPrompt, userPrompt);
+      // Parse numbered list
+      return raw.split(/\n|\r/)
+        .map(line => line.replace(/^\d+\.?\s*/, '').trim())
+        .filter(Boolean)
+        .slice(0, n);
+    }
 
-        const [title, description, imagePrompt] = await Promise.all([
-          titlePromise,
-          descriptionPromise,
-          imagePromptPromise,
-        ]);
+    const headlines = await generateUniqueHeadlines(keywordsToUse, requestedCount);
+
+    const postPromises = Array.from({ length: requestedCount }).map(
+      async (_, idx) => {
+        // Use a unique headline for this post
+        const headline = headlines[idx] || keywordsToUse;
+        // Step 2: Generate title, description, and image prompt using the unique headline
+        const title = await generateTitle(headline);
+        const description = await generateDescription(headline);
+        const imagePrompt = await generateImagePrompt(headline);
 
         let imageUrl;
-
+        let cloudinaryUrl = null;
+        let cloudinaryPublicId = null;
         try {
-          imageUrl = await generateIdeogramV2TurboImage(imagePrompt);
+          imageUrl = await generateIdeogramV2TurboImage(imagePrompt, false); // get direct URL
+          // Download image and convert to base64
+          const imageResponse = await fetch(imageUrl);
+          const buffer = Buffer.from(await imageResponse.arrayBuffer());
+          // Convert to JPEG using sharp
+          const jpegBuffer = await sharp(buffer).jpeg().toBuffer();
+          const base64 = jpegBuffer.toString("base64");
+          const base64String = `data:image/jpeg;base64,${base64}`;
+          // Upload to Cloudinary (as JPEG)
+          const uploadResult = await uploadImageBase64(base64String, 'pinterest', 'jpg');
+          cloudinaryUrl = uploadResult.url;
+          cloudinaryPublicId = uploadResult.public_id;
+          // Store Cloudinary image info in DB for deletion automation
+          try {
+            const client = await clientPromise;
+            const db = client.db();
+            await db.collection('cloudinary_images').insertOne({
+              public_id: cloudinaryPublicId,
+              createdAt: new Date(),
+              deleted: false,
+            });
+          } catch (dbErr) {
+            console.error('Failed to record Cloudinary image in DB:', dbErr);
+          }
         } catch (error) {
-          console.error("Error generating image from Replicate:", error);
+          console.error("Error generating or uploading image:", error);
           imageUrl =
             FALLBACK_IMAGE_URLS[
               Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)
             ];
+          cloudinaryUrl = imageUrl;
         }
 
         return {
@@ -279,39 +458,51 @@ export async function POST(req: Request) {
           title,
           description,
           imagePrompt, // Store the generated image prompt for logging/debugging
-          imageUrl,
+          imageUrl: cloudinaryUrl,
+          cloudinaryPublicId,
         };
       }
     );
 
-    const posts = await Promise.all(postPromises);
+    let posts = await Promise.all(postPromises);
 
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // After successful generation, increment free trial usage
+    if (await isFreeTrialUser(userId)) {
+      for (let i = 0; i < posts.length; i++) {
+        await incrementFreeTrialPosts(userId);
+      }
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-
-    const user = await db
-      .collection("users")
-      .findOne({ email: session.user.email });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    posts.forEach(async (post) => {
-      await db.collection("posts").insertOne({
-        userId: user?._id,
-        postId: post.id,
-        title: post.title,
-        description: post.description || "",
-        imageUrl: post.imageUrl,
-        createdAt: new Date(),
+    // Uniqueness enforcement after generation
+    const maxRetries = 5;
+    let retry = 0;
+    while (retry < maxRetries) {
+      let titles = posts.map(p => p.title);
+      let descriptions = posts.map(p => p.description);
+      let titleSet = new Set();
+      let descSet = new Set();
+      let duplicateTitleIndexes: number[] = [];
+      let duplicateDescIndexes: number[] = [];
+      titles.forEach((t, i) => {
+        if (titleSet.has(t)) duplicateTitleIndexes.push(i);
+        else titleSet.add(t);
       });
-    });
+      descriptions.forEach((d, i) => {
+        if (descSet.has(d)) duplicateDescIndexes.push(i);
+        else descSet.add(d);
+      });
+      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break;
+      // Regenerate duplicates
+      for (const i of duplicateTitleIndexes) {
+        const usedTitles = posts.map(p => p.title);
+        posts[i].title = await generateTitle(keywordsToUse, `Here are all the titles already used: [${usedTitles.join('; ')}]. Generate a new, unique title that is not in this list.`);
+      }
+      for (const i of duplicateDescIndexes) {
+        const usedDescs = posts.map(p => p.description);
+        posts[i].description = await generateDescription(keywordsToUse, `Here are all the descriptions already used: [${usedDescs.join('; ')}]. Generate a new, unique description that is not in this list.`);
+      }
+      retry++;
+    }
 
     console.log(`Generated ${posts.length} posts`);
 

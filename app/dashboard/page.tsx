@@ -4,10 +4,10 @@ import { redirect } from "next/navigation"
 import DashboardWrapper from "./DashboardWrapper"
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    redirect("/login")
-  }
+  // const session = await getServerSession(authOptions)
+  // if (!session) {
+  //   redirect("/login")
+  // }
 
   return <DashboardWrapper />
 }

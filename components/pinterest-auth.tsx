@@ -2,18 +2,24 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { signIn } from "next-auth/react"
 import { PinIcon } from "lucide-react"
 
 export function PinterestAuth() {
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleConnect = async () => {
+  // Custom Pinterest OAuth handler
+  const handlePinterestConnect = async () => {
     setIsLoading(true)
     try {
-      await signIn("pinterest", { callbackUrl: "/dashboard" })
-    } catch (error) {
-      console.error("Error connecting to Pinterest:", error)
+      const res = await fetch("/api/pinterest/connect");
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to initiate Pinterest connection.");
+      }
+    } catch (err) {
+      alert("Failed to initiate Pinterest connection.");
     } finally {
       setIsLoading(false)
     }
@@ -23,7 +29,7 @@ export function PinterestAuth() {
     <Button
       variant="default"
       className="bg-red-600 hover:bg-red-700 text-white"
-      onClick={handleConnect}
+      onClick={handlePinterestConnect}
       disabled={isLoading}
     >
       {isLoading ? (

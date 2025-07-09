@@ -40,54 +40,16 @@ export default function LoginPage() {
     )
   }
 
+  // Bypass: always redirect to dashboard on submit
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    router.replace("/dashboard");
+  };
 
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      })
-
-      if (result?.error) {
-        toast({
-          title: "Authentication Error",
-          description: result.error,
-          variant: "destructive",
-        })
-      } else if (result?.ok) {
-        router.replace("/dashboard")
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
+  // Bypass: always redirect to dashboard on Google sign-in
   const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true)
-      await signIn("google", { 
-        callbackUrl: "/dashboard",
-        redirect: true
-      })
-    } catch (error) {
-      console.error("Google sign-in error:", error)
-      toast({
-        title: "Authentication Error",
-        description: "Failed to sign in with Google. Please try again.",
-        variant: "destructive",
-      })
-      setIsLoading(false)
-    }
-  }
+    router.replace("/dashboard");
+  };
 
   return (
     <div className="min-h-screen flex flex-col">

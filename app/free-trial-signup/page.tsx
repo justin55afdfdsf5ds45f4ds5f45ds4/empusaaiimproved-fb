@@ -1,35 +1,70 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { signIn } from "next-auth/react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { signIn } from "next-auth/react"
 
-export default function SignupPage() {
+export default function FreeTrialSignupPage() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.replace("/dashboard")
+    setError("")
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/auth/free-trial-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        // Automatically sign in the user after successful signup
+        const signInRes = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        })
+        if (signInRes?.ok) {
+          toast({
+            title: "Free Trial Activated!",
+            description: "You have 100 posts to create. Enjoy your free trial!",
+          })
+          router.replace("/dashboard")
+        } else {
+          setError("Signup succeeded but login failed. Please log in manually.")
+        }
+      } else {
+        setError(data.error || "Signup failed")
+      }
+    } catch (err) {
+      setError("Something went wrong")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleSignIn = async () => {
-    router.replace("/dashboard")
+    // For free trial, Google sign-in is not implemented
+    setError("Google sign-in is not available for free trial.")
   }
 
   return (
@@ -53,8 +88,8 @@ export default function SignupPage() {
       <main className="flex-1 flex items-center justify-center p-4 bg-gray-50">
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold">Create your account</h1>
-            <p className="text-gray-500 mt-2">Join Empusa AI to start creating content</p>
+            <h1 className="text-2xl font-bold">Create your free trial account</h1>
+            <p className="text-gray-500 mt-2">Sign up to get 100 free post credits</p>
           </div>
 
           <Button
@@ -88,6 +123,8 @@ export default function SignupPage() {
           <Separator className="my-6">
             <span className="mx-2 text-xs text-gray-400">OR</span>
           </Separator>
+
+          {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -158,7 +195,7 @@ export default function SignupPage() {
             </div>
 
             <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? "Creating account..." : "Create free trial account"}
             </Button>
           </form>
 
@@ -166,7 +203,7 @@ export default function SignupPage() {
             <p className="text-sm text-gray-500">
               Already have an account?{" "}
               <Link
-                href="/aksdjbaskdaskdbasjkdakdnaskdowhoh6166461311331"
+                href="/free-trial-signup"
                 className="text-teal-600 hover:text-teal-700 font-medium"
               >
                 Log in
@@ -184,4 +221,4 @@ export default function SignupPage() {
       <Toaster />
     </div>
   )
-}
+} 

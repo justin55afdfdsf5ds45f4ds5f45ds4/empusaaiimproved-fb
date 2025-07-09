@@ -458,6 +458,64 @@ export default function PostsPage() {
     return "00:00"
   }
 
+  // CSV Download logic
+  function generateRandomUniqueDates(count: number): string[] {
+    const now = new Date();
+    const sevenDaysLater = new Date(now);
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    const usedTimestamps = new Set<number>();
+    const dates: string[] = [];
+    while (dates.length < count) {
+      const randomTime = now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime());
+      const rounded = Math.floor(randomTime / 1000) * 1000; // round to nearest second
+      if (!usedTimestamps.has(rounded)) {
+        usedTimestamps.add(rounded);
+        const d = new Date(rounded);
+        dates.push(d.toISOString().slice(0, 19)); // 'YYYY-MM-DDTHH:MM:SS'
+      }
+    }
+    return dates;
+  }
+
+  function downloadCSV() {
+    if (!posts.length) return;
+    const randomDates = generateRandomUniqueDates(posts.length);
+    const headers = [
+      "Title",
+      "Media URL",
+      "Pinterest board",
+      "Description",
+      "Link",
+      "Publish date",
+    ];
+    const rows = posts.map((post, idx) => {
+      // Get the board ID for this post (adjust the state name if needed)
+      const boardId = selectedPostForModal[post.id] || pinterestBoards[0]?.id;
+      // Find the board name
+      const boardName = pinterestBoards.find(b => b.id === boardId)?.name || "Weight Loss";
+      return [
+        post.title,
+        post.imageUrl && !post.imageUrl.startsWith('data:') ? post.imageUrl : '',
+        boardName,
+        post.description,
+        postLinks[post.id] || post.defaultLink || "",
+        randomDates[idx],
+      ];
+    });
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pinterest-posts-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       <div className="bg-green-100 text-green-800 p-3 text-center text-sm mb-6 rounded-md">
@@ -465,7 +523,10 @@ export default function PostsPage() {
         Posts generated here are temporarily stored and will be cleared after 24 hours. Please publish or schedule them.
       </div>
 
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-2">
+        <Button onClick={downloadCSV} disabled={posts.length === 0} variant="outline">
+          Download CSV
+        </Button>
         <Button onClick={() => setBulkShuffleDialogOpen(true)} disabled={posts.length === 0}>
           → Bulk Shuffle Schedule
         </Button>

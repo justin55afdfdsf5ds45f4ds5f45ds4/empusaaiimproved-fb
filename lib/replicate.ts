@@ -1,5 +1,6 @@
 import Replicate from "replicate";
 import fetch from "node-fetch"; // Only needed for base64 conversion
+import { generateIdeogramV2TurboImageAndUpload } from "@/lib/replicate";
 
 type ReplicateFileOutput = {
   url(): string;

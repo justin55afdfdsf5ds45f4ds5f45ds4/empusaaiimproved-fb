@@ -111,7 +111,7 @@ export function CreatePostForm() {
       }
 
       // Prepare request body based on active tab
-      const requestBody = activeTab === "url" ? { url } : { topic }
+      const requestBody = activeTab === "url" ? { url, count: 2 } : { topic, count: 2 }
 
       const response = await fetch("/api/posts/generate", {
         method: "POST",

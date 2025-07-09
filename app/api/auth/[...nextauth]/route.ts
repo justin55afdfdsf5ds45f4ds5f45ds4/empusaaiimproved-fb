@@ -48,7 +48,14 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Invalid email or password")
           }
 
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+          // If the password is hashed (bcrypt), compare with bcrypt
+          let isPasswordValid = false;
+          if (user.password.startsWith("$2a$") || user.password.startsWith("$2b$") || user.password.startsWith("$2y$")) {
+            isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+          } else {
+            // Fallback for plain text passwords (legacy/trial users)
+            isPasswordValid = credentials.password === user.password
+          }
 
           if (!isPasswordValid) {
             throw new Error("Invalid email or password")
