@@ -12,7 +12,7 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-// Sample topics for generating content (kept as a fallback if no keywords are extracted)
+// Sample topics for generating g content (kept as a fallback if no keywords are extracted)
 const TOPICS = [
   "travel",
   "food",

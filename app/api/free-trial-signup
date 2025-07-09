@@ -34,4 +34,4 @@ export async function POST(request: NextRequest) {
     console.error('Free trial signup error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }
-} 
+}
