@@ -386,7 +386,7 @@ export async function POST(req: Request) {
           const imageResponse = await fetch(imageUrl);
           const buffer = await imageResponse.arrayBuffer();
           const base64 = Buffer.from(buffer).toString("base64");
-          const base64String = `data:image/png;base64,${base64}`;
+          const base64String = `data:image/jpeg;base64,${base64}`;
           // Upload to Cloudinary
           const uploadResult = await uploadImageBase64(base64String, 'pinterest');
           cloudinaryUrl = uploadResult.url;
