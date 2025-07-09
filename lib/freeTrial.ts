@@ -38,6 +38,21 @@ export async function incrementFreeTrialPosts(userId: string | ObjectId) {
   await updateUserById(userId, { freeTrialPostsUsed: used + 1 });
 }
 
+export async function incrementFreeTrialPostsAtomic(userId: string | ObjectId, count: number): Promise<boolean> {
+  const client = await clientPromise;
+  const db = client.db(DB_NAME);
+  const userObjectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+  const user = await db.collection(USERS_COLLECTION).findOne({ _id: userObjectId });
+  if (!user || !user.isFreeTrial) return false;
+  const used = user.freeTrialPostsUsed || 0;
+  if (used + count > FREE_TRIAL_LIMIT) return false;
+  const result = await db.collection(USERS_COLLECTION).updateOne(
+    { _id: userObjectId, freeTrialPostsUsed: used },
+    { $inc: { freeTrialPostsUsed: count } }
+  );
+  return result.modifiedCount === 1;
+}
+
 export async function hasExhaustedFreeTrial(userId: string | ObjectId) {
   const used = await getFreeTrialPostsUsed(userId);
   return used >= FREE_TRIAL_LIMIT;

@@ -6,7 +6,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import Replicate from "replicate";
 import { uploadImageBase64 } from "@/lib/cloudinary1";
-import { isFreeTrialUser, getFreeTrialPostsUsed, incrementFreeTrialPosts, hasExhaustedFreeTrial, getFreeTrialLimit } from '@/lib/freeTrial';
+import { isFreeTrialUser, getFreeTrialPostsUsed, getFreeTrialLimit, incrementFreeTrialPostsAtomic } from '@/lib/freeTrial';
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -336,7 +336,8 @@ export async function POST(req: Request) {
     const { url, topic, tone = "informative", count = 2, boardId } = body;
     const requestedCount = count;
     // Free trial enforcement
-    if (await isFreeTrialUser(userId)) {
+    let isFreeTrial = await isFreeTrialUser(userId);
+    if (isFreeTrial) {
       const used = await getFreeTrialPostsUsed(userId);
       const limit = getFreeTrialLimit();
       if (used >= limit) {
@@ -348,6 +349,14 @@ export async function POST(req: Request) {
       if (used + requestedCount > limit) {
         return NextResponse.json({
           error: `You only have ${limit - used} free trial post${limit - used === 1 ? '' : 's'} remaining.`,
+          bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
+        }, { status: 403 });
+      }
+      // Atomically increment before generating
+      const incremented = await incrementFreeTrialPostsAtomic(userId, requestedCount);
+      if (!incremented) {
+        return NextResponse.json({
+          error: 'You have exhausted your free trial credits. Book a call here to work with us.',
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
         }, { status: 403 });
       }
@@ -467,11 +476,7 @@ export async function POST(req: Request) {
     }
 
     // After successful generation, increment free trial usage
-    if (await isFreeTrialUser(userId)) {
-      for (let i = 0; i < posts.length; i++) {
-        await incrementFreeTrialPosts(userId);
-      }
-    }
+    // The incrementFreeTrialPostsAtomic handles the increment, so we just return the posts
 
     console.log(`Generated ${posts.length} posts`);
 
