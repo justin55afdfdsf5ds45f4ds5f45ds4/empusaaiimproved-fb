@@ -2,7 +2,7 @@
 import { ObjectId } from 'mongodb';
 import clientPromise from './mongodb';
 
-const FREE_TRIAL_LIMIT = 100;
+const FREE_TRIAL_LIMIT = 5;
 const DB_NAME = process.env.MONGODB_DB || 'empusa';
 const USERS_COLLECTION = 'users';
 

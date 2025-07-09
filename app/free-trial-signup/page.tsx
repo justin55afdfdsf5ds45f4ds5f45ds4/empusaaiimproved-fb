@@ -46,7 +46,7 @@ export default function FreeTrialSignupPage() {
         if (signInRes?.ok) {
           toast({
             title: "Free Trial Activated!",
-            description: "You have 100 posts to create. Enjoy your free trial!",
+            description: "You have 5 posts to create. Enjoy your free trial!",
           })
           router.replace("/dashboard")
         } else {
@@ -89,7 +89,7 @@ export default function FreeTrialSignupPage() {
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">Create your free trial account</h1>
-            <p className="text-gray-500 mt-2">Sign up to get 100 free post credits</p>
+            <p className="text-gray-500 mt-2">Sign up to get 5 free post credits</p>
           </div>
 
           <Button

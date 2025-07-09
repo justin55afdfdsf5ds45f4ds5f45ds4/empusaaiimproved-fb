@@ -67,7 +67,7 @@ export default function FreeTrialLoginPage() {
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">Log in to your free trial</h1>
-            <p className="text-gray-500 mt-2">Access your 100 free post credits</p>
+            <p className="text-gray-500 mt-2">Access your 5 free post credits</p>
           </div>
 
           <Separator className="my-6">
