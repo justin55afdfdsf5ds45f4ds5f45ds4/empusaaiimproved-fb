@@ -815,7 +815,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     <>
       {/* Free trial remaining prominent alert */}
       <div className="mb-4">
-        {freeTrialRemaining !== null && freeTrialLimit !== null ? (
+        {(freeTrialRemaining !== null && freeTrialLimit !== null) ? (
           freeTrialRemaining === 0 ? (
             <Alert variant="destructive">
               <AlertTitle>You have exhausted your free trial limit of {freeTrialLimit} posts.</AlertTitle>
@@ -828,7 +828,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               <AlertTitle>You have used {freeTrialLimit - freeTrialRemaining} of {freeTrialLimit} free trial posts.</AlertTitle>
             </Alert>
           )
-        ) : null}
+        ) : (
+          <Alert variant="default">
+            <AlertTitle>You have used 0 of 5 free trial posts.</AlertTitle>
+          </Alert>
+        )}
       </div>
 
       {/* Pinterest Board Selection */}
