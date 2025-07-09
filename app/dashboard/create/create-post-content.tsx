@@ -137,6 +137,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         setFreeTrialLoading(false);
       }
     }
+    // Expose fetchFreeTrialStatus for use in handleGenerate
+    (window as any).fetchFreeTrialStatus = fetchFreeTrialStatus;
     fetchFreeTrialStatus();
   }, []);
 
@@ -339,6 +341,10 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       });
     } finally {
       setIsGenerating(false);
+      // Always re-fetch free trial status after attempt
+      if (typeof (window as any).fetchFreeTrialStatus === 'function') {
+        (window as any).fetchFreeTrialStatus();
+      }
     }
   };
 
