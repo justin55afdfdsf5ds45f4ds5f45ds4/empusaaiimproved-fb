@@ -492,7 +492,7 @@ export default function PostsPage() {
       // Get the board ID for this post (adjust the state name if needed)
       const boardId = selectedPostForModal[post.id] || pinterestBoards[0]?.id;
       // Find the board name
-      const boardName = pinterestBoards.find(b => b.id === boardId)?.name || "Weight Loss";
+      const boardName = pinterestBoards.find(b => b.id === boardId)?.name || "My Pinterest Board";
       return [
         post.title,
         post.imageUrl && !post.imageUrl.startsWith('data:') ? post.imageUrl : '',

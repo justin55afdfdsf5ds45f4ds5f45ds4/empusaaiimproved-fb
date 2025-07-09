@@ -41,3 +41,26 @@ export async function generateIdeogramV2TurboImage(
     throw error;
   }
 }
+
+/**
+ * Generate an image using Replicate and return the direct image URL.
+ * Throws on error, does not fallback to Unsplash or any other image.
+ * @param prompt {string} - The prompt to send to Replicate
+ * @returns {Promise<string>} - The direct image URL
+ */
+export async function generateReplicateImageUrl(prompt: string): Promise<string> {
+  try {
+    console.log("Generating image using Replicate (URL only)...");
+    const output = (await replicate.run("ideogram-ai/ideogram-v2-turbo", {
+      input: { prompt, aspect_ratio: "9:16" },
+    })) as ReplicateFileOutput;
+    const imageUrl = output.url();
+    if (!imageUrl) {
+      throw new Error("No image returned from Replicate.");
+    }
+    return imageUrl;
+  } catch (error) {
+    console.error("Error generating image with Replicate:", error);
+    throw error;
+  }
+}

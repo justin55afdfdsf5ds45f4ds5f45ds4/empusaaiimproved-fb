@@ -10,7 +10,6 @@ import sharp from "sharp";
 import fetch from "node-fetch";
 import { isFreeTrialUser, getFreeTrialPostsUsed, incrementFreeTrialPosts, hasExhaustedFreeTrial, getFreeTrialLimit } from '@/lib/freeTrial';
 
-
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
@@ -28,13 +27,6 @@ const TOPICS = [
   "gardening",
   "diy",
 ];
-
-
-
-
-// --- REMOVED: ADJECTIVES, ADJECTIVES_FOR_TITLES, VISUAL_STYLES, MOODS_AND_COLORS, COMPOSITIONS ---
-// These lists are no longer needed here because the LLM will dynamically generate these elements
-// based on the sophisticated prompts..
 
 // Helper function to call Replicate's Llama-3 model with a system/user prompt structure
 async function callLlama3(
@@ -83,13 +75,11 @@ Drive high Pinterest engagement (clicks, saves, shares) and perform well in sear
 - do not use the sign comma at all.
 - do not use the word "Embrace" at the start at all.
 - do not use the word "Unleash " at the start at all.
-- do not use the sign ":" colon at all.
-- Get the information from the provided headlines and pick any of those to craft the title each time unique.
 - do not use the sign ":" colon at all i am repeatedly saying it so listen to it and follow.
-- You will always use the given titles and headlines as a title for the title big headline or title. use title from the given titles, just fetct and add 1 or two words of your own..
+- Get the information from the provided headlines and pick any of those to craft the title each time unique.
+- You will always use the given titles and headlines as a title for the title big headline or title. use title from the given titles, just fetch and add 1 or two words of your own..
 - You should not give "here is the title" phrases or any formal AI words like you're saying here is the thing you should not do that instead you should only provide the original title and nothing else of you saying anything.
 - You should not say "Here is a catchy, action-oriented" or anything formal words, instruction from you that here is the title, you should only give the original title and not overlay text of you saying anything.
-
 
 - do not use the phrase "Discover the ultimate guide" as a whole but you can use each letters without combining them.
 - do not use the phrase "Discover the power" as a whole but you can use each letters without combining them.
@@ -156,7 +146,6 @@ Your task is to write a **concise, engaging, keyword-rich description** for a Pi
 - Get the information from the provided headlines and pick any of those to craft the description each time unique.
 
 
-
 - do not use the sign comma at all.
 - do not use the word "Unlock" at in the start.
 - do not use the sign colon at all.
@@ -168,11 +157,11 @@ Your task is to write a **concise, engaging, keyword-rich description** for a Pi
 - do not use the word "Unlock" at the start of the description at all, you should know that to never use the word at the start
 - do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
 
-Only output the **final description string**, nothing else.
-`;
+Only output the **final description string**, nothing else.`;
 
   let userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${keywords}".`;
   if (hint) {
+    userPrompt += `\n\nAvoid these descriptions: ${hint}`;
     userPrompt += `\n\n${hint}`; // Prepend hint to user prompt
   }
   userPrompt += `\n\n" "`;
@@ -199,10 +188,13 @@ async function generateImagePrompt(keywords: string): Promise<string> {
 - The overall design should be simple, modern, and scroll-stopping — no clutter, no complexity, no over-detailing
 - Use flat illustration, digital vector style, or futuristic clean visuals
 - The layout should always be vertical (2:3 ratio), like a Pinterest pin
+- Do not include fonts, color codes, or layout instructions — only describe the look and feel
+- Always mention that this prompt is for pinterest post
 - do not use any trademark logos or name.
 - So do not use too much long image headline/title that will be in the image, make them short as possible but informative.
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
+- do not use any trademark logos or name.
 - do not include any formal or overlay text like these - "Here is a Pinterest image prompt for the given keywords, Here is a Pinterest image prompt for the given keywords:" instead just give the final prompt
 - always look into keywords and the information provided to you so you can craft the best prompt and always feature the core words as eye catching 5-6 words headline
 - Always say in the prompt that is should be minimalist and creative with text so it can become eye catching image
@@ -224,8 +216,7 @@ async function generateImagePrompt(keywords: string): Promise<string> {
 - ✅ Always use the headline from the data provided to you and use headline as a top of the image headline
 - ✅ You are a very greedy salesman that always only reads information and generate prompt that will result in a image that tells the people about just making them click somehow by indirectly using the best headlines and eye catching phrases to attract them and make them click the image 
 - You will always use the given titles and headlines as a title for the image big headline or title. use information from the given titles.
-Only output 4 line of prompt. No explanation. No formatting.
-`;
+Only output 4 line of prompt. No explanation. No formatting.`;
 
   const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${keywords}".`;
 
@@ -333,38 +324,6 @@ function cleanLLMOutput(text: string): string {
   return cleaned;
 }
 
-// TEST FUNCTION: Run this manually to check for duplicate titles/descriptions
-async function testUniqueness() {
-  const keywords = 'test, sample, pinterest, post';
-  const usedTitles = new Set();
-  const usedDescriptions = new Set();
-  const results = [];
-  for (let i = 0; i < 20; i++) {
-    const title = await generateTitle(keywords);
-    const description = await generateDescription(keywords);
-    results.push({ title, description });
-    usedTitles.add(title);
-    usedDescriptions.add(description);
-  }
-  const titleDupes = results.length - usedTitles.size;
-  const descDupes = results.length - usedDescriptions.size;
-  console.log('Unique titles:', usedTitles.size, 'of', results.length);
-  console.log('Unique descriptions:', usedDescriptions.size, 'of', results.length);
-  if (titleDupes > 0) {
-    console.log('DUPLICATE TITLES FOUND!');
-  }
-  if (descDupes > 0) {
-    console.log('DUPLICATE DESCRIPTIONS FOUND!');
-  }
-  if (titleDupes === 0 && descDupes === 0) {
-    console.log('All titles and descriptions are unique.');
-  }
-  // Optionally, print all results
-  // console.log(results);
-}
-// Uncomment to run the test
-// testUniqueness();
-
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -393,28 +352,29 @@ export async function POST(req: Request) {
 
     const requestedCount = count;
 
-    // Step 1.5: Generate unique, creative headlines for each post
-    async function generateUniqueHeadlines(keywords: string, n: number): Promise<string[]> {
-      const systemPrompt = `You are a creative Pinterest marketer. Generate ${n} unique, creative, and distinct headlines for Pinterest posts based on the following keywords or topic. Each headline should be different in style, text, and focus. Do not repeat phrases or structure. Make them scroll-stopping, modern, and highly clickable. Output as a numbered list, one per line.`;
-      const userPrompt = `Keywords or topic: ${keywords}`;
-      const raw = await callLlama3(systemPrompt, userPrompt);
-      // Parse numbered list
-      return raw.split(/\n|\r/)
-        .map(line => line.replace(/^\d+\.?\s*/, '').trim())
-        .filter(Boolean)
-        .slice(0, n);
+    // Sets to track uniqueness
+    const usedTitles: Set<string> = new Set();
+    const usedDescriptions: Set<string> = new Set();
+
+    async function getUniqueValue(generateFn: (hint?: string) => Promise<string>, usedSet: Set<string>, type: string, maxRetries = 5) {
+      let value = await generateFn();
+      let retries = 0;
+      while (usedSet.has(value) && retries < maxRetries) {
+       // Stronger hint, placed at the start
+        const hint = `IMPORTANT: Do NOT repeat or use any of these ${type}s: [${[...usedSet].join('; ')}]. Generate a completely new, unique ${type} that is different from all of them.`;
+        value = await generateFn(hint);
+        retries++;
+      }
+      usedSet.add(value);
+      return value;
     }
 
-    const headlines = await generateUniqueHeadlines(keywordsToUse, requestedCount);
-
     const postPromises = Array.from({ length: requestedCount }).map(
-      async (_, idx) => {
-        // Use a unique headline for this post
-        const headline = headlines[idx] || keywordsToUse;
-        // Step 2: Generate title, description, and image prompt using the unique headline
-        const title = await generateTitle(headline);
-        const description = await generateDescription(headline);
-        const imagePrompt = await generateImagePrompt(headline);
+      async () => {
+        // Step 2: Generate title, description, and image prompt using Llama-3
+        const title = await generateTitle(keywordsToUse);
+        const description = await generateDescription(keywordsToUse);
+        const imagePrompt = await generateImagePrompt(keywordsToUse);
 
         let imageUrl;
         let cloudinaryUrl = null;
@@ -423,15 +383,14 @@ export async function POST(req: Request) {
           imageUrl = await generateIdeogramV2TurboImage(imagePrompt, false); // get direct URL
           // Download image and convert to base64
           const imageResponse = await fetch(imageUrl);
-          const buffer = Buffer.from(await imageResponse.arrayBuffer());
-          // Convert to JPEG using sharp
-          const jpegBuffer = await sharp(buffer).jpeg().toBuffer();
-          const base64 = jpegBuffer.toString("base64");
-          const base64String = `data:image/jpeg;base64,${base64}`;
-          // Upload to Cloudinary (as JPEG)
-          const uploadResult = await uploadImageBase64(base64String, 'pinterest', 'jpg');
+          const buffer = await imageResponse.arrayBuffer();
+          const base64 = Buffer.from(buffer).toString("base64");
+          const base64String = `data:image/png;base64,${base64}`;
+          // Upload to Cloudinary
+          const uploadResult = await uploadImageBase64(base64String, 'pinterest');
           cloudinaryUrl = uploadResult.url;
           cloudinaryPublicId = uploadResult.public_id;
+
           // Store Cloudinary image info in DB for deletion automation
           try {
             const client = await clientPromise;
@@ -444,6 +403,8 @@ export async function POST(req: Request) {
           } catch (dbErr) {
             console.error('Failed to record Cloudinary image in DB:', dbErr);
           }
+          // TODO: Schedule deletion of this image from Cloudinary after 4 hours
+          
         } catch (error) {
           console.error("Error generating or uploading image:", error);
           imageUrl =
@@ -465,6 +426,37 @@ export async function POST(req: Request) {
     );
 
     let posts = await Promise.all(postPromises);
+
+    // Uniqueness enforcement after generation
+    const maxRetries = 5;
+    let retry = 0;
+    while (retry < maxRetries) {
+      let titles = posts.map(p => p.title);
+      let descriptions = posts.map(p => p.description);
+      let titleSet = new Set();
+      let descSet = new Set();
+      let duplicateTitleIndexes: number[] = [];
+      let duplicateDescIndexes: number[] = [];
+      titles.forEach((t, i) => {
+        if (titleSet.has(t)) duplicateTitleIndexes.push(i);
+        else titleSet.add(t);
+      });
+      descriptions.forEach((d, i) => {
+        if (descSet.has(d)) duplicateDescIndexes.push(i);
+        else descSet.add(d);
+      });
+      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break;
+      // Regenerate duplicates
+      for (const i of duplicateTitleIndexes) {
+        const usedTitles = posts.map(p => p.title);
+        posts[i].title = await generateTitle(keywordsToUse, `Here are all the titles already used: [${usedTitles.join('; ')}]. Generate a new, unique title that is not in this list.`);
+      }
+      for (const i of duplicateDescIndexes) {
+        const usedDescs = posts.map(p => p.description);
+        posts[i].description = await generateDescription(keywordsToUse, `Here are all the descriptions already used: [${usedDescs.join('; ')}]. Generate a new, unique description that is not in this list.`);
+      }
+      retry++;
+    }
 
     // After successful generation, increment free trial usage
     if (await isFreeTrialUser(userId)) {

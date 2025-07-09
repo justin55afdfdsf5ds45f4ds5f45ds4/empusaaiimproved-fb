@@ -100,7 +100,7 @@ export default function Home() {
               <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/X37tgx0ngQE?si=p6YX1wy0MMY6sCkf"
+                  src="https://www.youtube.com/embed/9lVHjhWvuUg?si=jahvoMkoTXzuWbTa"
                   title="Empusa AI Demo Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen

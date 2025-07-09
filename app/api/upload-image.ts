@@ -13,4 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     res.status(500).json({ error: 'Cloudinary upload failed' });
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> fc466b930f26b1720d95ecd7f1b7af1ef3c0bb02
