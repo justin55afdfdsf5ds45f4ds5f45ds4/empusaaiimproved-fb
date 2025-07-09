@@ -15,4 +15,4 @@ export async function GET() {
   const used = await getFreeTrialPostsUsed(userId);
   const limit = getFreeTrialLimit();
   return NextResponse.json({ remaining: Math.max(0, limit - used), limit });
-} 
+}
