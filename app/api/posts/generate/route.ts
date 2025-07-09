@@ -337,7 +337,9 @@ export async function POST(req: Request) {
     const requestedCount = count;
     // Free trial enforcement
     let isFreeTrial = await isFreeTrialUser(userId);
+    let actualCount = count;
     if (isFreeTrial) {
+      actualCount = 1;
       const used = await getFreeTrialPostsUsed(userId);
       const limit = getFreeTrialLimit();
       if (used >= limit) {
@@ -346,14 +348,14 @@ export async function POST(req: Request) {
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
         }, { status: 403 });
       }
-      if (used + requestedCount > limit) {
+      if (used + actualCount > limit) {
         return NextResponse.json({
           error: `You only have ${limit - used} free trial post${limit - used === 1 ? '' : 's'} remaining.`,
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
         }, { status: 403 });
       }
       // Atomically increment before generating
-      const incremented = await incrementFreeTrialPostsAtomic(userId, requestedCount);
+      const incremented = await incrementFreeTrialPostsAtomic(userId, actualCount);
       if (!incremented) {
         return NextResponse.json({
           error: 'You have exhausted your free trial credits. Book a call here to work with us.',
@@ -386,7 +388,7 @@ export async function POST(req: Request) {
       return value;
     }
 
-    const postPromises = Array.from({ length: requestedCount }).map(
+    const postPromises = Array.from({ length: actualCount }).map(
       async () => {
         // Step 2: Generate title, description, and image prompt using Llama-3
         const title = await generateTitle(keywordsToUse);

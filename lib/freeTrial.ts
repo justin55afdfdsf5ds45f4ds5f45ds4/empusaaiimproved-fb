@@ -2,7 +2,7 @@
 import { ObjectId } from 'mongodb';
 import clientPromise from './mongodb';
 
-const FREE_TRIAL_LIMIT = 5;
+const FREE_TRIAL_LIMIT = 1;
 const DB_NAME = process.env.MONGODB_DB || 'empusa';
 const USERS_COLLECTION = 'users';
 
@@ -39,6 +39,7 @@ export async function incrementFreeTrialPosts(userId: string | ObjectId) {
 }
 
 export async function incrementFreeTrialPostsAtomic(userId: string | ObjectId, count: number): Promise<boolean> {
+  if (count !== 1) return false;
   const client = await clientPromise;
   const db = client.db(DB_NAME);
   const userObjectId = typeof userId === 'string' ? new ObjectId(userId) : userId;

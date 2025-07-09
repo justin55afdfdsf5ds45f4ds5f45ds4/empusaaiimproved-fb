@@ -304,7 +304,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           url: activeTab === "url" ? url : undefined,
           topic: activeTab === "scratch" ? topic : undefined,
           tone: activeTab === "scratch" ? tone : undefined,
-          count: parseInt(postCount, 10),
+          count: 1, // Always request 1 post
           boardId: selectedBoard,
         }),
       });
