@@ -10,7 +10,15 @@ async function getUserById(userId: string | ObjectId) {
   console.log("[freeTrial] getUserById called", { userId });
   const client = await clientPromise;
   const db = client.db(DB_NAME);
-  const user = await db.collection(USERS_COLLECTION).findOne({ _id: typeof userId === 'string' ? new ObjectId(userId) : userId });
+  let user = null;
+  // Try ObjectId if possible
+  if (typeof userId === 'string' && ObjectId.isValid(userId)) {
+    user = await db.collection(USERS_COLLECTION).findOne({ _id: new ObjectId(userId) });
+  }
+  // Fallback to string match
+  if (!user) {
+    user = await db.collection(USERS_COLLECTION).findOne({ _id: userId });
+  }
   console.log("[freeTrial] getUserById result", { user });
   return user;
 }
