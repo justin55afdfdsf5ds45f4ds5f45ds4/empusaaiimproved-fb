@@ -48,6 +48,8 @@ import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { createClient } from '@supabase/supabase-js';
+import { useSession } from "@/hooks/useSession";
 
 interface Post {
   id: string;
@@ -121,15 +123,21 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(null);
   const [freeTrialLimit, setFreeTrialLimit] = useState<number | null>(null);
   const [freeTrialLoading, setFreeTrialLoading] = useState(true);
+  const { session } = useSession();
 
   useEffect(() => {
     async function fetchFreeTrialStatus() {
       setFreeTrialLoading(true);
       try {
-        const res = await fetch("/api/user/free-trial-status");
-        const data = await res.json();
-        setFreeTrialRemaining(data.remaining);
-        setFreeTrialLimit(data.limit);
+        // Replace 'users' and column names as needed
+        const { data, error } = await supabase
+          .from('users')
+          .select('credits, free_trial_limit')
+          .eq('id', session?.user?.id) // You may need to get session.user.id from your auth/session logic
+          .single();
+        if (error) throw error;
+        setFreeTrialRemaining(data.credits);
+        setFreeTrialLimit(data.free_trial_limit);
       } catch (e) {
         setFreeTrialRemaining(null);
         setFreeTrialLimit(null);
@@ -137,7 +145,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         setFreeTrialLoading(false);
       }
     }
-    // Expose fetchFreeTrialStatus for use in handleGenerate
     (window as any).fetchFreeTrialStatus = fetchFreeTrialStatus;
     fetchFreeTrialStatus();
   }, []);
