@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   Upload,
@@ -15,26 +15,14 @@ import {
   RefreshCw,
   AlertCircle,
   Trash2,
-} from "lucide-react";
+} from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { toast } from "@/components/ui/use-toast"
 import {
   Dialog,
   DialogContent,
@@ -42,182 +30,190 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { createClient } from '@supabase/supabase-js';
-import { useSession } from "@/hooks/useSession";
+} from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { createClient } from "@supabase/supabase-js"
+import { useSession } from "@/hooks/useSession"
 
 interface Post {
-  id: string;
-  title: string;
-  description: string;
-  imagePrompt?: string;
-  imageUrl: string | null;
-  defaultLink?: string;
+  id: string
+  title: string
+  description: string
+  imagePrompt?: string
+  imageUrl: string | null
+  defaultLink?: string
 }
 
 interface PinterestBoard {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface CreatePostContentProps {
-  initialUrl?: string;
+  initialUrl?: string
 }
 
 export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
-  const router = useRouter();
-  const [url, setUrl] = useState(initialUrl || "");
-  const [postCount, setPostCount] = useState("10");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isPublishing, setIsPublishing] = useState<string | null>(null);
-  const [isScheduling, setIsScheduling] = useState<string | null>(null);
-  const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(null);
-  const [referenceImage, setReferenceImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [generatedPosts, setGeneratedPosts] = useState<Post[]>([]);
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [scheduledTime, setScheduledTime] = useState<string>("");
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null);
-  const [activeTab, setActiveTab] = useState("url");
-  const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([]);
-  const [selectedBoard, setSelectedBoard] = useState<string>("");
-  const [isFetchingBoards, setIsFetchingBoards] = useState(false);
-  const [boardFetchError, setBoardFetchError] = useState<string | null>(null);
-  const [topic, setTopic] = useState("");
-  const [tone, setTone] = useState("informative");
-  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
-  const [isSelectAllActive, setIsSelectAllActive] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [postToLink, setPostToLink] = useState<Post | null>(null);
-  const [customLink, setCustomLink] = useState("");
-  const [postLinks, setPostLinks] = useState<Record<string, string>>({});
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-  const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({});
-  const [imageSize, setImageSize] = useState("1:1");
+  const router = useRouter()
+  const [url, setUrl] = useState(initialUrl || "")
+  const [postCount, setPostCount] = useState("10")
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isPublishing, setIsPublishing] = useState<string | null>(null)
+  const [isScheduling, setIsScheduling] = useState<string | null>(null)
+  const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(null)
+  const [referenceImage, setReferenceImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [generatedPosts, setGeneratedPosts] = useState<Post[]>([])
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
+  const [scheduledTime, setScheduledTime] = useState<string>("")
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null)
+  const [activeTab, setActiveTab] = useState("url")
+  const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([])
+  const [selectedBoard, setSelectedBoard] = useState<string>("")
+  const [isFetchingBoards, setIsFetchingBoards] = useState(false)
+  const [boardFetchError, setBoardFetchError] = useState<string | null>(null)
+  const [topic, setTopic] = useState("")
+  const [tone, setTone] = useState("informative")
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
+  const [isSelectAllActive, setIsSelectAllActive] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [postToLink, setPostToLink] = useState<Post | null>(null)
+  const [customLink, setCustomLink] = useState("")
+  const [postLinks, setPostLinks] = useState<Record<string, string>>({})
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false)
+  const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({})
+  const [imageSize, setImageSize] = useState("1:1")
 
   // New state for bulk operations
-  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
-  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState("");
-  const [linkAllDialogOpen, setLinkAllDialogOpen] = useState(false);
-  const [linkAllText, setLinkAllText] = useState("");
-  const [scheduleAllDialogOpen, setScheduleAllDialogOpen] = useState(false);
-  const [scheduleAllDate, setScheduleAllDate] = useState<Date | undefined>(undefined);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false)
+  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState("")
+  const [linkAllDialogOpen, setLinkAllDialogOpen] = useState(false)
+  const [linkAllText, setLinkAllText] = useState("")
+  const [scheduleAllDialogOpen, setScheduleAllDialogOpen] = useState(false)
+  const [scheduleAllDate, setScheduleAllDate] = useState<Date | undefined>(undefined)
 
   // Set the initial URL and tab if provided
   useEffect(() => {
     if (initialUrl) {
-      setUrl(initialUrl);
-      setActiveTab("url");
+      setUrl(initialUrl)
+      setActiveTab("url")
     }
-  }, [initialUrl]);
+  }, [initialUrl])
 
-  const [credits, setCredits] = useState<number | null>(null);
-  const [creditsLoading, setCreditsLoading] = useState(true);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const { session } = useSession();
+  const [credits, setCredits] = useState<number | null>(null)
+  const [creditsLoading, setCreditsLoading] = useState(true)
+  const [showUpgrade, setShowUpgrade] = useState(false)
+  const { session } = useSession()
 
   useEffect(() => {
     async function fetchCredits() {
-      setCreditsLoading(true);
-      const user = supabase.auth.user();
-      if (!user) { setCredits(null); setCreditsLoading(false); return; }
-      const { data, error } = await supabase.from('credits').select('credits').eq('user_id', user.id).single();
-      if (error) { setCredits(null); } else { setCredits(data.credits); }
-      setCreditsLoading(false);
+      setCreditsLoading(true)
+      const user = supabase.auth.user()
+      if (!user) {
+        setCredits(null)
+        setCreditsLoading(false)
+        return
+      }
+      const { data, error } = await supabase.from("credits").select("credits").eq("user_id", user.id).single()
+      if (error) {
+        setCredits(null)
+      } else {
+        setCredits(data.credits)
+      }
+      setCreditsLoading(false)
     }
-    fetchCredits();
-  }, []);
+    fetchCredits()
+  }, [])
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const fetchBoards = async () => {
-    setIsFetchingBoards(true);
-    setBoardFetchError(null);
+    setIsFetchingBoards(true)
+    setBoardFetchError(null)
 
     try {
-      const response = await fetch("/api/pinterest/boards");
+      const response = await fetch("/api/pinterest/boards")
 
       if (response.status === 403) {
-        setBoardFetchError("You haven't connected Pinterest yet.");
-        return;
+        setBoardFetchError("You haven't connected Pinterest yet.")
+        return
       }
 
       if (!response.ok) {
-        throw new Error("Failed to fetch Pinterest boards");
+        throw new Error("Failed to fetch Pinterest boards")
       }
 
-      const data = await response.json();
-      setPinterestBoards(data.boards || []);
+      const data = await response.json()
+      setPinterestBoards(data.boards || [])
 
       if (!selectedBoard && data.boards?.length > 0) {
-        setSelectedBoard(data.boards[0].id);
+        setSelectedBoard(data.boards[0].id)
       }
     } catch (error) {
-      setBoardFetchError("Failed to fetch Pinterest boards. Please try again.");
+      setBoardFetchError("Failed to fetch Pinterest boards. Please try again.")
     } finally {
-      setIsFetchingBoards(false);
+      setIsFetchingBoards(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchBoards();
-  }, []);
+    fetchBoards()
+  }, [])
 
   function getMinTime(date?: Date) {
-    if (!date) return undefined;
+    if (!date) return undefined
 
-    const now = new Date();
-    const isToday = now.toDateString() === new Date(date).toDateString();
+    const now = new Date()
+    const isToday = now.toDateString() === new Date(date).toDateString()
 
     if (isToday) {
-      const rounded = new Date(now);
-      rounded.setSeconds(0);
-      rounded.setMilliseconds(0);
-      const minutes = rounded.getMinutes();
-      rounded.setMinutes(minutes + (5 - (minutes % 5)));
+      const rounded = new Date(now)
+      rounded.setSeconds(0)
+      rounded.setMilliseconds(0)
+      const minutes = rounded.getMinutes()
+      rounded.setMinutes(minutes + (5 - (minutes % 5)))
 
-      const hours = String(rounded.getHours()).padStart(2, "0");
-      const mins = String(rounded.getMinutes()).padStart(2, "0");
-      return `${hours}:${mins}`;
+      const hours = String(rounded.getHours()).padStart(2, "0")
+      const mins = String(rounded.getMinutes()).padStart(2, "0")
+      return `${hours}:${mins}`
     }
 
-    return undefined;
+    return undefined
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setReferenceImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const file = e.target.files[0]
+      setReferenceImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      setReferenceImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const file = e.dataTransfer.files[0]
+      setReferenceImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
+    e.preventDefault()
+  }
 
   const generateImage = async (post: Post) => {
-    if (!post.imagePrompt) return null;
+    if (!post.imagePrompt) return null
 
-    setIsGeneratingImage(post.id);
+    setIsGeneratingImage(post.id)
 
     try {
       const response = await fetch("/api/fal/generate-image", {
@@ -228,36 +224,39 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         body: JSON.stringify({
           prompt: post.imagePrompt,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to generate image");
+        throw new Error("Failed to generate image")
       }
 
-      const data = await response.json();
-      return data.images?.[0]?.url || null;
+      const data = await response.json()
+      return data.images?.[0]?.url || null
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to generate image. Please try again.",
         variant: "destructive",
-      });
-      return null;
+      })
+      return null
     } finally {
-      setIsGeneratingImage(null);
+      setIsGeneratingImage(null)
     }
-  };
+  }
 
   const handleGenerate = async () => {
-    if (credits === 0) { setShowUpgrade(true); return; }
+    if (credits === 0) {
+      setShowUpgrade(true)
+      return
+    }
 
     if (activeTab === "url" && !url) {
       toast({
         title: "URL Required",
         description: "Please enter a URL to generate Pinterest posts.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     if (activeTab === "scratch" && !topic) {
@@ -265,11 +264,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Topic Required",
         description: "Please enter a topic or keywords to generate Pinterest posts.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    setIsGenerating(true);
+    setIsGenerating(true)
     try {
       const response = await fetch("/api/posts/generate", {
         method: "POST",
@@ -283,14 +282,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           count: 1, // Always request 1 post
           boardId: selectedBoard,
         }),
-      });
+      })
 
       if (!response.ok) {
-        const data = await response.json();
-        if (
-          response.status === 403 &&
-          data.error?.toLowerCase().includes("exhausted your credits")
-        ) {
+        const data = await response.json()
+        if (response.status === 403 && data.error?.toLowerCase().includes("exhausted your credits")) {
           toast({
             title: "Upgrade Required",
             description: (
@@ -307,62 +303,63 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               </>
             ),
             variant: "destructive",
-          });
-          return;
+          })
+          return
         }
-        throw new Error(data.error || "Failed to generate posts");
+        throw new Error(data.error || "Failed to generate posts")
       }
 
-      const data = await response.json();
+      const data = await response.json()
       const postsWithImages = await Promise.all(
         (data.posts || []).map(async (post: Post) => {
           if (!post.imageUrl) {
-            const imageUrl = await generateImage(post);
-            return { ...post, imageUrl };
+            const imageUrl = await generateImage(post)
+            return { ...post, imageUrl }
           }
-          return post;
-        })
-      );
+          return post
+        }),
+      )
       setGeneratedPosts(
         postsWithImages.map((post: Post) => ({
           ...post,
           defaultLink: activeTab === "url" ? url : undefined,
-        }))
-      );
+        })),
+      )
       toast({
         title: "Posts Generated",
         description: `Successfully generated ${data.posts.length} Pinterest posts.`,
-      });
+      })
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to generate posts. Please try again.",
         variant: "destructive",
-      });
+      })
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
       // Always re-fetch free trial status after attempt
-      if (typeof (window as any).fetchFreeTrialStatus === 'function') {
-        (window as any).fetchFreeTrialStatus();
+      if (typeof (window as any).fetchFreeTrialStatus === "function") {
+        ;(window as any).fetchFreeTrialStatus()
       }
-      const user = supabase.auth.user();
-      if (user) {
-        await supabase.from('credits').update({ credits: credits - 1 }).eq('user_id', user.id);
-        setCredits(credits - 1);
-        if (credits - 1 === 0) setShowUpgrade(true);
+      const user = supabase.auth.user()
+      if (user && credits !== null) {
+        await supabase
+          .from("credits")
+          .update({ credits: credits - 1 })
+          .eq("user_id", user.id)
+        setCredits(credits - 1)
+        if (credits - 1 === 0) setShowUpgrade(true)
       }
     }
-  };
+  }
 
   const handleGenerateImage = async (post: Post) => {
-    const imageUrl = await generateImage(post);
+    const imageUrl = await generateImage(post)
 
     if (imageUrl) {
-      setGeneratedPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === post.id ? { ...p, imageUrl } : p))
-      );
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...p, imageUrl } : p)))
     }
-  };
+  }
 
   const handlePublish = async (post: Post) => {
     if (!selectedBoard) {
@@ -370,34 +367,32 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Board Required",
         description: "Please select a Pinterest board to publish your post.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     if (!post.imageUrl) {
       toast({
         title: "Generating Image",
         description: "Generating image before publishing...",
-      });
+      })
 
-      const imageUrl = await generateImage(post);
+      const imageUrl = await generateImage(post)
 
       if (!imageUrl) {
         toast({
           title: "Error",
           description: "Failed to generate image. Please try again.",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
-      post = { ...post, imageUrl };
-      setGeneratedPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === post.id ? { ...post } : p))
-      );
+      post = { ...post, imageUrl }
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...post } : p)))
     }
 
-    setIsPublishing(post.id);
+    setIsPublishing(post.id)
 
     try {
       const response = await fetch("/api/pinterest/pins/", {
@@ -412,28 +407,28 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           imageUrl: post.imageUrl,
           link: postLinks[post.id] || post.defaultLink,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to publish post to Pinterest");
+        throw new Error("Failed to publish post to Pinterest")
       }
 
       toast({
         title: "Post Published",
         description: "Your post has been successfully published to Pinterest.",
-      });
+      })
 
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id));
-      setIsPublishing(null);
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
+      setIsPublishing(null)
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to publish post. Please try again.",
         variant: "destructive",
-      });
-      setIsPublishing(null);
+      })
+      setIsPublishing(null)
     }
-  };
+  }
 
   const openScheduleDialog = async (post: Post) => {
     if (!selectedBoard) {
@@ -441,12 +436,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Board Required",
         description: "Please select a Pinterest board to schedule your post.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setCurrentPostForScheduling(post);
-    setScheduleDialogOpen(true);
-  };
+    setCurrentPostForScheduling(post)
+    setScheduleDialogOpen(true)
+  }
 
   const handleSchedule = async () => {
     if (!currentPostForScheduling || !scheduledDate || !selectedBoard) {
@@ -454,38 +449,36 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Error",
         description: "Please select a date and board to schedule the post.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    let postWithImage = currentPostForScheduling;
+    let postWithImage = currentPostForScheduling
     if (!postWithImage.imageUrl) {
       toast({
         title: "Generating Image",
         description: "Generating image before scheduling...",
-      });
+      })
 
-      const imageUrl = await generateImage(postWithImage);
+      const imageUrl = await generateImage(postWithImage)
 
       if (!imageUrl) {
         toast({
           title: "Error",
           description: "Failed to generate image. Please try again.",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
-      postWithImage = { ...postWithImage, imageUrl };
-      setGeneratedPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === postWithImage.id ? { ...postWithImage } : p))
-      );
+      postWithImage = { ...postWithImage, imageUrl }
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === postWithImage.id ? { ...postWithImage } : p)))
     }
 
-    setIsScheduling(postWithImage.id);
-    const [hours, minutes] = scheduledTime.split(":").map(Number);
-    const finalDateTime = new Date(scheduledDate);
-    finalDateTime.setHours(hours, minutes, 0, 0);
+    setIsScheduling(postWithImage.id)
+    const [hours, minutes] = scheduledTime.split(":").map(Number)
+    const finalDateTime = new Date(scheduledDate)
+    finalDateTime.setHours(hours, minutes, 0, 0)
 
     try {
       const response = await fetch("/api/pinterest/schedule/", {
@@ -501,76 +494,76 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           link: postLinks[postWithImage.id] || postWithImage.defaultLink,
           scheduledTime: finalDateTime,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to schedule post to Pinterest");
+        throw new Error("Failed to schedule post to Pinterest")
       }
 
       toast({
         title: "Post Scheduled",
         description: "Your post has been successfully published to Pinterest.",
-      });
+      })
 
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id));
-      setScheduleDialogOpen(false);
-      setScheduledDate(undefined);
-      setIsScheduling(null);
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id))
+      setScheduleDialogOpen(false)
+      setScheduledDate(undefined)
+      setIsScheduling(null)
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to schedule post. Please try again.",
         variant: "destructive",
-      });
-      setIsScheduling(null);
+      })
+      setIsScheduling(null)
     }
-  };
+  }
 
   const handleSelectAll = () => {
     if (isSelectAllActive) {
-      setSelectedPosts(new Set());
-      setIsSelectAllActive(false);
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
     } else {
-      setSelectedPosts(new Set(generatedPosts.map((post) => post.id)));
-      setIsSelectAllActive(true);
+      setSelectedPosts(new Set(generatedPosts.map((post) => post.id)))
+      setIsSelectAllActive(true)
     }
-  };
+  }
 
   const togglePostSelection = (postId: string) => {
-    const newSelected = new Set(selectedPosts);
+    const newSelected = new Set(selectedPosts)
     if (newSelected.has(postId)) {
-      newSelected.delete(postId);
+      newSelected.delete(postId)
     } else {
-      newSelected.add(postId);
+      newSelected.add(postId)
     }
-    setSelectedPosts(newSelected);
-    setIsSelectAllActive(newSelected.size === generatedPosts.length);
-  };
+    setSelectedPosts(newSelected)
+    setIsSelectAllActive(newSelected.size === generatedPosts.length)
+  }
 
   const handleDeletePost = (post: Post) => {
-    setPostToDelete(post);
-    setDeleteDialogOpen(true);
-    setDeleteConfirmText("");
-  };
+    setPostToDelete(post)
+    setDeleteDialogOpen(true)
+    setDeleteConfirmText("")
+  }
 
   const confirmDelete = () => {
     if (deleteConfirmText === "DELETE" && postToDelete) {
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postToDelete.id));
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postToDelete.id))
       setSelectedPosts((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(postToDelete.id);
-        return newSet;
-      });
-      setDeleteDialogOpen(false);
-      setPostToDelete(null);
-      setDeleteConfirmText("");
+        const newSet = new Set(prev)
+        newSet.delete(postToDelete.id)
+        return newSet
+      })
+      setDeleteDialogOpen(false)
+      setPostToDelete(null)
+      setDeleteConfirmText("")
 
       toast({
         title: "Post Deleted",
         description: "The post has been successfully deleted.",
-      });
+      })
     }
-  };
+  }
 
   const handleDeleteAll = () => {
     if (selectedPosts.size === 0) {
@@ -578,30 +571,28 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "No Posts Selected",
         description: "Please select posts to delete.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setDeleteAllDialogOpen(true);
-    setDeleteAllConfirmText("");
-  };
+    setDeleteAllDialogOpen(true)
+    setDeleteAllConfirmText("")
+  }
 
   const confirmDeleteAll = () => {
     if (deleteAllConfirmText === "DELETE") {
-      const remainingPosts = generatedPosts.filter(
-        (post) => !selectedPosts.has(post.id)
-      );
-      setGeneratedPosts(remainingPosts);
-      setSelectedPosts(new Set());
-      setIsSelectAllActive(false);
-      setDeleteAllDialogOpen(false);
-      setDeleteAllConfirmText("");
+      const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+      setGeneratedPosts(remainingPosts)
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
+      setDeleteAllDialogOpen(false)
+      setDeleteAllConfirmText("")
 
       toast({
         title: "Posts Deleted",
         description: `Successfully deleted ${selectedPosts.size} posts.`,
-      });
+      })
     }
-  };
+  }
 
   const handleLinkAllPosts = () => {
     if (selectedPosts.size === 0) {
@@ -609,29 +600,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "No Posts Selected",
         description: "Please select posts to add links.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setLinkAllDialogOpen(true);
-    setLinkAllText("");
-  };
+    setLinkAllDialogOpen(true)
+    setLinkAllText("")
+  }
 
   const confirmLinkAll = () => {
     if (linkAllText) {
-      const newPostLinks = { ...postLinks };
+      const newPostLinks = { ...postLinks }
       selectedPosts.forEach((postId) => {
-        newPostLinks[postId] = linkAllText;
-      });
-      setPostLinks(newPostLinks);
-      setLinkAllDialogOpen(false);
-      setLinkAllText("");
+        newPostLinks[postId] = linkAllText
+      })
+      setPostLinks(newPostLinks)
+      setLinkAllDialogOpen(false)
+      setLinkAllText("")
 
       toast({
         title: "Links Added",
         description: `Successfully added custom links to ${selectedPosts.size} posts.`,
-      });
+      })
     }
-  };
+  }
 
   const handleScheduleAll = () => {
     if (selectedPosts.size === 0) {
@@ -639,12 +630,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "No Posts Selected",
         description: "Please select posts to schedule.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setScheduleAllDialogOpen(true);
-    setScheduleAllDate(undefined);
-  };
+    setScheduleAllDialogOpen(true)
+    setScheduleAllDate(undefined)
+  }
 
   const confirmScheduleAll = () => {
     if (scheduleAllDate) {
@@ -664,158 +655,145 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 link: postLinks[post.id] || post.defaultLink,
                 scheduledTime: scheduleAllDate,
               }),
-            });
+            })
 
             if (!response.ok) {
-              throw new Error("Failed to schedule post to Pinterest");
+              throw new Error("Failed to schedule post to Pinterest")
             }
           } catch (error) {
-            console.log(error);
+            console.log(error)
           }
         }
-      });
-      const remainingPosts = generatedPosts.filter(
-        (post) => !selectedPosts.has(post.id)
-      );
-      setGeneratedPosts(remainingPosts);
-      setSelectedPosts(new Set());
-      setIsSelectAllActive(false);
-      setScheduleAllDialogOpen(false);
-      setScheduleAllDate(undefined);
+      })
+      const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+      setGeneratedPosts(remainingPosts)
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
+      setScheduleAllDialogOpen(false)
+      setScheduleAllDate(undefined)
 
       toast({
         title: "Posts Scheduled",
-        description: `Successfully scheduled ${selectedPosts.size} posts for ${format(
-          scheduleAllDate,
-          "PPP"
-        )}.`,
-      });
+        description: `Successfully scheduled ${selectedPosts.size} posts for ${format(scheduleAllDate, "PPP")}.`,
+      })
     }
-  };
+  }
 
   const handleLinkPost = (post: Post) => {
-    setPostToLink(post);
-    setCustomLink(postLinks[post.id] || "");
-    setLinkDialogOpen(true);
-  };
+    setPostToLink(post)
+    setCustomLink(postLinks[post.id] || "")
+    setLinkDialogOpen(true)
+  }
 
   const confirmLink = () => {
     if (postToLink && customLink) {
       setPostLinks((prev) => ({
         ...prev,
         [postToLink.id]: customLink,
-      }));
+      }))
 
       toast({
         title: "Link Added",
         description: "Custom link has been added to the post.",
-      });
+      })
     }
-    setLinkDialogOpen(false);
-    setPostToLink(null);
-    setCustomLink("");
-  };
+    setLinkDialogOpen(false)
+    setPostToLink(null)
+    setCustomLink("")
+  }
 
   const handleBoardSelection = (postId: string, boardId: string) => {
     setSelectedBoardForPosts((prev) => ({
       ...prev,
       [postId]: boardId,
-    }));
-  };
+    }))
+  }
 
   const getSelectedBoard = (postId: string) => {
-    return selectedBoardForPosts[postId] || selectedBoard;
-  };
+    return selectedBoardForPosts[postId] || selectedBoard
+  }
 
-  const hasSelectedPosts = selectedPosts.size > 0;
+  const hasSelectedPosts = selectedPosts.size > 0
   const getButtonClass = (isActive: boolean) =>
     `px-4 py-2 rounded-md font-medium transition-colors ${
       isActive ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-    }`;
+    }`
 
   function generateRandomUniqueDates(count: number): string[] {
-    const now = new Date();
-    const sevenDaysLater = new Date(now);
-    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-    const usedTimestamps = new Set<number>();
-    const dates: string[] = [];
+    const now = new Date()
+    const sevenDaysLater = new Date(now)
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7)
+    const usedTimestamps = new Set<number>()
+    const dates: string[] = []
     while (dates.length < count) {
-      const randomTime =
-        now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime());
-      const rounded = Math.floor(randomTime / 1000) * 1000;
+      const randomTime = now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime())
+      const rounded = Math.floor(randomTime / 1000) * 1000
       if (!usedTimestamps.has(rounded)) {
-        usedTimestamps.add(rounded);
-        const d = new Date(rounded);
-        dates.push(d.toISOString().slice(0, 19));
+        usedTimestamps.add(rounded)
+        const d = new Date(rounded)
+        dates.push(d.toISOString().slice(0, 19))
       }
     }
-    return dates;
+    return dates
   }
 
   // Helper to generate a random string for URL fragment
   function generateRandomFragment(length = 8) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    let result = ""
     for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
     }
-    return result;
+    return result
   }
 
   function downloadCSV() {
-    if (!generatedPosts.length) return;
-    const missingImages = generatedPosts.filter(post => !post.imageUrl);
+    if (!generatedPosts.length) return
+    const missingImages = generatedPosts.filter((post) => !post.imageUrl)
     if (missingImages.length > 0) {
       toast({
         title: "Images Not Ready",
         description: "Please wait for all images to generate before downloading CSV",
         variant: "warning",
-      });
-      return;
+      })
+      return
     }
-    const randomDates = generateRandomUniqueDates(generatedPosts.length);
-    const headers = [
-      "Title",
-      "Media URL",
-      "Pinterest board",
-      "Description",
-      "Link",
-      "Publish date",
-    ];
+    const randomDates = generateRandomUniqueDates(generatedPosts.length)
+    const headers = ["Title", "Media URL", "Pinterest board", "Description", "Link", "Publish date"]
     const rows = generatedPosts.map((post, idx) => {
       // Use the board selected at generation time
-      const boardName =
-        pinterestBoards.find((b) => b.id === selectedBoard)?.name || "Weight Loss";
+      const boardName = pinterestBoards.find((b) => b.id === selectedBoard)?.name || "Weight Loss"
       // Make link unique with a random fragment
-      let link = postLinks[post.id] || post.defaultLink || "";
+      let link = postLinks[post.id] || post.defaultLink || ""
       if (link) {
-        const frag = generateRandomFragment(10);
-        link += `#${frag}`;
+        const frag = generateRandomFragment(10)
+        link += `#${frag}`
       }
       return [
         post.title,
-        post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
+        post.imageUrl && post.imageUrl.startsWith("http") ? post.imageUrl : "",
         boardName,
         post.description,
         link,
         randomDates[idx],
-      ];
-    });
+      ]
+    })
     const csvContent = [headers, ...rows]
-      .map((row) =>
-        row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `pinterest-posts-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\r\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `pinterest-posts-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
+
+  // Calculate free trial remaining
+  const freeTrialRemaining = credits !== null ? Math.max(0, credits) : 0
 
   return (
     <>
@@ -823,13 +801,22 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         <Alert variant="destructive" className="mb-6">
           <AlertTitle>Upgrade Required</AlertTitle>
           <AlertDescription>
-            You have used all your free posts. <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="text-teal-600 underline">Click here to work with us</a>.
+            You have used all your free posts.{" "}
+            <a
+              href="https://cal.com/justin-lord-a80mr6/30min"
+              target="_blank"
+              className="text-teal-600 underline"
+              rel="noreferrer"
+            >
+              Click here to work with us
+            </a>
+            .
           </AlertDescription>
         </Alert>
       )}
       {/* Free trial remaining prominent alert */}
       <div className="mb-4">
-        {(credits !== null && creditsLoading) ? (
+        {credits !== null && !creditsLoading ? (
           <Alert variant="default">
             <AlertTitle>You have {credits} free trial posts remaining.</AlertTitle>
           </Alert>
@@ -847,38 +834,22 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <PinIcon className="h-5 w-5 text-red-600" />
             Pinterest Board
           </CardTitle>
-          <CardDescription>
-            Select the Pinterest board where you want to publish your posts
-          </CardDescription>
+          <CardDescription>Select the Pinterest board where you want to publish your posts</CardDescription>
         </CardHeader>
         <CardContent>
           {boardFetchError ? (
             <Alert
-              variant={
-                boardFetchError === "You haven't connected Pinterest yet."
-                  ? "default"
-                  : "destructive"
-              }
+              variant={boardFetchError === "You haven't connected Pinterest yet." ? "default" : "destructive"}
               className="mb-4"
             >
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle
-                className={
-                  boardFetchError === "You haven't connected Pinterest yet."
-                    ? "text-gray-700"
-                    : ""
-                }
-              >
+              <AlertTitle className={boardFetchError === "You haven't connected Pinterest yet." ? "text-gray-700" : ""}>
                 {boardFetchError === "You haven't connected Pinterest yet."
                   ? "Pinterest Not Connected"
                   : "Error Fetching Boards"}
               </AlertTitle>
               <AlertDescription
-                className={
-                  boardFetchError === "You haven't connected Pinterest yet."
-                    ? "text-gray-600"
-                    : ""
-                }
+                className={boardFetchError === "You haven't connected Pinterest yet." ? "text-gray-600" : ""}
               >
                 {boardFetchError === "You haven't connected Pinterest yet." ? (
                   <>
@@ -887,9 +858,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       <Button
                         size="sm"
                         className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() =>
-                          router.push("/dashboard/settings/social")
-                        }
+                        onClick={() => router.push("/dashboard/settings/social")}
                       >
                         <PinIcon className="mr-2 h-4 w-4" />
                         Connect Pinterest
@@ -902,15 +871,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-2"
+                      className="mt-2 bg-transparent"
                       onClick={fetchBoards}
                       disabled={isFetchingBoards}
                     >
-                      <RefreshCw
-                        className={`mr-2 h-4 w-4 ${
-                          isFetchingBoards ? "animate-spin" : ""
-                        }`}
-                      />
+                      <RefreshCw className={`mr-2 h-4 w-4 ${isFetchingBoards ? "animate-spin" : ""}`} />
                       Retry
                     </Button>
                   </>
@@ -928,27 +893,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   disabled={isFetchingBoards}
                   className="h-8 px-2 text-xs"
                 >
-                  <RefreshCw
-                    className={`mr-1 h-3 w-3 ${
-                      isFetchingBoards ? "animate-spin" : ""
-                    }`}
-                  />
+                  <RefreshCw className={`mr-1 h-3 w-3 ${isFetchingBoards ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
               </div>
-              <Select
-                value={selectedBoard}
-                onValueChange={setSelectedBoard}
-                disabled={isFetchingBoards}
-              >
-                <SelectTrigger
-                  className={!selectedBoard ? "text-red-500 border-red-500" : ""}
-                >
-                  <SelectValue
-                    placeholder={
-                      isFetchingBoards ? "Loading boards..." : "Select a board"
-                    }
-                  />
+              <Select value={selectedBoard} onValueChange={setSelectedBoard} disabled={isFetchingBoards}>
+                <SelectTrigger className={!selectedBoard ? "text-red-500 border-red-500" : ""}>
+                  <SelectValue placeholder={isFetchingBoards ? "Loading boards..." : "Select a board"} />
                 </SelectTrigger>
                 <SelectContent>
                   {pinterestBoards.length === 0 ? (
@@ -979,9 +930,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       <Card>
         <CardHeader>
           <CardTitle>Generate Pinterest Content</CardTitle>
-          <CardDescription>
-            Choose how you want to create your Pinterest content
-          </CardDescription>
+          <CardDescription>Choose how you want to create your Pinterest content</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -1009,8 +958,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  Our AI will analyze the content at this URL and generate
-                  Pinterest posts
+                  Our AI will analyze the content at this URL and generate Pinterest posts
                 </p>
               </div>
 
@@ -1021,17 +969,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative"
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
-                  onClick={() =>
-                    !previewUrl && document.getElementById("file-upload")?.click()
-                  }
+                  onClick={() => !previewUrl && document.getElementById("file-upload")?.click()}
                 >
-                  <input
-                    id="file-upload"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
+                  <input id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                   {previewUrl ? (
                     <div className="flex flex-col items-center">
                       <div className="relative w-40 h-40 mb-4">
@@ -1045,14 +985,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                           size="icon"
                           className="absolute top-1 right-1 h-6 w-6 rounded-full"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            setReferenceImage(null);
-                            setPreviewUrl(null);
-                            const fileInput = document.getElementById(
-                              "file-upload"
-                            ) as HTMLInputElement;
+                            e.stopPropagation()
+                            setReferenceImage(null)
+                            setPreviewUrl(null)
+                            const fileInput = document.getElementById("file-upload") as HTMLInputElement
                             if (fileInput) {
-                              fileInput.value = "";
+                              fileInput.value = ""
                             }
                           }}
                         >
@@ -1064,12 +1002,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   ) : (
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                      <p className="text-sm font-medium">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        PNG, JPG or WEBP (max. 5MB)
-                      </p>
+                      <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
                     </div>
                   )}
                 </div>
@@ -1160,21 +1094,19 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         <div className="space-y-6 mt-6">
           {/* Header Row */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">
-              Generated Posts ({generatedPosts.length})
-            </h2>
+            <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
             <Button
               variant="outline"
               onClick={() => {
-                setUrl("");
-                setTopic("");
-                setReferenceImage(null);
-                setPreviewUrl(null);
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                setUrl("")
+                setTopic("")
+                setReferenceImage(null)
+                setPreviewUrl(null)
+                window.scrollTo({ top: 0, behavior: "smooth" })
                 toast({
                   title: "Form Cleared",
                   description: "You can now generate new content.",
-                });
+                })
               }}
             >
               Start New Generation
@@ -1205,11 +1137,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               <Calendar className="mr-2 h-4 w-4" />
               Schedule Post
             </Button>
-            <Button
-              className={getButtonClass(hasSelectedPosts)}
-              disabled={!hasSelectedPosts}
-              onClick={handleDeleteAll}
-            >
+            <Button className={getButtonClass(hasSelectedPosts)} disabled={!hasSelectedPosts} onClick={handleDeleteAll}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete All
             </Button>
@@ -1235,9 +1163,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           {hasSelectedPosts && (
             <Card className="p-4">
               <div className="flex items-center gap-4">
-                <Label>
-                  Default Board for Selected Posts ({selectedPosts.size} selected):
-                </Label>
+                <Label>Default Board for Selected Posts ({selectedPosts.size} selected):</Label>
                 <Select value={selectedBoard} onValueChange={setSelectedBoard}>
                   <SelectTrigger className="w-64">
                     <SelectValue placeholder="Select board" />
@@ -1257,14 +1183,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           {/* Posts Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {generatedPosts.map((post) => {
-              const isSelected = selectedPosts.has(post.id);
-              const hasCustomLink = postLinks[post.id];
-              const displayLink =
-                hasCustomLink || post.defaultLink || "No link available";
-              const assignedBoard = getSelectedBoard(post.id);
-              const boardName =
-                pinterestBoards.find((b) => b.id === assignedBoard)?.name ||
-                "No board";
+              const isSelected = selectedPosts.has(post.id)
+              const hasCustomLink = postLinks[post.id]
+              const displayLink = hasCustomLink || post.defaultLink || "No link available"
+              const assignedBoard = getSelectedBoard(post.id)
+              const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
 
               return (
                 <Card
@@ -1291,11 +1214,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       className="h-8 w-8 p-0 bg-white/80 hover:bg-white"
                       onClick={() => handleLinkPost(post)}
                     >
-                      <LinkIcon
-                        className={`h-4 w-4 ${
-                          hasCustomLink ? "text-green-600" : "text-gray-600"
-                        }`}
-                      />
+                      <LinkIcon className={`h-4 w-4 ${hasCustomLink ? "text-green-600" : "text-gray-600"}`} />
                     </Button>
                     <Button
                       size="sm"
@@ -1312,7 +1231,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       <img
                         src={
                           post.imageUrl ||
-                          "/placeholder.svg?height=600&width=400&query=abstract+post+image"
+                          "/placeholder.svg?height=600&width=400&query=abstract+post+image" ||
+                          "/placeholder.svg"
                         }
                         alt={post.title}
                         className="w-full h-full object-cover"
@@ -1338,9 +1258,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   </div>
 
                   <CardContent className="p-4">
-                    <h3 className="font-semibold line-clamp-2 mb-2">
-                      {post.title}
-                    </h3>
+                    <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>
                     <ExpandableDescription description={post.description} />
                     <div className="flex gap-2">
                       <Button
@@ -1359,7 +1277,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       </Button>
                       <Button
                         variant="outline"
-                        className="flex-1"
+                        className="flex-1 bg-transparent"
                         onClick={() => openScheduleDialog(post)}
                         disabled={isScheduling === post.id}
                       >
@@ -1380,23 +1298,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleLinkPost(post)}
-                      >
-                        <LinkIcon
-                          className={`h-4 w-4 ${
-                            postLinks[post.id]
-                              ? "text-green-600"
-                              : "text-gray-600"
-                          }`}
-                        />
+                      <Button size="icon" variant="ghost" onClick={() => handleLinkPost(post)}>
+                        <LinkIcon className={`h-4 w-4 ${postLinks[post.id] ? "text-green-600" : "text-gray-600"}`} />
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
-              );
+              )
             })}
           </div>
         </div>
@@ -1407,23 +1315,15 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete All Selected Posts</DialogTitle>
-            <DialogDescription>
-              Do you want to delete all selected posts?
-            </DialogDescription>
+            <DialogDescription>Do you want to delete all selected posts?</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="mb-4 p-3 border rounded-lg bg-red-50">
-              <p className="font-medium text-red-800">
-                You are about to delete {selectedPosts.size} posts
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                This action cannot be undone.
-              </p>
+              <p className="font-medium text-red-800">You are about to delete {selectedPosts.size} posts</p>
+              <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="delete-all-confirm">
-                Type DELETE to confirm deletion
-              </Label>
+              <Label htmlFor="delete-all-confirm">Type DELETE to confirm deletion</Label>
               <Input
                 id="delete-all-confirm"
                 value={deleteAllConfirmText}
@@ -1436,11 +1336,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button variant="outline" onClick={() => setDeleteAllDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteAll}
-              disabled={deleteAllConfirmText !== "DELETE"}
-            >
+            <Button variant="destructive" onClick={confirmDeleteAll} disabled={deleteAllConfirmText !== "DELETE"}>
               Delete All
             </Button>
           </DialogFooter>
@@ -1451,9 +1347,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Link All Selected Posts</DialogTitle>
-            <DialogDescription>
-              Enter a custom link for all {selectedPosts.size} selected posts
-            </DialogDescription>
+            <DialogDescription>Enter a custom link for all {selectedPosts.size} selected posts</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-2">
@@ -1465,8 +1359,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 placeholder="https://example.com"
               />
               <p className="text-xs text-gray-500">
-                This link will be applied to all {selectedPosts.size} selected
-                posts
+                This link will be applied to all {selectedPosts.size} selected posts
               </p>
             </div>
           </div>
@@ -1474,11 +1367,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button variant="outline" onClick={() => setLinkAllDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={confirmLinkAll}
-              disabled={!linkAllText}
-              className="bg-green-600 hover:bg-green-700"
-            >
+            <Button onClick={confirmLinkAll} disabled={!linkAllText} className="bg-green-600 hover:bg-green-700">
               Apply to All Posts
             </Button>
           </DialogFooter>
@@ -1489,9 +1378,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Schedule All Selected Posts</DialogTitle>
-            <DialogDescription>
-              Select a date to schedule all {selectedPosts.size} selected posts
-            </DialogDescription>
+            <DialogDescription>Select a date to schedule all {selectedPosts.size} selected posts</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
@@ -1500,14 +1387,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 <div className="mt-2">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
+                      <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {scheduleAllDate
-                          ? format(scheduleAllDate, "PPP")
-                          : "Select a date"}
+                        {scheduleAllDate ? format(scheduleAllDate, "PPP") : "Select a date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -1525,42 +1407,32 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setScheduleAllDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setScheduleAllDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              className="bg-teal-600 hover:bg-teal-700"
-              onClick={confirmScheduleAll}
-              disabled={!scheduleAllDate}
-            >
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={confirmScheduleAll} disabled={!scheduleAllDate}>
               Schedule All Posts
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
 
 // ExpandableDescription component
 function ExpandableDescription({ description }: { description: string }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
   // Estimate if truncation is needed (simple heuristic: > 5 lines ~ 400 chars)
-  const shouldTruncate = description.length > 120;
+  const shouldTruncate = description.length > 120
   return (
     <div className="mb-4">
-      <p className={`text-sm text-gray-500 ${!expanded && shouldTruncate ? 'line-clamp-5' : ''}`}>{description}</p>
+      <p className={`text-sm text-gray-500 ${!expanded && shouldTruncate ? "line-clamp-5" : ""}`}>{description}</p>
       {shouldTruncate && (
-        <button
-          className="text-xs text-gray-500 hover:underline ml-1 mt-1"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? 'Show less' : 'Show more'}
+        <button className="text-xs text-gray-500 hover:underline ml-1 mt-1" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "Show less" : "Show more"}
         </button>
       )}
     </div>
-  );
+  )
 }
