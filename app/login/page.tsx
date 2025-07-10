@@ -18,7 +18,6 @@ import { Toaster } from "@/components/ui/toaster"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -28,13 +27,17 @@ export default function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (status === "authenticated" && session) {
-      router.replace("/dashboard")
-    }
-  }, [session, status, router])
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.replace("/dashboard");
+      }
+    };
+    checkSession();
+  }, [router]);
 
   // Show loading state while checking session
-  if (status === "loading") {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
