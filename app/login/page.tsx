@@ -5,13 +5,13 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js"
+import { useSession } from "@/hooks/useSession"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { toast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   // Redirect if already logged in
   useEffect(() => {
@@ -43,21 +43,21 @@ export default function LoginPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setIsLoading(false);
+    e.preventDefault()
+    setIsLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setIsLoading(false)
     if (error) {
-      toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
-      return;
+      toast({ title: "Login failed", description: error.message, variant: "destructive" })
+      return
     }
-    router.replace('/dashboard');
-  };
+    router.replace("/dashboard")
+  }
 
   // Bypass: always redirect to dashboard on Google sign-in
   const handleGoogleSignIn = async () => {
-    router.replace("/dashboard");
-  };
+    router.replace("/dashboard")
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -86,7 +86,7 @@ export default function LoginPage() {
 
           <Button
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 mb-6"
+            className="w-full flex items-center justify-center gap-2 mb-6 bg-transparent"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
