@@ -347,9 +347,15 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
       const user = supabase.auth.user();
       if (user) {
-        await supabase.from('credits').update({ credits: credits - 1 }).eq('user_id', user.id);
-        setCredits(credits - 1);
+        const { error } = await supabase.from('credits').update({ credits: credits - 1 }).eq('user_id', user.id);
+        if (error) {
+          toast({ title: "Error updating credits", description: error.message, variant: "destructive" });
+          return;
+        }
+        await fetchCredits();
         if (credits - 1 === 0) setShowUpgrade(true);
+      } else {
+        toast({ title: "User not found", description: "Could not find user for credit update.", variant: "destructive" });
       }
     }
   };
