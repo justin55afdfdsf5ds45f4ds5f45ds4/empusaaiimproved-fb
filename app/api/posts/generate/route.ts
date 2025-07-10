@@ -323,32 +323,39 @@ function cleanLLMOutput(text: string): string {
 }
 
 export async function POST(req: Request) {
+  console.error("TEST ERROR LOG - function invoked");
   // Dynamically import sharp and node-fetch inside the handler
   const sharp = (await import("sharp")).default;
   const fetch = (await import("node-fetch")).default;
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.id) {
+      console.log("[POST /api/posts/generate] Unauthorized access attempt");
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
+    console.log("[POST /api/posts/generate] User session", { userId });
     const body = await req.json();
     const { url, topic, tone = "informative", count = 2, boardId } = body;
     const requestedCount = count;
     // Free trial enforcement
     let isFreeTrial = await isFreeTrialUser(userId);
     let actualCount = count;
+    console.log("[POST /api/posts/generate] isFreeTrial", { isFreeTrial });
     if (isFreeTrial) {
       actualCount = 1;
       const used = await getFreeTrialPostsUsed(userId);
       const limit = getFreeTrialLimit();
+      console.log("[POST /api/posts/generate] Free trial usage", { used, limit });
       if (used >= limit) {
+        console.log("[POST /api/posts/generate] Free trial exhausted", { userId });
         return NextResponse.json({
           error: 'You have exhausted your free trial credits. Book a call here to work with us.',
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
         }, { status: 403 });
       }
       if (used + actualCount > limit) {
+        console.log("[POST /api/posts/generate] Free trial would exceed limit", { userId, used, actualCount, limit });
         return NextResponse.json({
           error: `You only have ${limit - used} free trial post${limit - used === 1 ? '' : 's'} remaining.`,
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
@@ -356,7 +363,9 @@ export async function POST(req: Request) {
       }
       // Atomically increment before generating
       const incremented = await incrementFreeTrialPostsAtomic(userId, actualCount);
+      console.log("[POST /api/posts/generate] incrementFreeTrialPostsAtomic result", { incremented });
       if (!incremented) {
+        console.log("[POST /api/posts/generate] Increment failed or already exhausted", { userId });
         return NextResponse.json({
           error: 'You have exhausted your free trial credits. Book a call here to work with us.',
           bookingLink: 'https://cal.com/justin-lord-a80mr6/30min',
@@ -364,7 +373,7 @@ export async function POST(req: Request) {
       }
     }
 
-    console.log("Generating posts with:", { url, topic, count, tone });
+    console.log("[POST /api/posts/generate] Generating posts with:", { url, topic, count, tone });
 
     // Step 1: Extract keywords using Llama-3 with the improved prompt
     const extractedKeywords = await extractKeywords(url, topic);
@@ -484,7 +493,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ posts });
   } catch (error) {
-    console.error("Error generating posts:", error);
+    console.error("[POST /api/posts/generate] Error:", error);
     return NextResponse.json(
       {
         error: `Failed to generate posts: ${
