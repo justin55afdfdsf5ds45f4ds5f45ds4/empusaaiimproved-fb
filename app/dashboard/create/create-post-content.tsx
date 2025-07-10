@@ -306,7 +306,31 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate posts");
+        const data = await response.json();
+        if (
+          response.status === 403 &&
+          data.error?.toLowerCase().includes("exhausted your credits")
+        ) {
+          toast({
+            title: "Upgrade Required",
+            description: (
+              <>
+                You have exhausted your free trial credits.
+                <a
+                  href="https://cal.com/justin-lord-a80mr6/30min"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-700 ml-2"
+                >
+                  Upgrade Now
+                </a>
+              </>
+            ),
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(data.error || "Failed to generate posts");
       }
 
       const data = await response.json();
