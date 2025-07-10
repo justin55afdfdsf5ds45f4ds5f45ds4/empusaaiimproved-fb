@@ -334,6 +334,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
+    console.error("DEBUG: userId in POST /api/posts/generate", userId);
     console.log("[POST /api/posts/generate] User session", { userId });
     const body = await req.json();
     const { url, topic, tone = "informative", count = 2, boardId } = body;
