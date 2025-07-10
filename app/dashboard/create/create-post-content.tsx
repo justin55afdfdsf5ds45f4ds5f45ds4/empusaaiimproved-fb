@@ -120,34 +120,24 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
   }, [initialUrl]);
 
-  const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(null);
-  const [freeTrialLimit, setFreeTrialLimit] = useState<number | null>(null);
-  const [freeTrialLoading, setFreeTrialLoading] = useState(true);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [creditsLoading, setCreditsLoading] = useState(true);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const { session } = useSession();
 
   useEffect(() => {
-    async function fetchFreeTrialStatus() {
-      setFreeTrialLoading(true);
-      try {
-        // Replace 'users' and column names as needed
-        const { data, error } = await supabase
-          .from('users')
-          .select('credits, free_trial_limit')
-          .eq('id', session?.user?.id) // You may need to get session.user.id from your auth/session logic
-          .single();
-        if (error) throw error;
-        setFreeTrialRemaining(data.credits);
-        setFreeTrialLimit(data.free_trial_limit);
-      } catch (e) {
-        setFreeTrialRemaining(null);
-        setFreeTrialLimit(null);
-      } finally {
-        setFreeTrialLoading(false);
-      }
+    async function fetchCredits() {
+      setCreditsLoading(true);
+      const user = supabase.auth.user();
+      if (!user) { setCredits(null); setCreditsLoading(false); return; }
+      const { data, error } = await supabase.from('credits').select('credits').eq('user_id', user.id).single();
+      if (error) { setCredits(null); } else { setCredits(data.credits); }
+      setCreditsLoading(false);
     }
-    (window as any).fetchFreeTrialStatus = fetchFreeTrialStatus;
-    fetchFreeTrialStatus();
+    fetchCredits();
   }, []);
+
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   const fetchBoards = async () => {
     setIsFetchingBoards(true);
@@ -259,17 +249,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   };
 
   const handleGenerate = async () => {
-    if (freeTrialRemaining === 0) {
-      toast({
-        title: "Free Trial Exhausted",
-        description: "You have exhausted your free trial posts. Book a call to upgrade.",
-        action: (
-          <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700 ml-2">Book a call</a>
-        ),
-        variant: "destructive",
-      });
-      return;
-    }
+    if (credits === 0) { setShowUpgrade(true); return; }
 
     if (activeTab === "url" && !url) {
       toast({
@@ -364,6 +344,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       // Always re-fetch free trial status after attempt
       if (typeof (window as any).fetchFreeTrialStatus === 'function') {
         (window as any).fetchFreeTrialStatus();
+      }
+      const user = supabase.auth.user();
+      if (user) {
+        await supabase.from('credits').update({ credits: credits - 1 }).eq('user_id', user.id);
+        setCredits(credits - 1);
+        if (credits - 1 === 0) setShowUpgrade(true);
       }
     }
   };
@@ -833,21 +819,20 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
   return (
     <>
+      {showUpgrade && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTitle>Upgrade Required</AlertTitle>
+          <AlertDescription>
+            You have used all your free posts. <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="text-teal-600 underline">Click here to work with us</a>.
+          </AlertDescription>
+        </Alert>
+      )}
       {/* Free trial remaining prominent alert */}
       <div className="mb-4">
-        {(freeTrialRemaining !== null && freeTrialLimit !== null) ? (
-          freeTrialRemaining === 0 ? (
-            <Alert variant="destructive">
-              <AlertTitle>You have exhausted your free trial limit of {freeTrialLimit} posts.</AlertTitle>
-              <AlertDescription>
-                <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Book a call to upgrade</a>
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Alert variant="default">
-              <AlertTitle>You have used {freeTrialLimit - freeTrialRemaining} of {freeTrialLimit} free trial posts.</AlertTitle>
-            </Alert>
-          )
+        {(credits !== null && creditsLoading) ? (
+          <Alert variant="default">
+            <AlertTitle>You have {credits} free trial posts remaining.</AlertTitle>
+          </Alert>
         ) : (
           <Alert variant="default">
             <AlertTitle>You have used 0 of 5 free trial posts.</AlertTitle>

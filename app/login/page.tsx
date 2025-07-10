@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { signIn, useSession } from "next-auth/react"
+import { createClient } from '@supabase/supabase-js';
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+
   // Redirect if already logged in
   useEffect(() => {
     if (status === "authenticated" && session) {
@@ -40,10 +42,16 @@ export default function LoginPage() {
     )
   }
 
-  // Bypass: always redirect to dashboard on submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.replace("/dashboard");
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setIsLoading(false);
+    if (error) {
+      toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    router.replace('/dashboard');
   };
 
   // Bypass: always redirect to dashboard on Google sign-in
