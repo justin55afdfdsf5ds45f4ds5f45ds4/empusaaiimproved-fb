@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, RefreshCw, Lock, Crown } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Loader2, RefreshCw, Lock, Crown, ChevronDown } from "lucide-react"
 import Link from "next/link"
 
 interface Board {
@@ -46,6 +45,7 @@ export function CreatePostForm() {
   const [selectedBoard, setSelectedBoard] = useState<string>("")
   const [activeTab, setActiveTab] = useState(initialUrl ? "url" : "topic")
   const [postCount, setPostCount] = useState<string>("1")
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   // Set initial URL from search params
   useEffect(() => {
@@ -95,6 +95,16 @@ export function CreatePostForm() {
       variant: "default",
     })
     router.push("/pricing")
+  }
+
+  const handlePostCountSelect = (value: string) => {
+    const count = Number.parseInt(value)
+    if (count > 2) {
+      handlePremiumFeatureClick()
+      return
+    }
+    setPostCount(value)
+    setDropdownOpen(false)
   }
 
   const handleGeneratePosts = async () => {
@@ -229,6 +239,15 @@ export function CreatePostForm() {
     }
   }
 
+  const postOptions = [
+    { value: "1", label: "1 post", premium: false },
+    { value: "2", label: "2 posts", premium: false },
+    { value: "5", label: "5 posts", premium: true },
+    { value: "20", label: "20 posts", premium: true },
+    { value: "50", label: "50 posts", premium: true },
+    { value: "100", label: "100 posts", premium: true },
+  ]
+
   return (
     <div className="space-y-6">
       <Card>
@@ -271,51 +290,43 @@ export function CreatePostForm() {
           {/* Post Count Selection */}
           <div className="mt-4 space-y-2">
             <Label htmlFor="post-count">Number of Posts to Generate</Label>
-            <Select value={postCount} onValueChange={setPostCount}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select number of posts" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 Post</SelectItem>
-                <SelectItem value="2">2 Posts</SelectItem>
-                <SelectItem value="5" disabled>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-gray-400">5 Posts</span>
-                    <div className="flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-gray-400" />
-                      <Crown className="h-3 w-3 text-yellow-500" />
+            <div className="relative">
+              <button
+                type="button"
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                disabled={isGenerating}
+              >
+                <span>{postOptions.find((opt) => opt.value === postCount)?.label || "Select posts"}</span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                  {postOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className={`relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors ${
+                        option.premium
+                          ? "text-muted-foreground cursor-not-allowed"
+                          : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      } ${postCount === option.value ? "bg-accent text-accent-foreground" : ""}`}
+                      onClick={() => handlePostCountSelect(option.value)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className={option.premium ? "text-gray-400" : ""}>{option.label}</span>
+                        {option.premium && (
+                          <div className="flex items-center gap-1">
+                            <Lock className="h-3 w-3 text-gray-400" />
+                            <Crown className="h-3 w-3 text-yellow-500" />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="20" disabled>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-gray-400">20 Posts</span>
-                    <div className="flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-gray-400" />
-                      <Crown className="h-3 w-3 text-yellow-500" />
-                    </div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="50" disabled>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-gray-400">50 Posts</span>
-                    <div className="flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-gray-400" />
-                      <Crown className="h-3 w-3 text-yellow-500" />
-                    </div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="100" disabled>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-gray-400">100 Posts</span>
-                    <div className="flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-gray-400" />
-                      <Crown className="h-3 w-3 text-yellow-500" />
-                    </div>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+                  ))}
+                </div>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               Generate multiple posts at once.{" "}
               <Link href="/pricing" className="text-teal-600 hover:underline">
