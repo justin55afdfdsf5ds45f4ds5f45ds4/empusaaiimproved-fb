@@ -17,11 +17,12 @@ import {
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
-  Lock,
-  Crown,
   TrendingUp,
   BarChart3,
   PieChart,
+  Sparkles,
+  Activity,
+  Users,
 } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -317,289 +318,295 @@ export default function DashboardContent() {
   ]
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex-grow w-full sm:w-auto">
-          <h1 className="text-2xl md:text-3xl font-bold mb-1 text-gray-900">Empusa AI Dashboard</h1>
-          <p className="text-gray-500 text-sm">Your command center for Pinterest content.</p>
-        </div>
+    <div className="relative min-h-screen">
+      {/* Blur overlay for the entire dashboard */}
+      <div className="absolute inset-0 backdrop-blur-sm bg-white/30 z-10 pointer-events-none">
+        {/* Animated building elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Floating particles */}
+          <div className="absolute top-20 left-10 w-2 h-2 bg-teal-400 rounded-full animate-pulse opacity-60"></div>
+          <div className="absolute top-32 right-20 w-3 h-3 bg-blue-400 rounded-full animate-bounce opacity-50 animation-delay-300"></div>
+          <div className="absolute top-48 left-1/4 w-2 h-2 bg-purple-400 rounded-full animate-pulse opacity-40 animation-delay-700"></div>
+          <div className="absolute top-64 right-1/3 w-4 h-4 bg-orange-400 rounded-full animate-bounce opacity-30 animation-delay-1000"></div>
+          <div className="absolute bottom-40 left-16 w-3 h-3 bg-green-400 rounded-full animate-pulse opacity-50 animation-delay-500"></div>
+          <div className="absolute bottom-60 right-24 w-2 h-2 bg-pink-400 rounded-full animate-bounce opacity-40 animation-delay-800"></div>
 
-        <Popover open={isGlobalCalendarOpen} onOpenChange={setIsGlobalCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto justify-start text-left font-normal bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:border-gray-300 min-w-[280px] rounded-xl transition-all duration-200"
-              onClick={() => setIsGlobalCalendarOpen((prev) => !prev)}
-            >
-              <CalendarDays className="mr-2 h-4 w-4 text-gray-500" />
-              <span className="text-gray-700 font-medium">{formatDateRangeDisplay(dateRange)}</span>
-            </Button>
-          </PopoverTrigger>
-          <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
-        </Popover>
-      </div>
+          {/* Moving icons */}
+          <TrendingUp className="absolute top-24 right-32 h-8 w-8 text-teal-300 animate-pulse opacity-30" />
+          <BarChart3 className="absolute top-40 left-20 h-6 w-6 text-blue-300 animate-bounce opacity-25 animation-delay-400" />
+          <PieChart className="absolute bottom-32 right-16 h-10 w-10 text-purple-300 animate-pulse opacity-20 animation-delay-600" />
+          <Activity className="absolute bottom-48 left-32 h-7 w-7 text-orange-300 animate-bounce opacity-30 animation-delay-900" />
+          <Users className="absolute top-56 right-40 h-6 w-6 text-green-300 animate-pulse opacity-25 animation-delay-200" />
+          <Sparkles className="absolute bottom-24 left-1/2 h-8 w-8 text-pink-300 animate-bounce opacity-35 animation-delay-1200" />
 
-      <p className="text-sm text-gray-600 mb-6 -mt-2 text-center sm:text-left font-medium">
-        {formattedDateRangeText()}
-      </p>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Total Posts Card - Premium Locked */}
-        <Card className="border-2 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm z-10 flex items-center justify-center">
-            <div className="text-center">
-              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 mb-3 shadow-lg">
-                <Lock className="h-8 w-8 text-gray-600 mx-auto mb-2" />
-                <Crown className="h-6 w-6 text-yellow-500 mx-auto" />
-              </div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">Premium Feature</p>
-              <Button
-                size="sm"
-                onClick={handlePremiumUpgrade}
-                className="bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white shadow-lg"
-              >
-                Upgrade to Premium
-              </Button>
-            </div>
-          </div>
-          {/* Animated background elements */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-4 left-4 w-8 h-8 bg-teal-400 rounded-full animate-pulse"></div>
-            <div className="absolute top-8 right-6 w-4 h-4 bg-blue-400 rounded-full animate-bounce delay-300"></div>
-            <div className="absolute bottom-6 left-8 w-6 h-6 bg-purple-400 rounded-full animate-pulse delay-700"></div>
-            <TrendingUp className="absolute bottom-4 right-4 h-12 w-12 text-teal-300 animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-teal-50 to-teal-100">
-            <CardTitle className="text-sm font-semibold text-teal-800">Advanced Analytics</CardTitle>
-            <BarChart3 className="h-4 w-4 text-teal-600" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-gray-900 blur-sm">***</div>
-            <p className="text-xs text-gray-500 mt-1">Upgrade to unlock advanced Pinterest metrics</p>
-          </CardContent>
-        </Card>
-
-        {/* Scheduled Posts Card - Premium Locked */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm z-10 flex items-center justify-center">
-            <div className="text-center">
-              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 mb-3 shadow-lg">
-                <Lock className="h-8 w-8 text-gray-600 mx-auto mb-2" />
-                <Crown className="h-6 w-6 text-yellow-500 mx-auto" />
-              </div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">Premium Feature</p>
-              <Button
-                size="sm"
-                onClick={handlePremiumUpgrade}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-              >
-                Upgrade to Premium
-              </Button>
-            </div>
-          </div>
-          {/* Animated background elements */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-6 left-6 w-6 h-6 bg-blue-400 rounded-full animate-bounce"></div>
-            <div className="absolute top-4 right-8 w-8 h-8 bg-indigo-400 rounded-full animate-pulse delay-500"></div>
-            <div className="absolute bottom-8 left-4 w-4 h-4 bg-blue-300 rounded-full animate-pulse delay-1000"></div>
-            <CalendarClock className="absolute bottom-4 right-4 h-12 w-12 text-blue-300 animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardTitle className="text-sm font-semibold text-blue-800">Scheduling Analytics</CardTitle>
-            <CalendarClock className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-gray-900 blur-sm">***</div>
-            <p className="text-xs text-gray-500 mt-1">Upgrade to unlock scheduling insights</p>
-          </CardContent>
-        </Card>
-
-        {/* Pinterest Engagement Card - Premium Locked */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm z-10 flex items-center justify-center">
-            <div className="text-center">
-              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 mb-3 shadow-lg">
-                <Lock className="h-8 w-8 text-gray-600 mx-auto mb-2" />
-                <Crown className="h-6 w-6 text-yellow-500 mx-auto" />
-              </div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">Premium Feature</p>
-              <Button
-                size="sm"
-                onClick={handlePremiumUpgrade}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
-              >
-                Upgrade to Premium
-              </Button>
-            </div>
-          </div>
-          {/* Animated background elements */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-4 left-8 w-6 h-6 bg-purple-400 rounded-full animate-pulse"></div>
-            <div className="absolute top-8 right-4 w-8 h-8 bg-pink-400 rounded-full animate-bounce delay-700"></div>
-            <div className="absolute bottom-6 left-6 w-4 h-4 bg-purple-300 rounded-full animate-pulse delay-300"></div>
-            <PieChart className="absolute bottom-4 right-4 h-12 w-12 text-purple-300 animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardTitle className="text-sm font-semibold text-purple-800">Engagement Insights</CardTitle>
-            <CalendarPlus className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-gray-900 blur-sm">***</div>
-            <p className="text-xs text-gray-500 mt-1">Upgrade to unlock engagement analytics</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Rest of the dashboard content (Quick Start, Recent Posts, Tips) */}
-      <div className="bg-gradient-to-r from-teal-50 to-orange-50 p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="bg-white p-3 rounded-full shadow-md">
-            <Zap className="h-6 w-6 text-teal-600" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Quick Start</h2>
-            <p className="text-gray-600">Create your first Pinterest post in minutes</p>
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* Quick Start Steps */}
-          {[
-            { title: "Enter URL", description: "Paste any URL to create content for." },
-            { title: "Generate Content", description: "Our AI creates optimized images & descriptions." },
-            { title: "Publish or Schedule", description: "Post immediately or schedule for optimal times." },
-          ].map((step, index) => (
-            <div
-              key={index}
-              className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="bg-teal-100 w-6 h-6 rounded-full flex items-center justify-center text-teal-600 font-semibold text-sm">
-                  {index + 1}
-                </div>
-                <h3 className="font-semibold text-gray-900">{step.title}</h3>
-              </div>
-              <p className="text-sm text-gray-600">{step.description}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-6 flex justify-center">
-          <Link href="/dashboard/create">
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-6 py-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create New Post
-            </Button>
-          </Link>
+          {/* Building blocks animation */}
+          <div className="absolute top-1/3 left-1/3 w-16 h-16 border-2 border-teal-200 rounded-lg animate-pulse opacity-20"></div>
+          <div className="absolute top-1/2 right-1/4 w-12 h-12 border-2 border-blue-200 rounded-lg animate-bounce opacity-15 animation-delay-500"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-20 h-20 border-2 border-purple-200 rounded-lg animate-pulse opacity-10 animation-delay-800"></div>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 mt-8">
-        {/* Recent Posts Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Posts</h2>
-            <Link href="/dashboard/posts">
+      {/* Coming Soon overlay */}
+      <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <div className="text-center bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-gradient-to-r from-teal-500 to-blue-500 rounded-full p-4">
+              <Sparkles className="h-12 w-12 text-white animate-pulse" />
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Advanced Analytics</h2>
+          <p className="text-lg text-gray-600 mb-4">Coming Soon</p>
+          <p className="text-sm text-gray-500 max-w-md">
+            We're building powerful analytics and insights to help you optimize your Pinterest strategy. Stay tuned for
+            advanced metrics, engagement tracking, and performance analytics.
+          </p>
+          <div className="mt-6 flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-200"></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce animation-delay-400"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Original dashboard content (blurred in background) */}
+      <div className="space-y-6 p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex-grow w-full sm:w-auto">
+            <h1 className="text-2xl md:text-3xl font-bold mb-1 text-gray-900">Empusa AI Dashboard</h1>
+            <p className="text-gray-500 text-sm">Your command center for Pinterest content.</p>
+          </div>
+
+          <Popover open={isGlobalCalendarOpen} onOpenChange={setIsGlobalCalendarOpen}>
+            <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                size="sm"
-                className="rounded-lg border-gray-200 hover:bg-gray-50 bg-transparent"
+                className="w-full sm:w-auto justify-start text-left font-normal bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:border-gray-300 min-w-[280px] rounded-xl transition-all duration-200"
+                onClick={() => setIsGlobalCalendarOpen((prev) => !prev)}
               >
-                View All
+                <CalendarDays className="mr-2 h-4 w-4 text-gray-500" />
+                <span className="text-gray-700 font-medium">{formatDateRangeDisplay(dateRange)}</span>
+              </Button>
+            </PopoverTrigger>
+            <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
+          </Popover>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-6 -mt-2 text-center sm:text-left font-medium">
+          {formattedDateRangeText()}
+        </p>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Total Posts Card */}
+          <Card className="border-2 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-teal-50 to-teal-100">
+              <CardTitle className="text-sm font-semibold text-teal-800">Total Posts</CardTitle>
+              <Popover open={isTotalPostsCalendarOpen} onOpenChange={setIsTotalPostsCalendarOpen}>
+                {renderCalendarTriggerButton(
+                  setIsTotalPostsCalendarOpen,
+                  <CalendarDays className="h-4 w-4" />,
+                  "Select date range for total posts",
+                )}
+                <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
+              </Popover>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="text-3xl font-bold text-gray-900">{isLoading ? "..." : metrics.totalPosts}</div>
+              <p className="text-xs text-gray-500 mt-1">Posts created in range</p>
+            </CardContent>
+          </Card>
+
+          {/* Scheduled Posts Card */}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <CardTitle className="text-sm font-semibold text-blue-800">Scheduled Posts</CardTitle>
+              <Popover open={isScheduledPostsCalendarOpen} onOpenChange={setIsScheduledPostsCalendarOpen}>
+                {renderCalendarTriggerButton(
+                  setIsScheduledPostsCalendarOpen,
+                  <CalendarClock className="h-4 w-4" />,
+                  "Select date range for scheduled posts",
+                )}
+                <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
+              </Popover>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="text-3xl font-bold text-gray-900">{isLoading ? "..." : metrics.scheduledPosts}</div>
+              <p className="text-xs text-gray-500 mt-1">Posts scheduled in range</p>
+            </CardContent>
+          </Card>
+
+          {/* Pinterest Engagement Card */}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardTitle className="text-sm font-semibold text-purple-800">Pinterest Engagement</CardTitle>
+              <Popover open={isEngagementCalendarOpen} onOpenChange={setIsEngagementCalendarOpen}>
+                {renderCalendarTriggerButton(
+                  setIsEngagementCalendarOpen,
+                  <CalendarPlus className="h-4 w-4" />,
+                  "Select date range for engagement",
+                )}
+                <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
+              </Popover>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="text-3xl font-bold text-gray-900">
+                {isLoading ? "..." : metrics.totalEngagement.toLocaleString()}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Engagements in range</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Rest of the dashboard content (Quick Start, Recent Posts, Tips) */}
+        <div className="bg-gradient-to-r from-teal-50 to-orange-50 p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="bg-white p-3 rounded-full shadow-md">
+              <Zap className="h-6 w-6 text-teal-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Quick Start</h2>
+              <p className="text-gray-600">Create your first Pinterest post in minutes</p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Quick Start Steps */}
+            {[
+              { title: "Enter URL", description: "Paste any URL to create content for." },
+              { title: "Generate Content", description: "Our AI creates optimized images & descriptions." },
+              { title: "Publish or Schedule", description: "Post immediately or schedule for optimal times." },
+            ].map((step, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="bg-teal-100 w-6 h-6 rounded-full flex items-center justify-center text-teal-600 font-semibold text-sm">
+                    {index + 1}
+                  </div>
+                  <h3 className="font-semibold text-gray-900">{step.title}</h3>
+                </div>
+                <p className="text-sm text-gray-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex justify-center">
+            <Link href="/dashboard/create">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-6 py-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create New Post
               </Button>
             </Link>
           </div>
-          {dummyRecentPosts.length > 0 ? (
-            <div className="space-y-3">
-              {dummyRecentPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-200"
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 mt-8">
+          {/* Recent Posts Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Posts</h2>
+              <Link href="/dashboard/posts">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg border-gray-200 hover:bg-gray-50 bg-transparent"
                 >
-                  <img
-                    src={post.imageUrl || "/placeholder.svg"}
-                    alt={post.title}
-                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm text-gray-800 truncate" title={post.title}>
-                      {post.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {post.status === "Scheduled" && post.scheduledTime
-                        ? `Scheduled: ${post.scheduledTime}`
-                        : `Created: ${post.createdDate}`}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                      post.status === "Scheduled"
-                        ? "bg-blue-100 text-blue-700"
-                        : post.status === "Published"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {post.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">No posts yet</h3>
-              <p className="mt-2 text-sm text-gray-500">Create your first post to see it here.</p>
-              <Link href="/dashboard/create" className="mt-4 inline-block">
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New Post
+                  View All
                 </Button>
               </Link>
             </div>
-          )}
-        </div>
-
-        {/* Pinterest Tips Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Pinterest Tips</h2>
-            <div className="flex items-center gap-1 text-teal-600 text-sm font-medium">
-              <Lightbulb className="h-4 w-4" />
-              <span>Pro Tips</span>
-            </div>
-          </div>
-          <div className="grid gap-4">
-            {[
-              {
-                icon: <Target className="h-4 w-4 text-teal-600" />,
-                title: "Optimize Your Profile",
-                description: "Use keywords and a business account.",
-              },
-              {
-                icon: <Clock className="h-4 w-4 text-teal-600" />,
-                title: "Best Times to Post",
-                description: "Schedule for evenings & weekends.",
-              },
-              {
-                icon: <Zap className="h-4 w-4 text-teal-600" />,
-                title: "Use Keywords",
-                description: "Include relevant keywords in descriptions.",
-              },
-            ].map((tip, index) => (
-              <Card
-                key={index}
-                className="shadow-sm hover:shadow-md transition-shadow border border-gray-200 rounded-xl"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-teal-100 p-2 rounded-lg">{tip.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-sm text-gray-900">{tip.title}</h3>
-                      <p className="text-xs text-gray-600">{tip.description}</p>
+            {dummyRecentPosts.length > 0 ? (
+              <div className="space-y-3">
+                {dummyRecentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-200"
+                  >
+                    <img
+                      src={post.imageUrl || "/placeholder.svg"}
+                      alt={post.title}
+                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-800 truncate" title={post.title}>
+                        {post.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {post.status === "Scheduled" && post.scheduledTime
+                          ? `Scheduled: ${post.scheduledTime}`
+                          : `Created: ${post.createdDate}`}
+                      </p>
                     </div>
+                    <span
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                        post.status === "Scheduled"
+                          ? "bg-blue-100 text-blue-700"
+                          : post.status === "Published"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {post.status}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-4 text-lg font-semibold text-gray-900">No posts yet</h3>
+                <p className="mt-2 text-sm text-gray-500">Create your first post to see it here.</p>
+                <Link href="/dashboard/create" className="mt-4 inline-block">
+                  <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create New Post
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Pinterest Tips Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Pinterest Tips</h2>
+              <div className="flex items-center gap-1 text-teal-600 text-sm font-medium">
+                <Lightbulb className="h-4 w-4" />
+                <span>Pro Tips</span>
+              </div>
+            </div>
+            <div className="grid gap-4">
+              {[
+                {
+                  icon: <Target className="h-4 w-4 text-teal-600" />,
+                  title: "Optimize Your Profile",
+                  description: "Use keywords and a business account.",
+                },
+                {
+                  icon: <Clock className="h-4 w-4 text-teal-600" />,
+                  title: "Best Times to Post",
+                  description: "Schedule for evenings & weekends.",
+                },
+                {
+                  icon: <Zap className="h-4 w-4 text-teal-600" />,
+                  title: "Use Keywords",
+                  description: "Include relevant keywords in descriptions.",
+                },
+              ].map((tip, index) => (
+                <Card
+                  key={index}
+                  className="shadow-sm hover:shadow-md transition-shadow border border-gray-200 rounded-xl"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-teal-100 p-2 rounded-lg">{tip.icon}</div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-gray-900">{tip.title}</h3>
+                        <p className="text-xs text-gray-600">{tip.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </div>
