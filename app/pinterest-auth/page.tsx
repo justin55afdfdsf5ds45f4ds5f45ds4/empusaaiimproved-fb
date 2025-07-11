@@ -14,23 +14,49 @@ export default function PinterestAuthPage() {
   const [isSkipping, setIsSkipping] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Handler for custom Pinterest OAuth
-  const handlePinterestConnect = async () => {
+  const handleAuth = async () => {
     setIsAuthenticating(true)
     setError(null)
+
     try {
-      const res = await fetch("/api/pinterest/connect")
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
+      // Use a direct approach with error handling
+      const result = await signIn("pinterest", {
+        redirect: false,
+        callbackUrl: "/dashboard",
+      })
+
+      if (result?.error) {
+        console.error("Pinterest auth error:", result.error)
+        setError(`Authentication failed: ${result.error}`)
+
+        // Redirect to dashboard after a delay even on error
+        setTimeout(() => {
+          window.location.href = "/dashboard"
+        }, 3000)
+      } else if (result?.url) {
+        // Successful authentication with redirect URL
+        window.location.href = result.url
       } else {
-        setError("Failed to initiate Pinterest connection.")
-        setIsAuthenticating(false)
+        // Fallback to dashboard if no redirect URL
+        window.location.href = "/dashboard"
       }
-    } catch (err) {
-      setError("Failed to initiate Pinterest connection.")
+    } catch (error) {
+      console.error("Pinterest auth exception:", error)
+      setError("An unexpected error occurred. Redirecting to dashboard...")
+
+      // Redirect to dashboard after a delay
+      setTimeout(() => {
+        window.location.href = "/dashboard"
+      }, 3000)
+    } finally {
       setIsAuthenticating(false)
     }
+  }
+
+  // Alternative direct authentication method
+  const handleDirectAuth = () => {
+    // Directly redirect to the Pinterest OAuth URL
+    window.location.href = "/api/auth/signin/pinterest?callbackUrl=/dashboard"
   }
 
   // Handle skip button click
@@ -77,7 +103,7 @@ export default function PinterestAuthPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            <Button onClick={handlePinterestConnect} className="w-full bg-red-600 hover:bg-red-700">
+            <Button onClick={handleDirectAuth} className="w-full bg-red-600 hover:bg-red-700">
               <PinIcon className="mr-2 h-5 w-5" />
               Connect Pinterest Account
             </Button>

@@ -25,7 +25,7 @@ export function PinterestStatus() {
         size="sm"
         variant="outline"
         className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-        onClick={handlePinterestConnect}
+        onClick={() => signIn("pinterest", { callbackUrl: "/dashboard" })}
       >
         <PinIcon className="mr-2 h-4 w-4" />
         Connect Pinterest
@@ -40,18 +40,3 @@ export function PinterestStatus() {
     </div>
   )
 }
-
-// Replace signIn('pinterest', ...) with custom Pinterest OAuth
-const handlePinterestConnect = async () => {
-  try {
-    const res = await fetch("/api/pinterest/connect");
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Failed to initiate Pinterest connection.");
-    }
-  } catch (err) {
-    alert("Failed to initiate Pinterest connection.");
-  }
-};

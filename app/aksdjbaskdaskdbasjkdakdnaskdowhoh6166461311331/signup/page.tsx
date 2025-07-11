@@ -25,11 +25,90 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.replace("/dashboard")
+
+    // Basic validation
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (password.length < 8) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to register")
+      }
+
+      // Registration successful, now log the user in
+      toast({
+        title: "Account created!",
+        description: "Logging you in...",
+      })
+
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.error) {
+        toast({
+          title: "Login failed",
+          description: "Account created but couldn't log you in automatically. Please log in manually.",
+          variant: "destructive",
+        })
+        router.push("/aksdjbaskdaskdbasjkdakdnaskdowhoh6166461311331")
+      } else {
+        router.push("/dashboard/settings/social")
+      }
+    } catch (error) {
+      toast({
+        title: "Registration failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleSignIn = async () => {
-    router.replace("/dashboard")
+    try {
+      setIsLoading(true)
+      await signIn("google", {
+        callbackUrl: "/dashboard/social",
+        redirect: true,
+      })
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      toast({
+        title: "Authentication Error",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
   }
 
   return (

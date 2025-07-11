@@ -41,11 +41,51 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.replace("/dashboard")
+    setIsLoading(true)
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.error) {
+        toast({
+          title: "Authentication Error",
+          description: result.error,
+          variant: "destructive",
+        })
+      } else if (result?.ok) {
+        router.replace("/dashboard")
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleSignIn = async () => {
-    router.replace("/dashboard")
+    try {
+      setIsLoading(true)
+      await signIn("google", {
+        callbackUrl: "/dashboard",
+        redirect: true,
+      })
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      toast({
+        title: "Authentication Error",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
   }
 
   return (

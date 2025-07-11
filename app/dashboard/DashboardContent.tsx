@@ -249,7 +249,7 @@ export default function DashboardContent() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-xs font-medium border-gray-200 hover:bg-gray-50 rounded-lg"
+                className="h-8 px-3 text-xs font-medium border-gray-200 hover:bg-gray-50 rounded-lg bg-transparent"
                 onClick={() => handleQuickSelect("clear")}
               >
                 Clear
@@ -401,7 +401,7 @@ export default function DashboardContent() {
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Quick Start</h2>
-            <p className="text-gray-600">Your command center for Pinterest content.</p>
+            <p className="text-gray-600">Create your first Pinterest post in minutes</p>
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -441,7 +441,11 @@ export default function DashboardContent() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Recent Posts</h2>
             <Link href="/dashboard/posts">
-              <Button variant="outline" size="sm" className="rounded-lg border-gray-200 hover:bg-gray-50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg border-gray-200 hover:bg-gray-50 bg-transparent"
+              >
                 View All
               </Button>
             </Link>

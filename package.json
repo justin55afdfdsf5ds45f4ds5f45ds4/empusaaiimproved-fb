@@ -44,7 +44,6 @@
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
-    "@supabase/supabase-js": "latest",
     "autoprefixer": "^10.4.20",
     "bcryptjs": "latest",
     "class-variance-authority": "^0.7.1",
@@ -53,6 +52,9 @@
     "cmdk": "latest",
     "date-fns": "latest",
     "embla-carousel-react": "latest",
+    "firebase": "latest",
+    "firebase-admin": "latest",
+    "firebase-functions": "latest",
     "firecrawl": "latest",
     "gcp-metadata": "latest",
     "input-otp": "latest",
@@ -73,8 +75,6 @@
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "recharts": "latest",
-    "replicate": "latest",
-    "sharp": "latest",
     "snappy": "latest",
     "socks": "latest",
     "sonner": "latest",
@@ -92,8 +92,5 @@
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
-  },
-  "optionalDependencies": {
-    "sharp": "^0.34.2"
   }
 }

@@ -5,19 +5,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { PinIcon } from "lucide-react"
 
 export function PinterestFallback() {
-  const handlePinterestConnect = async () => {
-    try {
-      const res = await fetch("/api/pinterest/connect");
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Failed to initiate Pinterest connection.");
-      }
-    } catch (err) {
-      alert("Failed to initiate Pinterest connection.");
-    }
-  };
+  const handleConnectPinterest = () => {
+    window.location.href = "/api/auth/signin/pinterest?callbackUrl=/dashboard"
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -34,7 +24,7 @@ export function PinterestFallback() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={handlePinterestConnect} className="w-full bg-red-600 hover:bg-red-700">
+        <Button onClick={handleConnectPinterest} className="w-full bg-red-600 hover:bg-red-700">
           <PinIcon className="mr-2 h-4 w-4" />
           Connect Pinterest Account
         </Button>

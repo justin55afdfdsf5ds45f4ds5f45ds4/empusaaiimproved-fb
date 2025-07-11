@@ -94,28 +94,17 @@ export default function Home() {
         </section>
 
         {/* YouTube Video Section */}
-        <section className="w-full py-8 md:py-16 lg:py-20 bg-gradient-to-b from-teal-50 to-white">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-teal-50 to-white">
           <div className="container px-4 md:px-6">
-            <div className="mx-auto max-w-4xl text-center">
-              <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl mb-6">
+            <div className="mx-auto max-w-4xl">
+              <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.loom.com/embed/a25047a5293b4fa59a42a0131b62864e"
+                  src="https://www.youtube.com/embed/X37tgx0ngQE?si=p6YX1wy0MMY6sCkf"
                   title="Empusa AI Demo Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
-              </div>
-              <div className="space-y-4">
-                <p className="text-lg text-gray-600">
-                  See how Empusa AI transforms any URL into Pinterest-ready content in seconds
-                </p>
-                <Link href="/free-trial-signup">
-                  <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-3 text-lg">
-                    Try it for Free
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
               </div>
             </div>
           </div>
