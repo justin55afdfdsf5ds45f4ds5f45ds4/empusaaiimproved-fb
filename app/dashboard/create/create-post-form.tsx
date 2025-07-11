@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, RefreshCw } from "lucide-react"
+import { Loader2, RefreshCw, Lock, Crown } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Link from "next/link"
 
 interface Board {
   id: string
@@ -43,6 +45,7 @@ export function CreatePostForm() {
   const [boards, setBoards] = useState<Board[]>([])
   const [selectedBoard, setSelectedBoard] = useState<string>("")
   const [activeTab, setActiveTab] = useState(initialUrl ? "url" : "topic")
+  const [postCount, setPostCount] = useState<string>("1")
 
   // Set initial URL from search params
   useEffect(() => {
@@ -85,11 +88,27 @@ export function CreatePostForm() {
     }
   }, [status, toast])
 
+  const handlePremiumFeatureClick = () => {
+    toast({
+      title: "Premium Feature",
+      description: "Upgrade to premium to generate multiple posts at once!",
+      variant: "default",
+    })
+    router.push("/pricing")
+  }
+
   const handleGeneratePosts = async () => {
     try {
       setIsGenerating(true)
       setPosts([])
       setSelectedPost(null)
+
+      // Check if premium feature is being used
+      const count = Number.parseInt(postCount)
+      if (count > 2) {
+        handlePremiumFeatureClick()
+        return
+      }
 
       // Validate input
       if (activeTab === "url" && !url) {
@@ -111,7 +130,7 @@ export function CreatePostForm() {
       }
 
       // Prepare request body based on active tab
-      const requestBody = activeTab === "url" ? { url } : { topic }
+      const requestBody = activeTab === "url" ? { url, count } : { topic, count }
 
       const response = await fetch("/api/posts/generate", {
         method: "POST",
@@ -248,6 +267,63 @@ export function CreatePostForm() {
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* Post Count Selection */}
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="post-count">Number of Posts to Generate</Label>
+            <Select value={postCount} onValueChange={setPostCount}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select number of posts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Post</SelectItem>
+                <SelectItem value="2">2 Posts</SelectItem>
+                <SelectItem value="5" disabled>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-gray-400">5 Posts</span>
+                    <div className="flex items-center gap-1">
+                      <Lock className="h-3 w-3 text-gray-400" />
+                      <Crown className="h-3 w-3 text-yellow-500" />
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="20" disabled>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-gray-400">20 Posts</span>
+                    <div className="flex items-center gap-1">
+                      <Lock className="h-3 w-3 text-gray-400" />
+                      <Crown className="h-3 w-3 text-yellow-500" />
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="50" disabled>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-gray-400">50 Posts</span>
+                    <div className="flex items-center gap-1">
+                      <Lock className="h-3 w-3 text-gray-400" />
+                      <Crown className="h-3 w-3 text-yellow-500" />
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="100" disabled>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-gray-400">100 Posts</span>
+                    <div className="flex items-center gap-1">
+                      <Lock className="h-3 w-3 text-gray-400" />
+                      <Crown className="h-3 w-3 text-yellow-500" />
+                    </div>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Generate multiple posts at once.{" "}
+              <Link href="/pricing" className="text-teal-600 hover:underline">
+                Upgrade to Premium
+              </Link>{" "}
+              to unlock bulk generation.
+            </p>
+          </div>
 
           <div className="mt-6">
             <Button onClick={handleGeneratePosts} disabled={isGenerating} className="w-full">

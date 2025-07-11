@@ -3,20 +3,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Calendar, Clock, ExternalLink, Info, Loader2, Plus, Shuffle, Trash2, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Calendar, Clock, ExternalLink, Info, Loader2, Plus, Shuffle, Trash2, Lock, Crown } from "lucide-react"
 import { format, addDays, addMinutes } from "date-fns"
 
 interface Post {
@@ -36,6 +25,7 @@ interface PinterestBoard {
 }
 
 export default function PostsPage() {
+  const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [boards, setBoards] = useState<PinterestBoard[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -71,6 +61,15 @@ export default function PostsPage() {
 
     fetchData()
   }, [])
+
+  const handlePremiumUpgrade = () => {
+    toast({
+      title: "Premium Feature",
+      description: "Upgrade to premium to use bulk shuffle scheduling!",
+      variant: "default",
+    })
+    router.push("/pricing")
+  }
 
   // Handle adding a new link input
   const handleAddLinkInput = () => {
@@ -210,105 +209,30 @@ export default function PostsPage() {
           <p className="text-gray-600 mt-1">Manage and schedule your Pinterest content</p>
         </div>
 
-        {/* Bulk Shuffle Schedule Button */}
-        <Dialog open={isBulkModalOpen} onOpenChange={setIsBulkModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-              <Shuffle className="mr-2 h-4 w-4" />→ Bulk Shuffle Schedule
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader className="pb-2">
-              <DialogTitle className="mb-3">Bulk Shuffle Schedule</DialogTitle>
-              <DialogDescription className="mb-6 text-sm text-gray-600">
-                Enter one or more links (URLs) that contain similar content. These links will be randomly used across
-                all recent posts.
-                <br className="hidden sm:block" />
-                All posts in "Recent Posts" will be shuffled and scheduled out within 7 days in the future, during peak
-                user activity hours, with a minimum 10-minute gap between each post.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="pt-2 pb-4 space-y-4 max-h-60 overflow-y-auto">
-              {shuffleLinkInputs.map((link, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <Input
-                    type="url"
-                    placeholder="https://example.com"
-                    value={link}
-                    onChange={(e) => handleLinkInputChange(index, e.target.value)}
-                    className="flex-1"
-                  />
-                  {shuffleLinkInputs.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveLinkInput(index)}
-                      className="h-10 w-10 text-gray-400 hover:text-red-500"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                variant="link"
-                onClick={handleAddLinkInput}
-                className="text-teal-600 hover:text-teal-700 p-0 h-auto text-sm"
-              >
-                + Add Link
-              </Button>
+        {/* Premium Locked Bulk Shuffle Schedule Button */}
+        <div className="relative">
+          <Button
+            onClick={handlePremiumUpgrade}
+            className="bg-gray-400 hover:bg-gray-500 text-white cursor-pointer relative"
+          >
+            <div className="flex items-center">
+              <Lock className="mr-2 h-4 w-4" />
+              <Shuffle className="mr-2 h-4 w-4" />
+              Bulk Shuffle Schedule
+              <Crown className="ml-2 h-4 w-4 text-yellow-300" />
             </div>
-
-            {/* Board Selection */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="board-select" className="text-sm font-medium">
-                Choose a Board
-              </Label>
-              <Select value={selectedBoard} onValueChange={setSelectedBoard}>
-                <SelectTrigger className="w-full focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
-                  <SelectValue placeholder="Select a Pinterest board" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="travel-inspiration">Travel Inspiration</SelectItem>
-                  <SelectItem value="food-recipes">Food & Recipes</SelectItem>
-                  <SelectItem value="home-decor">Home Decor</SelectItem>
-                  <SelectItem value="fashion-style">Fashion & Style</SelectItem>
-                  <SelectItem value="diy-crafts">DIY & Crafts</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={() => setIsBulkModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleBulkShuffleSchedule}
-                disabled={isBulkScheduling}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold
-                           transition-all duration-300 ease-in-out transform
-                           hover:scale-110 hover:shadow-2xl hover:shadow-emerald-500/50 hover:brightness-105
-                           active:scale-100 active:brightness-95
-                           focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
-              >
-                {isBulkScheduling ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Shuffling...
-                  </>
-                ) : (
-                  "Shuffle Schedule"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </Button>
+        </div>
       </div>
 
-      {/* Notification */}
-      <div className="bg-green-100 text-green-800 p-3 text-center text-sm mb-6 rounded-md">
+      {/* Updated Notification for 5-hour storage limit */}
+      <div className="bg-orange-100 text-orange-800 p-3 text-center text-sm mb-6 rounded-md border border-orange-200">
         <Info className="inline-block h-4 w-4 mr-2" />
-        Posts generated here are temporarily stored and will be cleared after 24 hours. Please publish or schedule them.
+        ⚠️ Posts generated here are stored for only 5 hours.
+        <button onClick={() => router.push("/pricing")} className="underline font-semibold ml-1 hover:text-orange-900">
+          Upgrade to Premium
+        </button>{" "}
+        for unlimited storage and advanced features.
       </div>
 
       {/* Posts Grid */}

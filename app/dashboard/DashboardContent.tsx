@@ -17,6 +17,11 @@ import {
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Crown,
+  TrendingUp,
+  BarChart3,
+  PieChart,
 } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -24,6 +29,7 @@ import { Calendar } from "@/components/ui/calendar"
 import type { DateRange } from "react-day-picker"
 import { format, subDays, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 interface DashboardMetrics {
   totalPosts: number
@@ -45,6 +51,7 @@ const defaultInitialDateRange: DateRange = {
 }
 
 export default function DashboardContent() {
+  const router = useRouter()
   const [metrics, setMetrics] = useState<DashboardMetrics>(generateMockMetrics()) // Initialize with some values
   const [isLoading, setIsLoading] = useState(false) // Start with false, true on date change
   const [dateRange, setDateRange] = useState<DateRange | undefined>(defaultInitialDateRange)
@@ -93,6 +100,10 @@ export default function DashboardContent() {
     },
     [handleDateSelect],
   )
+
+  const handlePremiumUpgrade = () => {
+    router.push("/pricing")
+  }
 
   // Effect to update metrics when dateRange changes
   useEffect(() => {
@@ -333,62 +344,108 @@ export default function DashboardContent() {
       </p>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Total Posts Card */}
+        {/* Total Posts Card - Premium Locked */}
         <Card className="border-2 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-teal-50 to-teal-100">
-            <CardTitle className="text-sm font-semibold text-teal-800">Total Posts</CardTitle>
-            <Popover open={isTotalPostsCalendarOpen} onOpenChange={setIsTotalPostsCalendarOpen}>
-              {renderCalendarTriggerButton(
-                setIsTotalPostsCalendarOpen,
-                <CalendarDays className="h-4 w-4" />,
-                "Select date range for total posts",
-              )}
-              <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
-            </Popover>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-gray-900">{isLoading ? "..." : metrics.totalPosts}</div>
-            <p className="text-xs text-gray-500 mt-1">Posts created in range</p>
-          </CardContent>
-        </Card>
-
-        {/* Scheduled Posts Card */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardTitle className="text-sm font-semibold text-blue-800">Scheduled Posts</CardTitle>
-            <Popover open={isScheduledPostsCalendarOpen} onOpenChange={setIsScheduledPostsCalendarOpen}>
-              {renderCalendarTriggerButton(
-                setIsScheduledPostsCalendarOpen,
-                <CalendarClock className="h-4 w-4" />,
-                "Select date range for scheduled posts",
-              )}
-              <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
-            </Popover>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-gray-900">{isLoading ? "..." : metrics.scheduledPosts}</div>
-            <p className="text-xs text-gray-500 mt-1">Posts scheduled in range</p>
-          </CardContent>
-        </Card>
-
-        {/* Pinterest Engagement Card */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardTitle className="text-sm font-semibold text-purple-800">Pinterest Engagement</CardTitle>
-            <Popover open={isEngagementCalendarOpen} onOpenChange={setIsEngagementCalendarOpen}>
-              {renderCalendarTriggerButton(
-                setIsEngagementCalendarOpen,
-                <CalendarPlus className="h-4 w-4" />,
-                "Select date range for engagement",
-              )}
-              <EnhancedCalendarPopover onSelect={handleDateSelect} currentRange={dateRange} />
-            </Popover>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-gray-900">
-              {isLoading ? "..." : metrics.totalEngagement.toLocaleString()}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 mb-3 shadow-lg">
+                <Lock className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                <Crown className="h-6 w-6 text-yellow-500 mx-auto" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Premium Feature</p>
+              <Button
+                size="sm"
+                onClick={handlePremiumUpgrade}
+                className="bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white shadow-lg"
+              >
+                Upgrade to Premium
+              </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Engagements in range</p>
+          </div>
+          {/* Animated background elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-4 left-4 w-8 h-8 bg-teal-400 rounded-full animate-pulse"></div>
+            <div className="absolute top-8 right-6 w-4 h-4 bg-blue-400 rounded-full animate-bounce delay-300"></div>
+            <div className="absolute bottom-6 left-8 w-6 h-6 bg-purple-400 rounded-full animate-pulse delay-700"></div>
+            <TrendingUp className="absolute bottom-4 right-4 h-12 w-12 text-teal-300 animate-pulse" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-teal-50 to-teal-100">
+            <CardTitle className="text-sm font-semibold text-teal-800">Advanced Analytics</CardTitle>
+            <BarChart3 className="h-4 w-4 text-teal-600" />
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-3xl font-bold text-gray-900 blur-sm">***</div>
+            <p className="text-xs text-gray-500 mt-1">Upgrade to unlock advanced Pinterest metrics</p>
+          </CardContent>
+        </Card>
+
+        {/* Scheduled Posts Card - Premium Locked */}
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 mb-3 shadow-lg">
+                <Lock className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                <Crown className="h-6 w-6 text-yellow-500 mx-auto" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Premium Feature</p>
+              <Button
+                size="sm"
+                onClick={handlePremiumUpgrade}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+              >
+                Upgrade to Premium
+              </Button>
+            </div>
+          </div>
+          {/* Animated background elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-6 left-6 w-6 h-6 bg-blue-400 rounded-full animate-bounce"></div>
+            <div className="absolute top-4 right-8 w-8 h-8 bg-indigo-400 rounded-full animate-pulse delay-500"></div>
+            <div className="absolute bottom-8 left-4 w-4 h-4 bg-blue-300 rounded-full animate-pulse delay-1000"></div>
+            <CalendarClock className="absolute bottom-4 right-4 h-12 w-12 text-blue-300 animate-pulse" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardTitle className="text-sm font-semibold text-blue-800">Scheduling Analytics</CardTitle>
+            <CalendarClock className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-3xl font-bold text-gray-900 blur-sm">***</div>
+            <p className="text-xs text-gray-500 mt-1">Upgrade to unlock scheduling insights</p>
+          </CardContent>
+        </Card>
+
+        {/* Pinterest Engagement Card - Premium Locked */}
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 mb-3 shadow-lg">
+                <Lock className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                <Crown className="h-6 w-6 text-yellow-500 mx-auto" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Premium Feature</p>
+              <Button
+                size="sm"
+                onClick={handlePremiumUpgrade}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
+              >
+                Upgrade to Premium
+              </Button>
+            </div>
+          </div>
+          {/* Animated background elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-4 left-8 w-6 h-6 bg-purple-400 rounded-full animate-pulse"></div>
+            <div className="absolute top-8 right-4 w-8 h-8 bg-pink-400 rounded-full animate-bounce delay-700"></div>
+            <div className="absolute bottom-6 left-6 w-4 h-4 bg-purple-300 rounded-full animate-pulse delay-300"></div>
+            <PieChart className="absolute bottom-4 right-4 h-12 w-12 text-purple-300 animate-pulse" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-purple-50 to-pink-50">
+            <CardTitle className="text-sm font-semibold text-purple-800">Engagement Insights</CardTitle>
+            <CalendarPlus className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-3xl font-bold text-gray-900 blur-sm">***</div>
+            <p className="text-xs text-gray-500 mt-1">Upgrade to unlock engagement analytics</p>
           </CardContent>
         </Card>
       </div>
