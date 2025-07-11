@@ -47,6 +47,7 @@ export function CreatePostForm() {
   const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(null)
   const [freeTrialLimit, setFreeTrialLimit] = useState<number | null>(null)
   const [freeTrialLoading, setFreeTrialLoading] = useState(true)
+  const [postCount, setPostCount] = useState<number>(2)
 
   // Set initial URL from search params
   useEffect(() => {
@@ -133,7 +134,7 @@ export function CreatePostForm() {
       }
 
       // Prepare request body based on active tab
-      const requestBody = activeTab === "url" ? { url, count: 2 } : { topic, count: 2 }
+      const requestBody = activeTab === "url" ? { url, count: postCount } : { topic, count: postCount }
 
       const response = await fetch("/api/posts/generate", {
         method: "POST",
@@ -241,10 +242,18 @@ export function CreatePostForm() {
         ) : freeTrialRemaining === 0 ? (
           <div className="bg-red-100 text-red-700 p-3 rounded flex flex-col items-center">
             <span>You have exhausted your free trial posts.</span>
-            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="mt-2 underline text-blue-700">Book a call to upgrade</Link>
+            <Link
+              href="https://cal.com/justin-lord-a80mr6/30min"
+              target="_blank"
+              className="mt-2 underline text-blue-700"
+            >
+              Book a call to upgrade
+            </Link>
           </div>
         ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
-          <span className="text-sm text-gray-600">Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</span>
+          <span className="text-sm text-gray-600">
+            Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}
+          </span>
         ) : null}
       </div>
       <Card>
@@ -284,8 +293,45 @@ export function CreatePostForm() {
             </TabsContent>
           </Tabs>
 
+          <div className="space-y-2 mt-4">
+            <Label htmlFor="post-count">Number of Posts to Generate</Label>
+            <select
+              id="post-count"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={postCount}
+              onChange={(e) => setPostCount(Number(e.target.value))}
+              disabled={isGenerating}
+            >
+              <option value={1}>1 Post</option>
+              <option value={2}>2 Posts</option>
+              <option value={5} disabled>
+                5 Posts 🔒 Premium
+              </option>
+              <option value={20} disabled>
+                20 Posts 🔒 Premium
+              </option>
+              <option value={50} disabled>
+                50 Posts 🔒 Premium
+              </option>
+              <option value={100} disabled>
+                100 Posts 🔒 Premium
+              </option>
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Generate multiple posts at once.{" "}
+              <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="text-blue-600 underline">
+                Upgrade to Premium
+              </Link>{" "}
+              to unlock bulk generation.
+            </p>
+          </div>
+
           <div className="mt-6">
-            <Button onClick={handleGeneratePosts} disabled={isGenerating || freeTrialRemaining === 0} className="w-full">
+            <Button
+              onClick={handleGeneratePosts}
+              disabled={isGenerating || freeTrialRemaining === 0}
+              className="w-full"
+            >
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

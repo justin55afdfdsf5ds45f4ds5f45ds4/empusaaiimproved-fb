@@ -72,13 +72,13 @@ export default function PostsPage() {
   const [modalScheduledTime, setModalScheduledTime] = useState<string>("")
 
   function getRandomDateBetween(start: Date, end: Date): Date {
-    const diff = end.getTime() - start.getTime();
-    const newTime = start.getTime() + Math.random() * diff;
-    return new Date(newTime);
+    const diff = end.getTime() - start.getTime()
+    const newTime = start.getTime() + Math.random() * diff
+    return new Date(newTime)
   }
-  
+
   function hasConflict(date: Date, scheduledDates: Date[], gapMinutes: number): boolean {
-    return scheduledDates.some((d) => Math.abs(d.getTime() - date.getTime()) < gapMinutes * 60 * 1000);
+    return scheduledDates.some((d) => Math.abs(d.getTime() - date.getTime()) < gapMinutes * 60 * 1000)
   }
 
   useEffect(() => {
@@ -100,22 +100,22 @@ export default function PostsPage() {
       }
     }
 
-    const fetchBoards = async () =>{
+    const fetchBoards = async () => {
       try {
         const response = await fetch("/api/pinterest/boards")
-  
+
         if (response.status === 403) {
           throw new Error("You haven't connected Pinterest yet.")
         }
-  
+
         if (!response.ok) {
           throw new Error("Failed to fetch Pinterest boards")
         }
-  
+
         const data = await response.json()
         console.log(data)
         setPinterestBoards(data.boards || [])
-  
+
         if (!modalSelectedBoard && data.boards?.length > 0) {
           setModalSelectedBoard(data.boards[0].id)
         }
@@ -169,7 +169,7 @@ export default function PostsPage() {
         title: "Post Published",
         description: "Your post has been successfully published to Pinterest.",
       })
-      
+
       // Post remains in the list - no removal
     } catch (error) {
       console.error("Error publishing post:", error)
@@ -203,7 +203,7 @@ export default function PostsPage() {
       return
     }
     setIsProcessingSchedule(selectedPostForModal.id)
-    const [hours, minutes] = modalScheduledTime.split(":").map(Number);
+    const [hours, minutes] = modalScheduledTime.split(":").map(Number)
     const finalDateTime = new Date(modalScheduledDate)
     finalDateTime.setHours(hours, minutes, 0, 0)
 
@@ -231,7 +231,7 @@ export default function PostsPage() {
         title: "Post Scheduled",
         description: "Your post has been successfully scheduled to Pinterest.",
       })
-      
+
       // Post remains in the list - no removal
     } catch (error) {
       console.error("Error scheduling post:", error)
@@ -255,26 +255,26 @@ export default function PostsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ postId: post.postId }), // make sure to use the same field as stored
-      });
-  
+      })
+
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Unknown error");
+        const error = await res.json()
+        throw new Error(error.error || "Unknown error")
       }
-  
-      setPosts((prevPosts) => prevPosts.filter((p) => p.postId !== post.postId));
-  
+
+      setPosts((prevPosts) => prevPosts.filter((p) => p.postId !== post.postId))
+
       toast({
         title: "Post Deleted",
         description: "The post has been successfully deleted.",
-      });
+      })
     } catch (error) {
-      console.error("Delete error:", error);
+      console.error("Delete error:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete post. Please try again.",
         variant: "destructive",
-      });
+      })
     }
   }
 
@@ -362,31 +362,31 @@ export default function PostsPage() {
     }
 
     try {
-      const now = new Date();
-      const sevenDaysLater = new Date(now);
-      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+      const now = new Date()
+      const sevenDaysLater = new Date(now)
+      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7)
 
-      const scheduledDates: Date[] = [];
-      const successfullyScheduledPosts: string[] = [];
+      const scheduledDates: Date[] = []
+      const successfullyScheduledPosts: string[] = []
 
       for (const post of posts) {
-        let scheduledTime: Date;
+        let scheduledTime: Date
 
         // Try up to 10 times to find a time without conflict
-        let attempts = 0;
+        let attempts = 0
         do {
-          scheduledTime = getRandomDateBetween(now, sevenDaysLater);
-          attempts++;
+          scheduledTime = getRandomDateBetween(now, sevenDaysLater)
+          attempts++
           if (attempts > 10) {
             // If can't find non-conflicting time after 10 tries, just proceed anyway
-            break;
+            break
           }
-        } while (hasConflict(scheduledTime, scheduledDates, 10));
+        } while (hasConflict(scheduledTime, scheduledDates, 10))
 
-        scheduledDates.push(scheduledTime);
-        let randomLink;
-        if(links.length > 0){
-          randomLink = links[Math.floor(Math.random() * links.length)];
+        scheduledDates.push(scheduledTime)
+        let randomLink
+        if (links.length > 0) {
+          randomLink = links[Math.floor(Math.random() * links.length)]
         }
 
         const response = await fetch("/api/pinterest/schedule/", {
@@ -408,7 +408,7 @@ export default function PostsPage() {
           throw new Error("Failed to schedule post to Pinterest")
         }
 
-        successfullyScheduledPosts.push(post.postId);
+        successfullyScheduledPosts.push(post.postId)
       }
 
       // Posts remain in the list - no removal
@@ -419,7 +419,7 @@ export default function PostsPage() {
         className: "bg-green-500 border-green-500 text-white",
       })
     } catch (err) {
-      console.error("Error in shuffleAndSchedule:", err);
+      console.error("Error in shuffleAndSchedule:", err)
       toast({
         title: "Error",
         description: "Failed to schedule posts. Please try again.",
@@ -460,75 +460,84 @@ export default function PostsPage() {
 
   // CSV Download logic
   function generateRandomUniqueDates(count: number): string[] {
-    const now = new Date();
-    const sevenDaysLater = new Date(now);
-    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-    const usedTimestamps = new Set<number>();
-    const dates: string[] = [];
+    const now = new Date()
+    const sevenDaysLater = new Date(now)
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7)
+    const usedTimestamps = new Set<number>()
+    const dates: string[] = []
     while (dates.length < count) {
-      const randomTime = now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime());
-      const rounded = Math.floor(randomTime / 1000) * 1000; // round to nearest second
+      const randomTime = now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime())
+      const rounded = Math.floor(randomTime / 1000) * 1000 // round to nearest second
       if (!usedTimestamps.has(rounded)) {
-        usedTimestamps.add(rounded);
-        const d = new Date(rounded);
-        dates.push(d.toISOString().slice(0, 19)); // 'YYYY-MM-DDTHH:MM:SS'
+        usedTimestamps.add(rounded)
+        const d = new Date(rounded)
+        dates.push(d.toISOString().slice(0, 19)) // 'YYYY-MM-DDTHH:MM:SS'
       }
     }
-    return dates;
+    return dates
   }
 
   function downloadCSV() {
-    if (!posts.length) return;
-    const randomDates = generateRandomUniqueDates(posts.length);
-    const headers = [
-      "Title",
-      "Media URL",
-      "Pinterest board",
-      "Description",
-      "Link",
-      "Publish date",
-    ];
+    if (!posts.length) return
+    const randomDates = generateRandomUniqueDates(posts.length)
+    const headers = ["Title", "Media URL", "Pinterest board", "Description", "Link", "Publish date"]
     const rows = posts.map((post, idx) => {
       // Get the board ID for this post (adjust the state name if needed)
-      const boardId = selectedPostForModal[post.id] || pinterestBoards[0]?.id;
+      const boardId = selectedPostForModal[post.id] || pinterestBoards[0]?.id
       // Find the board name
-      const boardName = pinterestBoards.find(b => b.id === boardId)?.name || "My Pinterest Board";
+      const boardName = pinterestBoards.find((b) => b.id === boardId)?.name || "My Pinterest Board"
       return [
         post.title,
-        post.imageUrl && !post.imageUrl.startsWith('data:') ? post.imageUrl : '',
+        post.imageUrl && !post.imageUrl.startsWith("data:") ? post.imageUrl : "",
         boardName,
         post.description,
         postLinks[post.id] || post.defaultLink || "",
         randomDates[idx],
-      ];
-    });
+      ]
+    })
     const csvContent = [headers, ...rows]
       .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `pinterest-posts-${new Date().toISOString().slice(0,10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      .join("\r\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `pinterest-posts-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   return (
     <>
       <div className="bg-green-100 text-green-800 p-3 text-center text-sm mb-6 rounded-md">
         <Info className="inline-block h-4 w-4 mr-2" />
-        Posts generated here are temporarily stored and will be cleared after 24 hours. Please publish or schedule them.
+        Posts generated here are temporarily stored for 5 hours only.{" "}
+        <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="text-blue-600 underline">
+          Upgrade to Premium
+        </Link>{" "}
+        for unlimited storage and advanced features.
       </div>
 
       <div className="flex justify-end mb-4 gap-2">
         <Button onClick={downloadCSV} disabled={posts.length === 0} variant="outline">
           Download CSV
         </Button>
-        <Button onClick={() => setBulkShuffleDialogOpen(true)} disabled={posts.length === 0}>
-          → Bulk Shuffle Schedule
+        <Button
+          onClick={() => {
+            toast({
+              title: "Premium Feature",
+              description:
+                "Bulk Shuffle Schedule allows you to automatically schedule all your posts across 7 days with random timing and links. Upgrade to Premium to unlock this feature.",
+              variant: "default",
+            })
+          }}
+          disabled={posts.length === 0}
+          variant="outline"
+          className="relative"
+        >
+          🔒 Bulk Shuffle Schedule (Premium)
         </Button>
       </div>
 
@@ -557,7 +566,7 @@ export default function PostsPage() {
                   <img
                     src={
                       post.imageUrl ||
-                      `/placeholder.svg?height=600&width=400&query=abstract+${post.title.replace(/\s+/g, "+")}`
+                      `/placeholder.svg?height=600&width=400&query=abstract+${post.title.replace(/\s+/g, "+") || "/placeholder.svg"}`
                     }
                     alt={post.title}
                     className="w-full h-full object-cover"
@@ -583,7 +592,7 @@ export default function PostsPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 bg-transparent"
                       onClick={() => openScheduleDialogForPost(post)}
                       disabled={isProcessingSchedule === post.id}
                     >
@@ -788,7 +797,7 @@ export default function PostsPage() {
               <Label htmlFor="schedule-modal-date">Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-2">
+                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-2 bg-transparent">
                     <Calendar className="mr-2 h-4 w-4" />
                     {modalScheduledDate ? format(modalScheduledDate, "PPP") : "Select a date"}
                   </Button>
