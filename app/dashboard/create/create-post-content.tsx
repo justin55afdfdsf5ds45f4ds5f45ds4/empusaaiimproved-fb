@@ -36,6 +36,7 @@ import { format } from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import Link from "next/link"
 
 interface Post {
   id: string
@@ -58,7 +59,7 @@ interface CreatePostContentProps {
 export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const router = useRouter()
   const [url, setUrl] = useState(initialUrl || "")
-  const [postCount, setPostCount] = useState("10")
+  const [postCount, setPostCount] = useState("1")
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPublishing, setIsPublishing] = useState<string | null>(null)
   const [isScheduling, setIsScheduling] = useState<string | null>(null)
@@ -89,6 +90,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const [postLinks, setPostLinks] = useState<Record<string, string>>({})
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
   const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({})
+  const [imageSize, setImageSize] = useState("9:16");
 
   // New state for bulk operations
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false)
@@ -229,8 +231,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "URL Required",
         description: "Please enter a URL to generate Pinterest posts.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (activeTab === "scratch" && !topic) {
@@ -238,22 +240,21 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Topic Required",
         description: "Please enter a topic or keywords to generate Pinterest posts.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    if (!selectedBoard) {
-      toast({
-        title: "Board Required",
-        description: "Please select a Pinterest board to publish your posts.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsGenerating(true)
+    setIsGenerating(true);
     try {
-      // Call the API to generate posts
+      let referenceImageBase64 = null;
+      if (referenceImage) {
+        referenceImageBase64 = await new Promise<string | null>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(referenceImage);
+        });
+      }
       const response = await fetch("/api/posts/generate", {
         method: "POST",
         headers: {
@@ -263,9 +264,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           url: activeTab === "url" ? url : undefined,
           topic: activeTab === "scratch" ? topic : undefined,
           tone: activeTab === "scratch" ? tone : undefined,
-          count: Number.parseInt(postCount),
+          count: parseInt(postCount, 10),
+          boardId: selectedBoard,
+          imageSize,
+          referenceImage: referenceImageBase64, // Send reference image to backend
         }),
-      })
+      });
 
       if (!response.ok) {
         throw new Error("Failed to generate posts")
@@ -290,9 +294,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         description: "Failed to generate posts. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsGenerating(false)
     }
+    setIsGenerating(false)
   }
 
   const handleGenerateImage = async (post: Post) => {
@@ -679,6 +682,106 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       isActive ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
     }`
 
+  // Locked post counts
+  const lockedCounts = ["5", "20", "50", "100"];
+
+  // Custom onValueChange to prevent selecting locked options
+  const handlePostCountChange = (value: string) => {
+    if (lockedCounts.includes(value)) {
+      return;
+    }
+    setPostCount(value);
+  };
+
+  function generateRandomFragment(length: number) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
+
+  function generateRandomUniqueDates(count: number) {
+    const dates: string[] = [];
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0); // Start of today
+    const usedTimestamps = new Set();
+
+    while (dates.length < count) {
+      // Random day within the next 7 days
+      const randomDayOffset = Math.floor(Math.random() * 7); // 0-6 days ahead
+      const randomDate = new Date(startDate.getTime() + randomDayOffset * 24 * 60 * 60 * 1000);
+      // Random hour between 8 and 20 (8am to 8pm)
+      const randomHour = 8 + Math.floor(Math.random() * 13); // 8-20
+      // Random minute (0, 15, 30, 45)
+      const randomMinute = [0, 15, 30, 45][Math.floor(Math.random() * 4)];
+      randomDate.setHours(randomHour, randomMinute, 0, 0);
+      const isoString = randomDate.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:mm:ss'
+      if (!usedTimestamps.has(isoString)) {
+        dates.push(isoString);
+        usedTimestamps.add(isoString);
+      }
+    }
+    return dates;
+  }
+
+  function downloadCSV() {
+    if (!generatedPosts.length) return;
+    const missingImages = generatedPosts.filter(post => !post.imageUrl);
+    if (missingImages.length > 0) {
+      toast({
+        title: "Images Not Ready",
+        description: "Please wait for all images to generate before downloading CSV",
+        variant: "default",
+      });
+      return;
+    }
+    const randomDates = generateRandomUniqueDates(generatedPosts.length);
+    const headers = [
+      "Title",
+      "Media URL",
+      "Pinterest board",
+      "Description",
+      "Link",
+      "Publish date",
+    ];
+    const rows = generatedPosts.map((post, idx) => {
+      const boardName = pinterestBoards.find((b) => b.id === selectedBoard)?.name || "Weight Loss";
+      let link = postLinks[post.id] || post.defaultLink || "";
+      if (link) {
+        const frag = generateRandomFragment(10);
+        link += `#${frag}`;
+      }
+      // Output date as unquoted ISO 8601 string, trimmed
+      const publishDate = String(randomDates[idx]).trim();
+      return [
+        post.title?.trim() ?? "",
+        post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl.trim() : '',
+        boardName.trim(),
+        post.description?.trim() ?? "",
+        link.trim(),
+        publishDate, // Unquoted, ISO 8601 format
+      ];
+    });
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((v, i) => (i === 5 ? v : `"${String(v).replace(/"/g, '""')}"`)) // Only quote non-date columns
+          .join(",")
+      )
+      .join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pinterest-posts-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       {/* Pinterest Board Selection */}
@@ -807,21 +910,56 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       onChange={(e) => setUrl(e.target.value)}
                     />
                   </div>
-                  <Select value={postCount} onValueChange={setPostCount}>
+                  <Select value={postCount} onValueChange={handlePostCountChange}>
                     <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="10 posts" />
+                      <span>{postCount ? `${postCount} post${postCount !== "1" ? "s" : ""}` : "1 post"}</span>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5 posts</SelectItem>
-                      <SelectItem value="10">10 posts</SelectItem>
-                      <SelectItem value="15">15 posts</SelectItem>
-                      <SelectItem value="20">20 posts</SelectItem>
+                      <SelectItem value="1">1 post</SelectItem>
+                      <SelectItem value="2">2 posts</SelectItem>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        5 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        20 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        50 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        100 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
                     </SelectContent>
                   </Select>
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Info className="h-3 w-3" />
                   Our AI will analyze the content at this URL and generate Pinterest posts
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image-size">Image Size</Label>
+                <Select value={imageSize} onValueChange={() => {}}>
+                  <SelectTrigger className="w-[120px]">
+                    <span>9:16 (Portrait)</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
+                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                      1:1 (Square) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                    </div>
+                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                      16:9 (Landscape) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                    </div>
+                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                      2:3 (Pinterest) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                    </div>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Only 9:16 is available on the free plan. Upgrade to unlock more sizes.
                 </p>
               </div>
 
@@ -909,18 +1047,53 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="count">Number of Posts</Label>
-                  <Select value={postCount} onValueChange={setPostCount}>
+                  <Select value={postCount} onValueChange={handlePostCountChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="10 posts" />
+                      <span>{postCount ? `${postCount} post${postCount !== "1" ? "s" : ""}` : "1 post"}</span>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5 posts</SelectItem>
-                      <SelectItem value="10">10 posts</SelectItem>
-                      <SelectItem value="15">15 posts</SelectItem>
-                      <SelectItem value="20">20 posts</SelectItem>
+                      <SelectItem value="1">1 post</SelectItem>
+                      <SelectItem value="2">2 posts</SelectItem>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        5 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        20 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        50 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
+                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                        100 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                      </div>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image-size">Image Size</Label>
+                <Select value={imageSize} onValueChange={() => {}}>
+                  <SelectTrigger className="w-[120px]">
+                    <span>9:16 (Portrait)</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
+                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                      1:1 (Square) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                    </div>
+                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                      16:9 (Landscape) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                    </div>
+                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                      2:3 (Pinterest) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                    </div>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Only 9:16 is available on the free plan. Upgrade to unlock more sizes.
+                </p>
               </div>
 
               <div className="space-y-2 mt-6">
@@ -975,7 +1148,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button
               className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
               onClick={handleGenerate}
-              disabled={isGenerating || !selectedBoard}
+              disabled={isGenerating}
             >
               {isGenerating ? (
                 <>
@@ -996,24 +1169,33 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       {/* Conditionally render the generated posts section */}
       {generatedPosts.length > 0 && (
         <div className="space-y-6 mt-6">
+          {/* Header Row */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
+            <h2 className="text-xl font-semibold">
+              Generated Posts ({generatedPosts.length})
+            </h2>
             <Button
               variant="outline"
               onClick={() => {
-                setUrl("")
-                setTopic("")
-                setReferenceImage(null)
-                setPreviewUrl(null)
-                // Optionally clear generated posts or let user manage them
-                // setGeneratedPosts([]);
-                // setSelectedPosts(new Set());
-                // setIsSelectAllActive(false);
-                window.scrollTo({ top: 0, behavior: "smooth" })
-                toast({ title: "Form Cleared", description: "You can now generate new content." })
+                setUrl("");
+                setTopic("");
+                setReferenceImage(null);
+                setPreviewUrl(null);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                toast({
+                  title: "Form Cleared",
+                  description: "You can now generate new content.",
+                });
               }}
             >
               Start New Generation
+            </Button>
+          </div>
+
+          {/* Download CSV Button */}
+          <div className="flex justify-end mb-4">
+            <Button onClick={downloadCSV} variant="outline">
+              Download CSV
             </Button>
           </div>
 
@@ -1126,12 +1308,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     </Button>
                   </div>
 
-                  <div className="aspect-[2/3] relative">
+                  {/* In the posts grid, set the image frame to 9:16 aspect ratio */}
+                  <div className="aspect-[9/16] relative">
                     {post.imageUrl ? (
                       <img
-                        src={post.imageUrl || "/placeholder.svg"}
+                        src={post.imageUrl || "/placeholder.svg?height=600&width=400&query=abstract+post+image"}
                         alt={post.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain bg-white"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -1155,7 +1338,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
                   <CardContent className="p-4">
                     <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>
-                    <p className="text-sm text-gray-500 line-clamp-3 mb-3">{post.description}</p>
+                    {/* Update ExpandableDescription to show ... and toggle show more/less */}
+                    <ExpandableDescription description={post.description} />
 
                     {/* Default/Custom Link Display */}
                     <div className="mb-3 p-2 bg-gray-50 rounded text-xs">
@@ -1546,4 +1730,25 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       </Dialog>
     </>
   )
+}
+
+// Update ExpandableDescription to show ... and toggle show more/less
+function ExpandableDescription({ description }: { description: string }) {
+  const [expanded, setExpanded] = useState(false);
+  // Estimate if truncation is needed (simple heuristic: > 120 chars)
+  const shouldTruncate = description.length > 120;
+  return (
+    <div className="mb-4">
+      <p className="text-sm text-gray-500">
+        {shouldTruncate && !expanded
+          ? <>{description.slice(0, 120)}... <a
+  className="ml-1 text-gray-500 cursor-pointer underline"
+  onClick={() => setExpanded((prev) => !prev)}
+>
+  {expanded ? "Show less" : "Show more"}
+</a></>
+          : <>{description}{shouldTruncate && expanded && <button className="text-xs text-blue-600 hover:underline ml-1" onClick={() => setExpanded(false)}>Show less</button>}</>}
+      </p>
+    </div>
+  );
 }
