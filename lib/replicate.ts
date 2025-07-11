@@ -50,4 +50,4 @@ export async function generateIdeogramV2TurboImage(prompt: string, returnArray =
   );
   if (returnArray) return output as string[];
   return Array.isArray(output) ? output[0] : String(output);
-} 
+}

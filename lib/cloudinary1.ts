@@ -26,4 +26,4 @@ export async function uploadImageBase64(base64String: string, folder = 'pinteres
 // Delete an image by public_id
 export async function deleteImage(public_id: string) {
   return cloudinary.v2.uploader.destroy(public_id, { resource_type: 'image' });
-} 
+}
