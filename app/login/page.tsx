@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { createClient } from '@supabase/supabase-js';
+import { signIn, useSession } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,26 +18,21 @@ import { Toaster } from "@/components/ui/toaster"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
   // Redirect if already logged in
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.replace("/dashboard");
-      }
-    };
-    checkSession();
-  }, [router]);
+    if (status === "authenticated" && session) {
+      router.replace("/dashboard")
+    }
+  }, [session, status, router])
 
   // Show loading state while checking session
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
@@ -46,21 +41,53 @@ export default function LoginPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setIsLoading(false);
-    if (error) {
-      toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
-      return;
-    }
-    router.replace('/dashboard');
-  };
+    e.preventDefault()
+    setIsLoading(true)
 
-  // Bypass: always redirect to dashboard on Google sign-in
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.error) {
+        toast({
+          title: "Authentication Error",
+          description: result.error,
+          variant: "destructive",
+        })
+      } else if (result?.ok) {
+        router.replace("/dashboard")
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleGoogleSignIn = async () => {
-    router.replace("/dashboard");
-  };
+    try {
+      setIsLoading(true)
+      await signIn("google", { 
+        callbackUrl: "/dashboard",
+        redirect: true
+      })
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      toast({
+        title: "Authentication Error",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

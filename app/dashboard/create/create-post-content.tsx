@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   Upload,
@@ -15,26 +15,14 @@ import {
   RefreshCw,
   AlertCircle,
   Trash2,
-} from "lucide-react";
+} from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { toast } from "@/components/ui/use-toast"
 import {
   Dialog,
   DialogContent,
@@ -42,182 +30,166 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { createClient } from '@supabase/supabase-js';
-import { useSession } from "@/hooks/useSession";
+} from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Post {
-  id: string;
-  title: string;
-  description: string;
-  imagePrompt?: string;
-  imageUrl: string | null;
-  defaultLink?: string;
+  id: string
+  title: string
+  description: string
+  imagePrompt?: string
+  imageUrl: string | null
+  defaultLink?: string
 }
 
 interface PinterestBoard {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface CreatePostContentProps {
-  initialUrl?: string;
+  initialUrl?: string
 }
 
 export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
-  const router = useRouter();
-  const [url, setUrl] = useState(initialUrl || "");
-  const [postCount, setPostCount] = useState("10");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isPublishing, setIsPublishing] = useState<string | null>(null);
-  const [isScheduling, setIsScheduling] = useState<string | null>(null);
-  const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(null);
-  const [referenceImage, setReferenceImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [generatedPosts, setGeneratedPosts] = useState<Post[]>([]);
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [scheduledTime, setScheduledTime] = useState<string>("");
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null);
-  const [activeTab, setActiveTab] = useState("url");
-  const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([]);
-  const [selectedBoard, setSelectedBoard] = useState<string>("");
-  const [isFetchingBoards, setIsFetchingBoards] = useState(false);
-  const [boardFetchError, setBoardFetchError] = useState<string | null>(null);
-  const [topic, setTopic] = useState("");
-  const [tone, setTone] = useState("informative");
-  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
-  const [isSelectAllActive, setIsSelectAllActive] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [postToLink, setPostToLink] = useState<Post | null>(null);
-  const [customLink, setCustomLink] = useState("");
-  const [postLinks, setPostLinks] = useState<Record<string, string>>({});
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-  const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({});
-  const [imageSize, setImageSize] = useState("1:1");
+  const router = useRouter()
+  const [url, setUrl] = useState(initialUrl || "")
+  const [postCount, setPostCount] = useState("10")
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isPublishing, setIsPublishing] = useState<string | null>(null)
+  const [isScheduling, setIsScheduling] = useState<string | null>(null)
+  const [Scheduling, setSceduling] = useState(false)
+  const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(null)
+  const [referenceImage, setReferenceImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [generatedPosts, setGeneratedPosts] = useState<Post[]>([])
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
+  const [scheduledTime, setScheduledTime] = useState<string>("")
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [currentPostForScheduling, setCurrentPostForScheduling] = useState<Post | null>(null)
+  const [activeTab, setActiveTab] = useState("url")
+  const [pinterestBoards, setPinterestBoards] = useState<PinterestBoard[]>([])
+  const [selectedBoard, setSelectedBoard] = useState<string>("")
+  const [isFetchingBoards, setIsFetchingBoards] = useState(false)
+  const [boardFetchError, setBoardFetchError] = useState<string | null>(null)
+  const [topic, setTopic] = useState("")
+  const [tone, setTone] = useState("informative")
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
+  const [isSelectAllActive, setIsSelectAllActive] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [postToLink, setPostToLink] = useState<Post | null>(null)
+  const [customLink, setCustomLink] = useState("")
+  const [postLinks, setPostLinks] = useState<Record<string, string>>({})
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false)
+  const [selectedBoardForPosts, setSelectedBoardForPosts] = useState<Record<string, string>>({})
 
   // New state for bulk operations
-  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
-  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState("");
-  const [linkAllDialogOpen, setLinkAllDialogOpen] = useState(false);
-  const [linkAllText, setLinkAllText] = useState("");
-  const [scheduleAllDialogOpen, setScheduleAllDialogOpen] = useState(false);
-  const [scheduleAllDate, setScheduleAllDate] = useState<Date | undefined>(undefined);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false)
+  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState("")
+  const [linkAllDialogOpen, setLinkAllDialogOpen] = useState(false)
+  const [linkAllText, setLinkAllText] = useState("")
+  const [scheduleAllDialogOpen, setScheduleAllDialogOpen] = useState(false)
+  const [scheduleAllDate, setScheduleAllDate] = useState<Date | undefined>(undefined)
 
   // Set the initial URL and tab if provided
   useEffect(() => {
     if (initialUrl) {
-      setUrl(initialUrl);
-      setActiveTab("url");
+      setUrl(initialUrl)
+      setActiveTab("url")
     }
-  }, [initialUrl]);
+  }, [initialUrl])
 
-  const [credits, setCredits] = useState<number | null>(null);
-  const [creditsLoading, setCreditsLoading] = useState(true);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const { session } = useSession();
-
-  useEffect(() => {
-    async function fetchCredits() {
-      setCreditsLoading(true);
-      const user = supabase.auth.user();
-      if (!user) { setCredits(null); setCreditsLoading(false); return; }
-      const { data, error } = await supabase.from('credits').select('credits').eq('user_id', user.id).single();
-      if (error) { setCredits(null); } else { setCredits(data.credits); }
-      setCreditsLoading(false);
-    }
-    fetchCredits();
-  }, []);
-
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
+  // Replace the fetchBoards function with mock data
   const fetchBoards = async () => {
-    setIsFetchingBoards(true);
-    setBoardFetchError(null);
+    setIsFetchingBoards(true)
+    setBoardFetchError(null)
 
     try {
-      const response = await fetch("/api/pinterest/boards");
+      const response = await fetch("/api/pinterest/boards")
 
       if (response.status === 403) {
-        setBoardFetchError("You haven't connected Pinterest yet.");
-        return;
+        setBoardFetchError("You haven’t connected Pinterest yet.")
+        return
       }
 
       if (!response.ok) {
-        throw new Error("Failed to fetch Pinterest boards");
+        throw new Error("Failed to fetch Pinterest boards")
       }
 
-      const data = await response.json();
-      setPinterestBoards(data.boards || []);
+      const data = await response.json()
+      console.log(data)
+      setPinterestBoards(data.boards || [])
 
       if (!selectedBoard && data.boards?.length > 0) {
-        setSelectedBoard(data.boards[0].id);
+        setSelectedBoard(data.boards[0].id)
       }
     } catch (error) {
-      setBoardFetchError("Failed to fetch Pinterest boards. Please try again.");
+      console.error("Error fetching Pinterest boards:", error)
+      setBoardFetchError("Failed to fetch Pinterest boards. Please try again.")
     } finally {
-      setIsFetchingBoards(false);
+      setIsFetchingBoards(false)
     }
-  };
+  }
 
+  // Replace the useEffect with a simpler version
   useEffect(() => {
-    fetchBoards();
-  }, []);
+    fetchBoards()
+  }, [])
 
   function getMinTime(date?: Date) {
-    if (!date) return undefined;
+    if (!date) return undefined
 
-    const now = new Date();
-    const isToday = now.toDateString() === new Date(date).toDateString();
+    const now = new Date()
+    const isToday = now.toDateString() === new Date(date).toDateString()
 
     if (isToday) {
-      const rounded = new Date(now);
-      rounded.setSeconds(0);
-      rounded.setMilliseconds(0);
-      const minutes = rounded.getMinutes();
-      rounded.setMinutes(minutes + (5 - (minutes % 5)));
+      // Round current time up to nearest 5 minutes
+      const rounded = new Date(now)
+      rounded.setSeconds(0)
+      rounded.setMilliseconds(0)
+      const minutes = rounded.getMinutes()
+      rounded.setMinutes(minutes + (5 - (minutes % 5)))
 
-      const hours = String(rounded.getHours()).padStart(2, "0");
-      const mins = String(rounded.getMinutes()).padStart(2, "0");
-      return `${hours}:${mins}`;
+      const hours = String(rounded.getHours()).padStart(2, "0")
+      const mins = String(rounded.getMinutes()).padStart(2, "0")
+      return `${hours}:${mins}`
     }
 
-    return undefined;
+    return undefined
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setReferenceImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const file = e.target.files[0]
+      setReferenceImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      setReferenceImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const file = e.dataTransfer.files[0]
+      setReferenceImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
+    e.preventDefault()
+  }
 
   const generateImage = async (post: Post) => {
-    if (!post.imagePrompt) return null;
+    if (!post.imagePrompt) return null
 
-    setIsGeneratingImage(post.id);
+    setIsGeneratingImage(post.id)
 
     try {
       const response = await fetch("/api/fal/generate-image", {
@@ -228,36 +200,37 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         body: JSON.stringify({
           prompt: post.imagePrompt,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to generate image");
+        throw new Error("Failed to generate image")
       }
 
-      const data = await response.json();
-      return data.images?.[0]?.url || null;
+      const data = await response.json()
+      console.log("Generating image")
+      console.log(data.images)
+      return data.images?.[0]?.url || null
     } catch (error) {
+      console.error("Error generating image:", error)
       toast({
         title: "Error",
         description: "Failed to generate image. Please try again.",
         variant: "destructive",
-      });
-      return null;
+      })
+      return null
     } finally {
-      setIsGeneratingImage(null);
+      setIsGeneratingImage(null)
     }
-  };
+  }
 
   const handleGenerate = async () => {
-    if (credits === 0) { setShowUpgrade(true); return; }
-
     if (activeTab === "url" && !url) {
       toast({
         title: "URL Required",
         description: "Please enter a URL to generate Pinterest posts.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     if (activeTab === "scratch" && !topic) {
@@ -265,12 +238,22 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Topic Required",
         description: "Please enter a topic or keywords to generate Pinterest posts.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    setIsGenerating(true);
+    if (!selectedBoard) {
+      toast({
+        title: "Board Required",
+        description: "Please select a Pinterest board to publish your posts.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsGenerating(true)
     try {
+      // Call the API to generate posts
       const response = await fetch("/api/posts/generate", {
         method: "POST",
         headers: {
@@ -280,95 +263,46 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           url: activeTab === "url" ? url : undefined,
           topic: activeTab === "scratch" ? topic : undefined,
           tone: activeTab === "scratch" ? tone : undefined,
-          count: 1, // Always request 1 post
-          boardId: selectedBoard,
+          count: Number.parseInt(postCount),
         }),
-      });
+      })
 
       if (!response.ok) {
-        const data = await response.json();
-        if (
-          response.status === 403 &&
-          data.error?.toLowerCase().includes("exhausted your credits")
-        ) {
-          toast({
-            title: "Upgrade Required",
-            description: (
-              <>
-                You have exhausted your free trial credits.
-                <a
-                  href="https://cal.com/justin-lord-a80mr6/30min"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-blue-700 ml-2"
-                >
-                  Upgrade Now
-                </a>
-              </>
-            ),
-            variant: "destructive",
-          });
-          return;
-        }
-        throw new Error(data.error || "Failed to generate posts");
+        throw new Error("Failed to generate posts")
       }
 
-      const data = await response.json();
-      const postsWithImages = await Promise.all(
-        (data.posts || []).map(async (post: Post) => {
-          if (!post.imageUrl) {
-            const imageUrl = await generateImage(post);
-            return { ...post, imageUrl };
-          }
-          return post;
-        })
-      );
+      const data = await response.json()
       setGeneratedPosts(
-        postsWithImages.map((post: Post) => ({
+        (data.posts || []).map((post: Post) => ({
           ...post,
           defaultLink: activeTab === "url" ? url : undefined,
         }))
-      );
+      )
+
       toast({
         title: "Posts Generated",
         description: `Successfully generated ${data.posts.length} Pinterest posts.`,
-      });
+      })
     } catch (error) {
+      console.error("Error generating posts:", error)
       toast({
         title: "Error",
         description: "Failed to generate posts. Please try again.",
         variant: "destructive",
-      });
+      })
     } finally {
-      setIsGenerating(false);
-      // Always re-fetch free trial status after attempt
-      if (typeof (window as any).fetchFreeTrialStatus === 'function') {
-        (window as any).fetchFreeTrialStatus();
-      }
-      const user = supabase.auth.user();
-      if (user) {
-        const { error } = await supabase.from('credits').update({ credits: credits - 1 }).eq('user_id', user.id);
-        if (error) {
-          toast({ title: "Error updating credits", description: error.message, variant: "destructive" });
-          return;
-        }
-        await fetchCredits();
-        if (credits - 1 === 0) setShowUpgrade(true);
-      } else {
-        toast({ title: "User not found", description: "Could not find user for credit update.", variant: "destructive" });
-      }
+      setIsGenerating(false)
     }
-  };
+  }
 
   const handleGenerateImage = async (post: Post) => {
-    const imageUrl = await generateImage(post);
+    const imageUrl = await generateImage(post)
 
     if (imageUrl) {
-      setGeneratedPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === post.id ? { ...p, imageUrl } : p))
-      );
+      // Update the post with the generated image URL
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...p, imageUrl } : p)))
     }
-  };
+  }
 
   const handlePublish = async (post: Post) => {
     if (!selectedBoard) {
@@ -376,34 +310,37 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: "Board Required",
         description: "Please select a Pinterest board to publish your post.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     if (!post.imageUrl) {
+      // Generate image first if not already generated
       toast({
         title: "Generating Image",
         description: "Generating image before publishing...",
-      });
+      })
 
-      const imageUrl = await generateImage(post);
+      const imageUrl = await generateImage(post)
 
       if (!imageUrl) {
         toast({
           title: "Error",
           description: "Failed to generate image. Please try again.",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
-      post = { ...post, imageUrl };
-      setGeneratedPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === post.id ? { ...post } : p))
-      );
+      // Update the post with the generated image
+      post = { ...post, imageUrl }
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...post } : p)))
     }
 
-    setIsPublishing(post.id);
+    setIsPublishing(post.id)
+
+    console.log(selectedBoard)
+    console.log(post.imageUrl)
 
     try {
       const response = await fetch("/api/pinterest/pins/", {
@@ -418,77 +355,82 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           imageUrl: post.imageUrl,
           link: postLinks[post.id] || post.defaultLink,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to publish post to Pinterest");
+        throw new Error("Failed to publish post to Pinterest")
       }
 
+      const data = await response.json()
       toast({
         title: "Post Published",
         description: "Your post has been successfully published to Pinterest.",
-      });
+      })
 
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id));
-      setIsPublishing(null);
+      // Remove the published post from the list
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
+      setIsPublishing(null)
     } catch (error) {
+      console.error("Error publishing post:", error)
       toast({
         title: "Error",
-        description: "Failed to publish post. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
         variant: "destructive",
-      });
-      setIsPublishing(null);
+      })
+      setIsPublishing(null)
     }
-  };
+  }
 
   const openScheduleDialog = async (post: Post) => {
+    console.log("In open schedule")
     if (!selectedBoard) {
       toast({
         title: "Board Required",
         description: "Please select a Pinterest board to schedule your post.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setCurrentPostForScheduling(post);
-    setScheduleDialogOpen(true);
-  };
+    setCurrentPostForScheduling(post)
+    setScheduleDialogOpen(true)
+  }
 
   const handleSchedule = async () => {
+    console.log("In handle schedule")
     if (!currentPostForScheduling || !scheduledDate || !selectedBoard) {
       toast({
         title: "Error",
         description: "Please select a date and board to schedule the post.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    let postWithImage = currentPostForScheduling;
+    // Generate image if not already generated
+    let postWithImage = currentPostForScheduling
     if (!postWithImage.imageUrl) {
       toast({
         title: "Generating Image",
         description: "Generating image before scheduling...",
-      });
+      })
 
-      const imageUrl = await generateImage(postWithImage);
+      const imageUrl = await generateImage(postWithImage)
 
       if (!imageUrl) {
         toast({
           title: "Error",
           description: "Failed to generate image. Please try again.",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
-      postWithImage = { ...postWithImage, imageUrl };
-      setGeneratedPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === postWithImage.id ? { ...postWithImage } : p))
-      );
+      // Update the post with the generated image
+      postWithImage = { ...postWithImage, imageUrl }
+      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === postWithImage.id ? { ...postWithImage } : p)))
     }
 
-    setIsScheduling(postWithImage.id);
+    setIsScheduling(postWithImage.id)
     const [hours, minutes] = scheduledTime.split(":").map(Number);
     const finalDateTime = new Date(scheduledDate);
     finalDateTime.setHours(hours, minutes, 0, 0);
@@ -507,150 +449,153 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           link: postLinks[postWithImage.id] || postWithImage.defaultLink,
           scheduledTime: finalDateTime,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to schedule post to Pinterest");
+        throw new Error("Failed to schedule post to Pinterest")
       }
 
       toast({
         title: "Post Scheduled",
         description: "Your post has been successfully published to Pinterest.",
-      });
+      })
 
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id));
-      setScheduleDialogOpen(false);
-      setScheduledDate(undefined);
-      setIsScheduling(null);
+      // Remove the scheduled post from the list
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postWithImage.id))
+      setScheduleDialogOpen(false)
+      setScheduledDate(undefined)
+      setIsScheduling(null)
     } catch (error) {
+      console.error("Error scheduling post:", error)
       toast({
         title: "Error",
         description: "Failed to schedule post. Please try again.",
         variant: "destructive",
-      });
-      setIsScheduling(null);
+      })
+      setIsScheduling(null)
     }
-  };
+  }
 
   const handleSelectAll = () => {
     if (isSelectAllActive) {
-      setSelectedPosts(new Set());
-      setIsSelectAllActive(false);
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
     } else {
-      setSelectedPosts(new Set(generatedPosts.map((post) => post.id)));
-      setIsSelectAllActive(true);
+      setSelectedPosts(new Set(generatedPosts.map((post) => post.id)))
+      setIsSelectAllActive(true)
     }
-  };
+  }
 
   const togglePostSelection = (postId: string) => {
-    const newSelected = new Set(selectedPosts);
+    const newSelected = new Set(selectedPosts)
     if (newSelected.has(postId)) {
-      newSelected.delete(postId);
+      newSelected.delete(postId)
     } else {
-      newSelected.add(postId);
+      newSelected.add(postId)
     }
-    setSelectedPosts(newSelected);
-    setIsSelectAllActive(newSelected.size === generatedPosts.length);
-  };
+    setSelectedPosts(newSelected)
+    setIsSelectAllActive(newSelected.size === generatedPosts.length)
+  }
 
   const handleDeletePost = (post: Post) => {
-    setPostToDelete(post);
-    setDeleteDialogOpen(true);
-    setDeleteConfirmText("");
-  };
+    setPostToDelete(post)
+    setDeleteDialogOpen(true)
+    setDeleteConfirmText("")
+  }
 
   const confirmDelete = () => {
     if (deleteConfirmText === "DELETE" && postToDelete) {
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postToDelete.id));
+      setGeneratedPosts(generatedPosts.filter((p) => p.id !== postToDelete.id))
       setSelectedPosts((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(postToDelete.id);
-        return newSet;
-      });
-      setDeleteDialogOpen(false);
-      setPostToDelete(null);
-      setDeleteConfirmText("");
+        const newSet = new Set(prev)
+        newSet.delete(postToDelete.id)
+        return newSet
+      })
+      setDeleteDialogOpen(false)
+      setPostToDelete(null)
+      setDeleteConfirmText("")
 
       toast({
         title: "Post Deleted",
         description: "The post has been successfully deleted.",
-      });
+      })
     }
-  };
+  }
 
+  // New function for Delete All
   const handleDeleteAll = () => {
     if (selectedPosts.size === 0) {
       toast({
         title: "No Posts Selected",
         description: "Please select posts to delete.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setDeleteAllDialogOpen(true);
-    setDeleteAllConfirmText("");
-  };
+    setDeleteAllDialogOpen(true)
+    setDeleteAllConfirmText("")
+  }
 
   const confirmDeleteAll = () => {
     if (deleteAllConfirmText === "DELETE") {
-      const remainingPosts = generatedPosts.filter(
-        (post) => !selectedPosts.has(post.id)
-      );
-      setGeneratedPosts(remainingPosts);
-      setSelectedPosts(new Set());
-      setIsSelectAllActive(false);
-      setDeleteAllDialogOpen(false);
-      setDeleteAllConfirmText("");
+      const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+      setGeneratedPosts(remainingPosts)
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
+      setDeleteAllDialogOpen(false)
+      setDeleteAllConfirmText("")
 
       toast({
         title: "Posts Deleted",
         description: `Successfully deleted ${selectedPosts.size} posts.`,
-      });
+      })
     }
-  };
+  }
 
+  // New function for Link All Posts
   const handleLinkAllPosts = () => {
     if (selectedPosts.size === 0) {
       toast({
         title: "No Posts Selected",
         description: "Please select posts to add links.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setLinkAllDialogOpen(true);
-    setLinkAllText("");
-  };
+    setLinkAllDialogOpen(true)
+    setLinkAllText("")
+  }
 
   const confirmLinkAll = () => {
     if (linkAllText) {
-      const newPostLinks = { ...postLinks };
+      const newPostLinks = { ...postLinks }
       selectedPosts.forEach((postId) => {
-        newPostLinks[postId] = linkAllText;
-      });
-      setPostLinks(newPostLinks);
-      setLinkAllDialogOpen(false);
-      setLinkAllText("");
+        newPostLinks[postId] = linkAllText
+      })
+      setPostLinks(newPostLinks)
+      setLinkAllDialogOpen(false)
+      setLinkAllText("")
 
       toast({
         title: "Links Added",
         description: `Successfully added custom links to ${selectedPosts.size} posts.`,
-      });
+      })
     }
-  };
+  }
 
+  // New function for Schedule All
   const handleScheduleAll = () => {
     if (selectedPosts.size === 0) {
       toast({
         title: "No Posts Selected",
         description: "Please select posts to schedule.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
-    setScheduleAllDialogOpen(true);
-    setScheduleAllDate(undefined);
-  };
+    setScheduleAllDialogOpen(true)
+    setScheduleAllDate(undefined)
+  }
 
   const confirmScheduleAll = () => {
     if (scheduleAllDate) {
@@ -670,182 +615,72 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 link: postLinks[post.id] || post.defaultLink,
                 scheduledTime: scheduleAllDate,
               }),
-            });
+            })
 
             if (!response.ok) {
-              throw new Error("Failed to schedule post to Pinterest");
+              throw new Error("Failed to schedule post to Pinterest")
             }
           } catch (error) {
-            console.log(error);
+            console.log(error)
           }
         }
-      });
-      const remainingPosts = generatedPosts.filter(
-        (post) => !selectedPosts.has(post.id)
-      );
-      setGeneratedPosts(remainingPosts);
-      setSelectedPosts(new Set());
-      setIsSelectAllActive(false);
-      setScheduleAllDialogOpen(false);
-      setScheduleAllDate(undefined);
+      })
+      const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+      setGeneratedPosts(remainingPosts)
+      setSelectedPosts(new Set())
+      setIsSelectAllActive(false)
+      setScheduleAllDialogOpen(false)
+      setScheduleAllDate(undefined)
 
       toast({
         title: "Posts Scheduled",
-        description: `Successfully scheduled ${selectedPosts.size} posts for ${format(
-          scheduleAllDate,
-          "PPP"
-        )}.`,
-      });
+        description: `Successfully scheduled ${selectedPosts.size} posts for ${format(scheduleAllDate, "PPP")}.`,
+      })
     }
-  };
+  }
 
   const handleLinkPost = (post: Post) => {
-    setPostToLink(post);
-    setCustomLink(postLinks[post.id] || "");
-    setLinkDialogOpen(true);
-  };
+    setPostToLink(post)
+    setCustomLink(postLinks[post.id] || "")
+    setLinkDialogOpen(true)
+  }
 
   const confirmLink = () => {
     if (postToLink && customLink) {
       setPostLinks((prev) => ({
         ...prev,
         [postToLink.id]: customLink,
-      }));
+      }))
 
       toast({
         title: "Link Added",
         description: "Custom link has been added to the post.",
-      });
+      })
     }
-    setLinkDialogOpen(false);
-    setPostToLink(null);
-    setCustomLink("");
-  };
+    setLinkDialogOpen(false)
+    setPostToLink(null)
+    setCustomLink("")
+  }
 
   const handleBoardSelection = (postId: string, boardId: string) => {
     setSelectedBoardForPosts((prev) => ({
       ...prev,
       [postId]: boardId,
-    }));
-  };
+    }))
+  }
 
   const getSelectedBoard = (postId: string) => {
-    return selectedBoardForPosts[postId] || selectedBoard;
-  };
+    return selectedBoardForPosts[postId] || selectedBoard
+  }
 
-  const hasSelectedPosts = selectedPosts.size > 0;
+  const hasSelectedPosts = selectedPosts.size > 0
   const getButtonClass = (isActive: boolean) =>
     `px-4 py-2 rounded-md font-medium transition-colors ${
       isActive ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-    }`;
-
-  function generateRandomUniqueDates(count: number): string[] {
-    const now = new Date();
-    const sevenDaysLater = new Date(now);
-    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-    const usedTimestamps = new Set<number>();
-    const dates: string[] = [];
-    while (dates.length < count) {
-      const randomTime =
-        now.getTime() + Math.random() * (sevenDaysLater.getTime() - now.getTime());
-      const rounded = Math.floor(randomTime / 1000) * 1000;
-      if (!usedTimestamps.has(rounded)) {
-        usedTimestamps.add(rounded);
-        const d = new Date(rounded);
-        dates.push(d.toISOString().slice(0, 19));
-      }
-    }
-    return dates;
-  }
-
-  // Helper to generate a random string for URL fragment
-  function generateRandomFragment(length = 8) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }
-
-  function downloadCSV() {
-    if (!generatedPosts.length) return;
-    const missingImages = generatedPosts.filter(post => !post.imageUrl);
-    if (missingImages.length > 0) {
-      toast({
-        title: "Images Not Ready",
-        description: "Please wait for all images to generate before downloading CSV",
-        variant: "warning",
-      });
-      return;
-    }
-    const randomDates = generateRandomUniqueDates(generatedPosts.length);
-    const headers = [
-      "Title",
-      "Media URL",
-      "Pinterest board",
-      "Description",
-      "Link",
-      "Publish date",
-    ];
-    const rows = generatedPosts.map((post, idx) => {
-      // Use the board selected at generation time
-      const boardName =
-        pinterestBoards.find((b) => b.id === selectedBoard)?.name || "Weight Loss";
-      // Make link unique with a random fragment
-      let link = postLinks[post.id] || post.defaultLink || "";
-      if (link) {
-        const frag = generateRandomFragment(10);
-        link += `#${frag}`;
-      }
-      return [
-        post.title,
-        post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl : '',
-        boardName,
-        post.description,
-        link,
-        randomDates[idx],
-      ];
-    });
-    const csvContent = [headers, ...rows]
-      .map((row) =>
-        row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `pinterest-posts-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+    }`
 
   return (
     <>
-      {showUpgrade && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Upgrade Required</AlertTitle>
-          <AlertDescription>
-            You have used all your free posts. <a href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="text-teal-600 underline">Click here to work with us</a>.
-          </AlertDescription>
-        </Alert>
-      )}
-      {/* Free trial remaining prominent alert */}
-      <div className="mb-4">
-        {(credits !== null && creditsLoading) ? (
-          <Alert variant="default">
-            <AlertTitle>You have {credits} free trial posts remaining.</AlertTitle>
-          </Alert>
-        ) : (
-          <Alert variant="default">
-            <AlertTitle>You have used 0 of 5 free trial posts.</AlertTitle>
-          </Alert>
-        )}
-      </div>
-
       {/* Pinterest Board Selection */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
@@ -853,49 +688,31 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <PinIcon className="h-5 w-5 text-red-600" />
             Pinterest Board
           </CardTitle>
-          <CardDescription>
-            Select the Pinterest board where you want to publish your posts
-          </CardDescription>
+          <CardDescription>Select the Pinterest board where you want to publish your posts</CardDescription>
         </CardHeader>
         <CardContent>
           {boardFetchError ? (
             <Alert
-              variant={
-                boardFetchError === "You haven't connected Pinterest yet."
-                  ? "default"
-                  : "destructive"
-              }
+              variant={boardFetchError === "You haven’t connected Pinterest yet." ? "default" : "destructive"}
               className="mb-4"
             >
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle
-                className={
-                  boardFetchError === "You haven't connected Pinterest yet."
-                    ? "text-gray-700"
-                    : ""
-                }
-              >
-                {boardFetchError === "You haven't connected Pinterest yet."
+              <AlertTitle className={boardFetchError === "You haven’t connected Pinterest yet." ? "text-gray-700" : ""}>
+                {boardFetchError === "You haven’t connected Pinterest yet."
                   ? "Pinterest Not Connected"
                   : "Error Fetching Boards"}
               </AlertTitle>
               <AlertDescription
-                className={
-                  boardFetchError === "You haven't connected Pinterest yet."
-                    ? "text-gray-600"
-                    : ""
-                }
+                className={boardFetchError === "You haven’t connected Pinterest yet." ? "text-gray-600" : ""}
               >
-                {boardFetchError === "You haven't connected Pinterest yet." ? (
+                {boardFetchError === "You haven’t connected Pinterest yet." ? (
                   <>
                     Please connect your Pinterest account to continue.
                     <div className="mt-3">
                       <Button
                         size="sm"
                         className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() =>
-                          router.push("/dashboard/settings/social")
-                        }
+                        onClick={() => router.push("/dashboard/settings/social")}
                       >
                         <PinIcon className="mr-2 h-4 w-4" />
                         Connect Pinterest
@@ -912,11 +729,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       onClick={fetchBoards}
                       disabled={isFetchingBoards}
                     >
-                      <RefreshCw
-                        className={`mr-2 h-4 w-4 ${
-                          isFetchingBoards ? "animate-spin" : ""
-                        }`}
-                      />
+                      <RefreshCw className={`mr-2 h-4 w-4 ${isFetchingBoards ? "animate-spin" : ""}`} />
                       Retry
                     </Button>
                   </>
@@ -934,27 +747,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   disabled={isFetchingBoards}
                   className="h-8 px-2 text-xs"
                 >
-                  <RefreshCw
-                    className={`mr-1 h-3 w-3 ${
-                      isFetchingBoards ? "animate-spin" : ""
-                    }`}
-                  />
+                  <RefreshCw className={`mr-1 h-3 w-3 ${isFetchingBoards ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
               </div>
-              <Select
-                value={selectedBoard}
-                onValueChange={setSelectedBoard}
-                disabled={isFetchingBoards}
-              >
-                <SelectTrigger
-                  className={!selectedBoard ? "text-red-500 border-red-500" : ""}
-                >
-                  <SelectValue
-                    placeholder={
-                      isFetchingBoards ? "Loading boards..." : "Select a board"
-                    }
-                  />
+              <Select value={selectedBoard} onValueChange={setSelectedBoard} disabled={isFetchingBoards}>
+                <SelectTrigger className={!selectedBoard ? "text-red-500 border-red-500" : ""}>
+                  <SelectValue placeholder={isFetchingBoards ? "Loading boards..." : "Select a board"} />
                 </SelectTrigger>
                 <SelectContent>
                   {pinterestBoards.length === 0 ? (
@@ -981,13 +780,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         </CardContent>
       </Card>
 
-      {/* Form Section */}
+      {/* Always render the form section */}
       <Card>
         <CardHeader>
           <CardTitle>Generate Pinterest Content</CardTitle>
-          <CardDescription>
-            Choose how you want to create your Pinterest content
-          </CardDescription>
+          <CardDescription>Choose how you want to create your Pinterest content</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -996,7 +793,6 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               <TabsTrigger value="scratch">From Scratch</TabsTrigger>
             </TabsList>
 
-            {/* URL Tab */}
             <TabsContent value="url" className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="url">Enter URL</Label>
@@ -1011,38 +807,38 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       onChange={(e) => setUrl(e.target.value)}
                     />
                   </div>
-                  {/* Remove the post count dropdown from URL tab */}
+                  <Select value={postCount} onValueChange={setPostCount}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="10 posts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 posts</SelectItem>
+                      <SelectItem value="10">10 posts</SelectItem>
+                      <SelectItem value="15">15 posts</SelectItem>
+                      <SelectItem value="20">20 posts</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  Our AI will analyze the content at this URL and generate
-                  Pinterest posts
+                  Our AI will analyze the content at this URL and generate Pinterest posts
                 </p>
               </div>
 
-              {/* Reference Image */}
               <div className="space-y-2 mt-6">
                 <Label>Reference Image (Optional)</Label>
                 <div
-                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative"
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative" // Added relative positioning
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
-                  onClick={() =>
-                    !previewUrl && document.getElementById("file-upload")?.click()
-                  }
+                  onClick={() => !previewUrl && document.getElementById("file-upload")?.click()} // Prevent click if previewUrl exists to allow delete button to work
                 >
-                  <input
-                    id="file-upload"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
+                  <input id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                   {previewUrl ? (
                     <div className="flex flex-col items-center">
                       <div className="relative w-40 h-40 mb-4">
                         <img
-                          src={previewUrl || "/placeholder.svg"}
+                          src={previewUrl || "/placeholder.svg"} // Removed placeholder fallback
                           alt="Reference"
                           className="w-full h-full object-cover rounded-lg"
                         />
@@ -1051,14 +847,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                           size="icon"
                           className="absolute top-1 right-1 h-6 w-6 rounded-full"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            setReferenceImage(null);
-                            setPreviewUrl(null);
-                            const fileInput = document.getElementById(
-                              "file-upload"
-                            ) as HTMLInputElement;
+                            e.stopPropagation() // Prevent triggering the div's onClick
+                            setReferenceImage(null)
+                            setPreviewUrl(null)
+                            // Also clear the file input value if possible
+                            const fileInput = document.getElementById("file-upload") as HTMLInputElement
                             if (fileInput) {
-                              fileInput.value = "";
+                              fileInput.value = ""
                             }
                           }}
                         >
@@ -1068,41 +863,17 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       <p className="text-sm text-gray-500">Click or drag to replace</p>
                     </div>
                   ) : (
+                    // ... existing code for when no image is previewed
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                      <p className="text-sm font-medium">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        PNG, JPG or WEBP (max. 5MB)
-                      </p>
+                      <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Image Size */}
-              <div className="space-y-2">
-                <Label htmlFor="image-size">Select Image Size</Label>
-                <Select value={imageSize} onValueChange={setImageSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select image size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1:1">1:1 (Square)</SelectItem>
-                    <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
-                    <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
-                    <SelectItem value="2:3">2:3 (Pinterest)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <Info className="h-3 w-3" />
-                  Choose the aspect ratio for generated images
-                </p>
-              </div>
             </TabsContent>
 
-            {/* Scratch Tab */}
             <TabsContent value="scratch" className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="topic">Topic or Keywords</Label>
@@ -1136,14 +907,75 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   </Select>
                 </div>
 
-                {/* Remove the post count dropdown from scratch tab */}
+                <div className="space-y-2">
+                  <Label htmlFor="count">Number of Posts</Label>
+                  <Select value={postCount} onValueChange={setPostCount}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="10 posts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 posts</SelectItem>
+                      <SelectItem value="10">10 posts</SelectItem>
+                      <SelectItem value="15">15 posts</SelectItem>
+                      <SelectItem value="20">20 posts</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2 mt-6">
+                <Label>Reference Image (Optional)</Label>
+                <div
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative" // Added relative positioning
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onClick={() => !previewUrl && document.getElementById("file-upload")?.click()} // Prevent click if previewUrl exists to allow delete button to work
+                >
+                  <input id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                  {previewUrl ? (
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-40 h-40 mb-4">
+                        <img
+                          src={previewUrl || "/placeholder.svg"} // Removed placeholder fallback
+                          alt="Reference"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation() // Prevent triggering the div's onClick
+                            setReferenceImage(null)
+                            setPreviewUrl(null)
+                            // Also clear the file input value if possible
+                            const fileInput = document.getElementById("file-upload") as HTMLInputElement
+                            if (fileInput) {
+                              fileInput.value = ""
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-gray-500">Click or drag to replace</p>
+                    </div>
+                  ) : (
+                    // ... existing code for when no image is previewed
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                      <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG or WEBP (max. 5MB)</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </TabsContent>
 
             <Button
               className="w-full bg-teal-600 hover:bg-teal-700 mt-6"
               onClick={handleGenerate}
-              disabled={isGenerating || freeTrialRemaining === 0}
+              disabled={isGenerating || !selectedBoard}
             >
               {isGenerating ? (
                 <>
@@ -1161,36 +993,27 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         </CardContent>
       </Card>
 
-      {/* Generated Posts Section */}
+      {/* Conditionally render the generated posts section */}
       {generatedPosts.length > 0 && (
         <div className="space-y-6 mt-6">
-          {/* Header Row */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">
-              Generated Posts ({generatedPosts.length})
-            </h2>
+            <h2 className="text-xl font-semibold">Generated Posts ({generatedPosts.length})</h2>
             <Button
               variant="outline"
               onClick={() => {
-                setUrl("");
-                setTopic("");
-                setReferenceImage(null);
-                setPreviewUrl(null);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-                toast({
-                  title: "Form Cleared",
-                  description: "You can now generate new content.",
-                });
+                setUrl("")
+                setTopic("")
+                setReferenceImage(null)
+                setPreviewUrl(null)
+                // Optionally clear generated posts or let user manage them
+                // setGeneratedPosts([]);
+                // setSelectedPosts(new Set());
+                // setIsSelectAllActive(false);
+                window.scrollTo({ top: 0, behavior: "smooth" })
+                toast({ title: "Form Cleared", description: "You can now generate new content." })
               }}
             >
               Start New Generation
-            </Button>
-          </div>
-
-          {/* Download CSV Button */}
-          <div className="flex justify-end mb-4">
-            <Button onClick={downloadCSV} variant="outline">
-              Download CSV
             </Button>
           </div>
 
@@ -1203,6 +1026,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             >
               {isSelectAllActive ? "Deselect All" : "Select All"}
             </Button>
+
             <Button
               className={getButtonClass(hasSelectedPosts)}
               disabled={!hasSelectedPosts}
@@ -1211,14 +1035,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               <Calendar className="mr-2 h-4 w-4" />
               Schedule Post
             </Button>
-            <Button
-              className={getButtonClass(hasSelectedPosts)}
-              disabled={!hasSelectedPosts}
-              onClick={handleDeleteAll}
-            >
+
+            <Button className={getButtonClass(hasSelectedPosts)} disabled={!hasSelectedPosts} onClick={handleDeleteAll}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete All
             </Button>
+
             <Button
               className={getButtonClass(hasSelectedPosts)}
               disabled={!hasSelectedPosts}
@@ -1227,6 +1049,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               <LinkIcon className="mr-2 h-4 w-4" />
               Link All Posts
             </Button>
+
             <Button
               className={getButtonClass(hasSelectedPosts)}
               disabled={!hasSelectedPosts}
@@ -1241,9 +1064,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           {hasSelectedPosts && (
             <Card className="p-4">
               <div className="flex items-center gap-4">
-                <Label>
-                  Default Board for Selected Posts ({selectedPosts.size} selected):
-                </Label>
+                <Label>Default Board for Selected Posts ({selectedPosts.size} selected):</Label>
                 <Select value={selectedBoard} onValueChange={setSelectedBoard}>
                   <SelectTrigger className="w-64">
                     <SelectValue placeholder="Select board" />
@@ -1260,17 +1081,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </Card>
           )}
 
-          {/* Posts Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {generatedPosts.map((post) => {
-              const isSelected = selectedPosts.has(post.id);
-              const hasCustomLink = postLinks[post.id];
-              const displayLink =
-                hasCustomLink || post.defaultLink || "No link available";
-              const assignedBoard = getSelectedBoard(post.id);
-              const boardName =
-                pinterestBoards.find((b) => b.id === assignedBoard)?.name ||
-                "No board";
+              const isSelected = selectedPosts.has(post.id)
+              const hasCustomLink = postLinks[post.id]
+              const displayLink = hasCustomLink || post.defaultLink || "No link available"
+              const assignedBoard = getSelectedBoard(post.id)
+              const boardName = pinterestBoards.find((b) => b.id === assignedBoard)?.name || "No board"
 
               return (
                 <Card
@@ -1297,11 +1114,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       className="h-8 w-8 p-0 bg-white/80 hover:bg-white"
                       onClick={() => handleLinkPost(post)}
                     >
-                      <LinkIcon
-                        className={`h-4 w-4 ${
-                          hasCustomLink ? "text-green-600" : "text-gray-600"
-                        }`}
-                      />
+                      <LinkIcon className={`h-4 w-4 ${hasCustomLink ? "text-green-600" : "text-gray-600"}`} />
                     </Button>
                     <Button
                       size="sm"
@@ -1309,17 +1122,14 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       className="h-8 w-8 p-0 bg-white/80 hover:bg-white text-red-600"
                       onClick={() => handleDeletePost(post)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      🗑️
                     </Button>
                   </div>
 
-                  <div className="aspect-[9/16] relative">
+                  <div className="aspect-[2/3] relative">
                     {post.imageUrl ? (
                       <img
-                        src={
-                          post.imageUrl ||
-                          "/placeholder.svg?height=600&width=400&query=abstract+post+image"
-                        }
+                        src={post.imageUrl || "/placeholder.svg"}
                         alt={post.title}
                         className="w-full h-full object-cover"
                       />
@@ -1344,10 +1154,23 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   </div>
 
                   <CardContent className="p-4">
-                    <h3 className="font-semibold line-clamp-2 mb-2">
-                      {post.title}
-                    </h3>
-                    <ExpandableDescription description={post.description} />
+                    <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>
+                    <p className="text-sm text-gray-500 line-clamp-3 mb-3">{post.description}</p>
+
+                    {/* Default/Custom Link Display */}
+                    <div className="mb-3 p-2 bg-gray-50 rounded text-xs">
+                      <span className="font-medium">Link: </span>
+                      <span className={hasCustomLink ? "text-green-600" : "text-gray-600"}>{displayLink}</span>
+                      {hasCustomLink && <span className="text-green-600 ml-1">(Custom)</span>}
+                    </div>
+
+                    {/* Board Assignment Tag */}
+                    <div className="mb-3">
+                      <span className="inline-block px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                        📌 {boardName}
+                      </span>
+                    </div>
+
                     <div className="flex gap-2">
                       <Button
                         className="flex-1 bg-teal-600 hover:bg-teal-700"
@@ -1378,58 +1201,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                           "Schedule"
                         )}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => handleDeletePost(post)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleLinkPost(post)}
-                      >
-                        <LinkIcon
-                          className={`h-4 w-4 ${
-                            postLinks[post.id]
-                              ? "text-green-600"
-                              : "text-gray-600"
-                          }`}
-                        />
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              );
+              )
             })}
           </div>
         </div>
       )}
 
-      {/* Dialogs */}
+      {/* Delete All Confirmation Dialog */}
       <Dialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete All Selected Posts</DialogTitle>
-            <DialogDescription>
-              Do you want to delete all selected posts?
-            </DialogDescription>
+            <DialogDescription>Do you want to delete all selected posts?</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="mb-4 p-3 border rounded-lg bg-red-50">
-              <p className="font-medium text-red-800">
-                You are about to delete {selectedPosts.size} posts
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                This action cannot be undone.
-              </p>
+              <p className="font-medium text-red-800">You are about to delete {selectedPosts.size} posts</p>
+              <p className="text-sm text-red-600 mt-1">This action cannot be undone.</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="delete-all-confirm">
-                Type DELETE to confirm deletion
-              </Label>
+              <Label htmlFor="delete-all-confirm">Type DELETE to confirm deletion</Label>
               <Input
                 id="delete-all-confirm"
                 value={deleteAllConfirmText}
@@ -1442,24 +1236,19 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button variant="outline" onClick={() => setDeleteAllDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteAll}
-              disabled={deleteAllConfirmText !== "DELETE"}
-            >
+            <Button variant="destructive" onClick={confirmDeleteAll} disabled={deleteAllConfirmText !== "DELETE"}>
               Delete All
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Link All Posts Dialog */}
       <Dialog open={linkAllDialogOpen} onOpenChange={setLinkAllDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Link All Selected Posts</DialogTitle>
-            <DialogDescription>
-              Enter a custom link for all {selectedPosts.size} selected posts
-            </DialogDescription>
+            <DialogDescription>Enter a custom link for all {selectedPosts.size} selected posts</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-2">
@@ -1471,8 +1260,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 placeholder="https://example.com"
               />
               <p className="text-xs text-gray-500">
-                This link will be applied to all {selectedPosts.size} selected
-                posts
+                This link will be applied to all {selectedPosts.size} selected posts
               </p>
             </div>
           </div>
@@ -1480,24 +1268,19 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <Button variant="outline" onClick={() => setLinkAllDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={confirmLinkAll}
-              disabled={!linkAllText}
-              className="bg-green-600 hover:bg-green-700"
-            >
+            <Button onClick={confirmLinkAll} disabled={!linkAllText} className="bg-green-600 hover:bg-green-700">
               Apply to All Posts
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Schedule All Posts Dialog */}
       <Dialog open={scheduleAllDialogOpen} onOpenChange={setScheduleAllDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Schedule All Selected Posts</DialogTitle>
-            <DialogDescription>
-              Select a date to schedule all {selectedPosts.size} selected posts
-            </DialogDescription>
+            <DialogDescription>Select a date to schedule all {selectedPosts.size} selected posts</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
@@ -1506,14 +1289,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 <div className="mt-2">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {scheduleAllDate
-                          ? format(scheduleAllDate, "PPP")
-                          : "Select a date"}
+                        {scheduleAllDate ? format(scheduleAllDate, "PPP") : "Select a date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -1527,46 +1305,245 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     </PopoverContent>
                   </Popover>
                 </div>
+                {/* Time Picker */}
+            <div>
+              <Label htmlFor="schedule-time">Time</Label>
+              <input
+                id="schedule-time"
+                type="time"
+                className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={scheduledTime}
+                min={getMinTime(scheduledDate)}
+                onChange={(e) => setScheduledTime(e.target.value)}
+              />
+            </div>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setScheduleAllDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setScheduleAllDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              className="bg-teal-600 hover:bg-teal-700"
-              onClick={confirmScheduleAll}
-              disabled={!scheduleAllDate}
-            >
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={confirmScheduleAll} disabled={!scheduleAllDate}>
               Schedule All Posts
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
-  );
-}
 
-// ExpandableDescription component
-function ExpandableDescription({ description }: { description: string }) {
-  const [expanded, setExpanded] = useState(false);
-  // Estimate if truncation is needed (simple heuristic: > 5 lines ~ 400 chars)
-  const shouldTruncate = description.length > 120;
-  return (
-    <div className="mb-4">
-      <p className={`text-sm text-gray-500 ${!expanded && shouldTruncate ? 'line-clamp-5' : ''}`}>{description}</p>
-      {shouldTruncate && (
-        <button
-          className="text-xs text-gray-500 hover:underline ml-1 mt-1"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? 'Show less' : 'Show more'}
-        </button>
-      )}
-    </div>
-  );
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Post</DialogTitle>
+            <DialogDescription>Do you want to delete this post?</DialogDescription>
+          </DialogHeader>
+          {postToDelete && (
+            <div className="py-4">
+              <div className="mb-4 p-3 border rounded-lg">
+                <h4 className="font-medium">{postToDelete.title}</h4>
+                <p className="text-sm text-gray-500 mt-1">{postToDelete.description.substring(0, 100)}...</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="delete-confirm">Type DELETE to confirm deletion</Label>
+                <Input
+                  id="delete-confirm"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="Type DELETE"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteConfirmText !== "DELETE"}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link Post Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Custom Link</DialogTitle>
+            <DialogDescription>Enter a custom destination link for this post</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label htmlFor="custom-link">Custom Link URL</Label>
+              <Input
+                id="custom-link"
+                value={customLink}
+                onChange={(e) => setCustomLink(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmLink} disabled={!customLink} className="bg-green-600 hover:bg-green-700">
+              Save Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Publish to Pinterest Dialog */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Publish to Pinterest</DialogTitle>
+            <DialogDescription>Select the Pinterest board to post these to:</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Pinterest Board</Label>
+                <Select value={selectedBoard} onValueChange={setSelectedBoard}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select board" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pinterestBoards.map((board) => (
+                      <SelectItem key={board.id} value={board.id}>
+                        {board.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Posts to Publish ({selectedPosts.size})</Label>
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {Array.from(selectedPosts).map((postId) => {
+                    const post = generatedPosts.find((p) => p.id === postId)
+                    return post ? (
+                      <div key={postId} className="flex items-center gap-3 p-2 border rounded">
+                        <div className="w-12 h-12 bg-gray-200 rounded flex-shrink-0">
+                          {post.imageUrl && (
+                            <img
+                              src={post.imageUrl || "/placeholder.svg"}
+                              alt=""
+                              className="w-full h-full object-cover rounded"
+                            />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{post.title}</p>
+                          <p className="text-xs text-gray-500 truncate">{post.description}</p>
+                        </div>
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                generatedPosts.forEach((post) => {
+                  if (selectedPosts.has(post.id)) {
+                    handlePublish(post)
+                  }
+                })
+                const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id))
+                setGeneratedPosts(remainingPosts)
+                setSelectedPosts(new Set())
+                setIsSelectAllActive(false)
+                setPublishDialogOpen(false)
+
+                toast({
+                  title: "Publishing to Pinterest",
+                  description: `Successfully published ${selectedPosts.size} posts to Pinterest!`,
+                })
+              }}
+            >
+              Confirm Publish
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Schedule Post</DialogTitle>
+            <DialogDescription>Select a date and time to schedule your Pinterest post.</DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-6">
+            {/* Date Picker */}
+            <div>
+              <Label htmlFor="schedule-date">Date</Label>
+              <div className="mt-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {scheduledDate ? format(scheduledDate, "PPP") : "Select a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={scheduledDate}
+                      onSelect={setScheduledDate}
+                      initialFocus
+                      disabled={(date) => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0) // Remove time portion
+                        return date < today // Only disable dates before today
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Time Picker */}
+            <div>
+              <Label htmlFor="schedule-time">Time</Label>
+              <input
+                id="schedule-time"
+                type="time"
+                className="mt-2 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={scheduledTime}
+                min={getMinTime(scheduledDate)}
+                onChange={(e) => setScheduledTime(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSchedule} disabled={!scheduledDate || !scheduledTime}>
+              {Scheduling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                "Schedule Post"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }

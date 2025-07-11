@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, RefreshCw } from "lucide-react"
+import { Loader2, RefreshCw, Lock, Crown, ChevronDown } from "lucide-react"
 import Link from "next/link"
 
 interface Board {
@@ -44,9 +44,8 @@ export function CreatePostForm() {
   const [boards, setBoards] = useState<Board[]>([])
   const [selectedBoard, setSelectedBoard] = useState<string>("")
   const [activeTab, setActiveTab] = useState(initialUrl ? "url" : "topic")
-  const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(null)
-  const [freeTrialLimit, setFreeTrialLimit] = useState<number | null>(null)
-  const [freeTrialLoading, setFreeTrialLoading] = useState(true)
+  const [postCount, setPostCount] = useState<string>("1")
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   // Set initial URL from search params
   useEffect(() => {
@@ -89,29 +88,37 @@ export function CreatePostForm() {
     }
   }, [status, toast])
 
-  useEffect(() => {
-    async function fetchFreeTrialStatus() {
-      setFreeTrialLoading(true)
-      try {
-        const res = await fetch("/api/user/free-trial-status")
-        const data = await res.json()
-        setFreeTrialRemaining(data.remaining)
-        setFreeTrialLimit(data.limit)
-      } catch (e) {
-        setFreeTrialRemaining(null)
-        setFreeTrialLimit(null)
-      } finally {
-        setFreeTrialLoading(false)
-      }
+  const handlePremiumFeatureClick = () => {
+    toast({
+      title: "Premium Feature",
+      description: "Upgrade to premium to generate multiple posts at once!",
+      variant: "default",
+    })
+    router.push("/pricing")
+  }
+
+  const handlePostCountSelect = (value: string) => {
+    const count = Number.parseInt(value)
+    if (count > 2) {
+      handlePremiumFeatureClick()
+      return
     }
-    fetchFreeTrialStatus()
-  }, [])
+    setPostCount(value)
+    setDropdownOpen(false)
+  }
 
   const handleGeneratePosts = async () => {
     try {
       setIsGenerating(true)
       setPosts([])
       setSelectedPost(null)
+
+      // Check if premium feature is being used
+      const count = Number.parseInt(postCount)
+      if (count > 2) {
+        handlePremiumFeatureClick()
+        return
+      }
 
       // Validate input
       if (activeTab === "url" && !url) {
@@ -133,7 +140,7 @@ export function CreatePostForm() {
       }
 
       // Prepare request body based on active tab
-      const requestBody = activeTab === "url" ? { url, count: 2 } : { topic, count: 2 }
+      const requestBody = activeTab === "url" ? { url, count } : { topic, count }
 
       const response = await fetch("/api/posts/generate", {
         method: "POST",
@@ -232,21 +239,17 @@ export function CreatePostForm() {
     }
   }
 
+  const postOptions = [
+    { value: "1", label: "1 post", premium: false },
+    { value: "2", label: "2 posts", premium: false },
+    { value: "5", label: "5 posts", premium: true },
+    { value: "20", label: "20 posts", premium: true },
+    { value: "50", label: "50 posts", premium: true },
+    { value: "100", label: "100 posts", premium: true },
+  ]
+
   return (
     <div className="space-y-6">
-      {/* Free trial remaining UI */}
-      <div className="mb-4">
-        {freeTrialLoading ? (
-          <span>Loading free trial status...</span>
-        ) : freeTrialRemaining === 0 ? (
-          <div className="bg-red-100 text-red-700 p-3 rounded flex flex-col items-center">
-            <span>You have exhausted your free trial posts.</span>
-            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank" className="mt-2 underline text-blue-700">Book a call to upgrade</Link>
-          </div>
-        ) : freeTrialRemaining !== null && freeTrialLimit !== null ? (
-          <span className="text-sm text-gray-600">Free trial posts remaining: <b>{freeTrialRemaining}</b> of {freeTrialLimit}</span>
-        ) : null}
-      </div>
       <Card>
         <CardContent className="pt-6">
           <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
@@ -284,8 +287,57 @@ export function CreatePostForm() {
             </TabsContent>
           </Tabs>
 
+          {/* Post Count Selection */}
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="post-count">Number of Posts to Generate</Label>
+            <div className="relative">
+              <button
+                type="button"
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                disabled={isGenerating}
+              >
+                <span>{postOptions.find((opt) => opt.value === postCount)?.label || "Select posts"}</span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                  {postOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className={`relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors ${
+                        option.premium
+                          ? "text-muted-foreground cursor-not-allowed"
+                          : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      } ${postCount === option.value ? "bg-accent text-accent-foreground" : ""}`}
+                      onClick={() => handlePostCountSelect(option.value)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className={option.premium ? "text-gray-400" : ""}>{option.label}</span>
+                        {option.premium && (
+                          <div className="flex items-center gap-1">
+                            <Lock className="h-3 w-3 text-gray-400" />
+                            <Crown className="h-3 w-3 text-yellow-500" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Generate multiple posts at once.{" "}
+              <Link href="/pricing" className="text-teal-600 hover:underline">
+                Upgrade to Premium
+              </Link>{" "}
+              to unlock bulk generation.
+            </p>
+          </div>
+
           <div className="mt-6">
-            <Button onClick={handleGeneratePosts} disabled={isGenerating || freeTrialRemaining === 0} className="w-full">
+            <Button onClick={handleGeneratePosts} disabled={isGenerating} className="w-full">
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
