@@ -184,8 +184,9 @@ You are an expert Pinterest image prompt creator. Your job is to write a single-
 - ✅ Always put a 7-8 headline from related keywords in the image in an creative way.
 - ✅ Always use the headline from the data provided to you and use headline as a top of the image headline
 - ✅ You are a very greedy salesman that always only reads information and generate prompt that will result in a image that tells the people about just making them click somehow by indirectly using the best headlines and eye catching phrases to attract them and make them click the image
-- You will always use the given titles and headlines as a title for the image big headline or title. use information from the given titles. Only output 4 line of prompt. No explanation. No formatting.
-`;
+- You will always use the given titles and headlines as a title for the image big headline or title. use information from the given titles.
+- **Do not use any thick lines, strokes, banners, or bars at the top or bottom of the image. No borders. The design should be creative, stylish, modern, and minimalist.**
+Only output 4 line of prompt. No explanation. No formatting.`;
   const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${promptData}".`;
   try {
     const generatedPrompt = await generateText(`${systemPrompt}\n${userPrompt}`);

@@ -15,6 +15,7 @@ import {
   RefreshCw,
   AlertCircle,
   Trash2,
+  Lock,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -99,6 +100,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const [linkAllText, setLinkAllText] = useState("")
   const [scheduleAllDialogOpen, setScheduleAllDialogOpen] = useState(false)
   const [scheduleAllDate, setScheduleAllDate] = useState<Date | undefined>(undefined)
+  const [showSchedulePopup, setShowSchedulePopup] = useState(false);
 
   // Set the initial URL and tab if provided
   useEffect(() => {
@@ -385,18 +387,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   }
 
   const openScheduleDialog = async (post: Post) => {
-    console.log("In open schedule")
-    if (!selectedBoard) {
-      toast({
-        title: "Board Required",
-        description: "Please select a Pinterest board to schedule your post.",
-        variant: "destructive",
-      })
-      return
-    }
-    setCurrentPostForScheduling(post)
-    setScheduleDialogOpen(true)
-  }
+    setShowSchedulePopup(true);
+  };
 
   const handleSchedule = async () => {
     console.log("In handle schedule")
@@ -1210,17 +1202,22 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </Button>
 
             <Button
-              className={getButtonClass(hasSelectedPosts)}
-              disabled={!hasSelectedPosts}
-              onClick={handleScheduleAll}
+              className={getButtonClass(false) + " opacity-60 cursor-not-allowed"}
+              disabled
+              onMouseDown={() => setShowSchedulePopup(true)}
+              title="Premium feature"
             >
-              <Calendar className="mr-2 h-4 w-4" />
+              <Lock className="mr-2 h-4 w-4" />
               Schedule Post
             </Button>
 
-            <Button className={getButtonClass(hasSelectedPosts)} disabled={!hasSelectedPosts} onClick={handleDeleteAll}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete All
+            <Button
+              className={getButtonClass(false) + " opacity-60 cursor-not-allowed"}
+              disabled
+              title="Premium feature"
+            >
+              <Lock className="mr-2 h-4 w-4" />
+              Publish to Pinterest
             </Button>
 
             <Button
@@ -1372,18 +1369,13 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       </Button>
                       <Button
                         variant="outline"
-                        className="flex-1"
-                        onClick={() => openScheduleDialog(post)}
-                        disabled={isScheduling === post.id}
+                        className="flex-1 flex items-center justify-center opacity-60 cursor-not-allowed"
+                        disabled
+                        onMouseDown={() => setShowSchedulePopup(true)}
+                        title="Premium feature"
                       >
-                        {isScheduling === post.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Scheduling...
-                          </>
-                        ) : (
-                          "Schedule"
-                        )}
+                        <Lock className="mr-2 h-4 w-4" />
+                        Schedule
                       </Button>
                     </div>
                   </CardContent>
@@ -1728,6 +1720,28 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Schedule CSV Recommendation Popup */}
+      <Dialog open={showSchedulePopup} onOpenChange={setShowSchedulePopup}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Schedule Posts via CSV</DialogTitle>
+            <DialogDescription>
+              To schedule posts, we recommend downloading the CSV and uploading it to your scheduling tool.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 flex flex-col items-center">
+            <Button onClick={() => { downloadCSV(); setShowSchedulePopup(false); }} className="bg-teal-600 hover:bg-teal-700 w-full">
+              Download CSV
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSchedulePopup(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -1735,19 +1749,32 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 // Update ExpandableDescription to show ... and toggle show more/less
 function ExpandableDescription({ description }: { description: string }) {
   const [expanded, setExpanded] = useState(false);
-  // Estimate if truncation is needed (simple heuristic: > 120 chars)
-  const shouldTruncate = description.length > 120;
+  // Show 'Show more' at the end of the third line if truncated
+  const maxChars = 3 * 40; // Approximate 3 lines at 40 chars per line
+  const shouldTruncate = description.length > maxChars;
+  const displayText = !expanded && shouldTruncate ? description.slice(0, maxChars) : description;
   return (
     <div className="mb-4">
       <p className="text-sm text-gray-500">
-        {shouldTruncate && !expanded
-          ? <>{description.slice(0, 120)}... <a
-  className="ml-1 text-gray-500 cursor-pointer underline"
-  onClick={() => setExpanded((prev) => !prev)}
->
-  {expanded ? "Show less" : "Show more"}
-</a></>
-          : <>{description}{shouldTruncate && expanded && <button className="text-xs text-blue-600 hover:underline ml-1" onClick={() => setExpanded(false)}>Show less</button>}</>}
+        {displayText}
+        {shouldTruncate && !expanded && (
+          <span
+            className="text-xs text-gray-500 hover:underline ml-1 cursor-pointer"
+            onClick={() => setExpanded(true)}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            ... Show more
+          </span>
+        )}
+        {shouldTruncate && expanded && (
+          <span
+            className="text-xs text-gray-500 hover:underline ml-1 cursor-pointer"
+            onClick={() => setExpanded(false)}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            Show less
+          </span>
+        )}
       </p>
     </div>
   );
