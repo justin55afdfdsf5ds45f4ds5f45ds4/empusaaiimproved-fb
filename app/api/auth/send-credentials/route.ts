@@ -51,4 +51,4 @@ export async function POST(req: Request) {
     console.error("send-credentials error:", e);
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
-} 
+}
