@@ -9,6 +9,7 @@ declare module "next-auth" {
     user: {
       /** The user's id */
       id: string
+      premiumUntil?: string | null
     } & DefaultSession["user"]
   }
 }

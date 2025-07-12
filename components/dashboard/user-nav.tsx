@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { signOut, useSession } from "next-auth/react"
-import { LogOut, Settings } from "lucide-react"
+import { LogOut, Settings, Crown } from "lucide-react"
 import Link from "next/link"
 
 export function UserNav() {
@@ -24,6 +24,8 @@ export function UserNav() {
     image: null,
   }
 
+  const isPremium = session?.user?.premiumUntil && new Date(session.user.premiumUntil) > new Date();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -32,6 +34,9 @@ export function UserNav() {
             <AvatarImage src={user.image || ""} alt={user.name || "User"} />
             <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
+          {isPremium && (
+            <Crown className="absolute -top-1 -right-1 w-4 h-4 text-yellow-500" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>

@@ -365,7 +365,7 @@ export async function POST(req: Request) {
           imageUrl = FALLBACK_IMAGE_URLS[Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)];
           cloudinaryUrl = imageUrl;
         }
-
+  
         return {
           id: uuidv4(),
           title,
@@ -413,13 +413,13 @@ export async function POST(req: Request) {
     // After successful generation, increment free trial usage if needed
     await db.collection("posts").insertMany(posts.map(post => ({
       userId: userId,
-      postId: post.id,
-      title: post.title,
-      description: post.description || "",
+        postId: post.id,
+        title: post.title,
+        description: post.description || "",
       imageUrl: post.imageUrl,
-      createdAt: new Date(),
+        createdAt: new Date(),
     })));
-
+    
     console.log(`Generated ${posts.length} posts`);
 
     return NextResponse.json({ posts });

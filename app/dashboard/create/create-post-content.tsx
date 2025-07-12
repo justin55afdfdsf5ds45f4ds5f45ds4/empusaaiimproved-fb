@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Trash2,
   Lock,
+  Crown,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -38,6 +39,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Link from "next/link"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useSession } from "next-auth/react";
 
 interface Post {
   id: string
@@ -310,78 +313,49 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   }
 
   const handlePublish = async (post: Post) => {
-    if (!selectedBoard) {
-      toast({
-        title: "Board Required",
-        description: "Please select a Pinterest board to publish your post.",
-        variant: "destructive",
-      })
+    if (!requireBoard()) {
       return
     }
 
-    if (!post.imageUrl) {
-      // Generate image first if not already generated
-      toast({
-        title: "Generating Image",
-        description: "Generating image before publishing...",
-      })
-
-      const imageUrl = await generateImage(post)
-
-      if (!imageUrl) {
-        toast({
-          title: "Error",
-          description: "Failed to generate image. Please try again.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      // Update the post with the generated image
-      post = { ...post, imageUrl }
-      setGeneratedPosts((prevPosts) => prevPosts.map((p) => (p.id === post.id ? { ...post } : p)))
-    }
-
     setIsPublishing(post.id)
-
-    console.log(selectedBoard)
-    console.log(post.imageUrl)
-
     try {
-      const response = await fetch("/api/pinterest/pins/", {
+      const response = await fetch("/api/posts/publish", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           boardId: selectedBoard,
-          title: post.title,
-          description: post.description,
-          imageUrl: post.imageUrl,
-          link: postLinks[post.id] || post.defaultLink,
+          posts: [
+            {
+              id: post.id,
+              title: post.title,
+              description: post.description,
+              imageUrl: post.imageUrl,
+              link: postLinks[post.id] || post.defaultLink || "",
+            },
+          ],
         }),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to publish post to Pinterest")
+        throw new Error("Failed to publish post")
       }
 
-      const data = await response.json()
       toast({
-        title: "Post Published",
-        description: "Your post has been successfully published to Pinterest.",
+        title: "Published!",
       })
 
       // Remove the published post from the list
-      setGeneratedPosts(generatedPosts.filter((p) => p.id !== post.id))
-      setIsPublishing(null)
+      setGeneratedPosts((prev) => prev.filter((p) => p.id !== post.id))
     } catch (error) {
       console.error("Error publishing post:", error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to publish post. Please try again.",
+        description: "Failed to publish post. Please try again.",
         variant: "destructive",
       })
+    } finally {
       setIsPublishing(null)
     }
   }
@@ -431,18 +405,23 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     finalDateTime.setHours(hours, minutes, 0, 0);
 
     try {
-      const response = await fetch("/api/pinterest/schedule/", {
+      const response = await fetch("/api/posts/schedule", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           boardId: selectedBoard,
-          title: postWithImage.title,
-          description: postWithImage.description,
-          imageUrl: postWithImage.imageUrl,
-          link: postLinks[postWithImage.id] || postWithImage.defaultLink,
-          scheduledTime: finalDateTime,
+          posts: [
+            {
+              id: postWithImage.id,
+              title: postWithImage.title,
+              description: postWithImage.description,
+              imageUrl: postWithImage.imageUrl,
+              link: postLinks[postWithImage.id] || postWithImage.defaultLink,
+              scheduledTime: finalDateTime,
+            },
+          ],
         }),
       })
 
@@ -597,18 +576,23 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       generatedPosts.forEach(async (post) => {
         if (selectedPosts.has(post.id)) {
           try {
-            const response = await fetch("/api/pinterest/schedule/", {
+            const response = await fetch("/api/posts/schedule", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 boardId: selectedBoard,
-                title: post.title,
-                description: post.description,
-                imageUrl: post.imageUrl,
-                link: postLinks[post.id] || post.defaultLink,
-                scheduledTime: scheduleAllDate,
+                posts: [
+                  {
+                    id: post.id,
+                    title: post.title,
+                    description: post.description,
+                    imageUrl: post.imageUrl,
+                    link: postLinks[post.id] || post.defaultLink,
+                    scheduledTime: scheduleAllDate,
+                  },
+                ],
               }),
             })
 
@@ -774,10 +758,96 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     URL.revokeObjectURL(url);
   }
 
+  const { data: session } = useSession();
+  const isPremium = session?.user?.premiumUntil && new Date(session.user.premiumUntil) > new Date();
+
+  interface PremiumButtonProps {
+    icon: any
+    label: string
+    onClick?: () => void
+    disabled?: boolean
+    className?: string
+    tooltip?: string
+  }
+
+  const PremiumButton = ({ icon: Icon, label, onClick, disabled = false, className = "", tooltip }: PremiumButtonProps) => {
+    if (isPremium) {
+      const btn = (
+        <Button
+          variant="outline"
+          onClick={onClick}
+          disabled={disabled}
+          className={`relative group border-gray-300 hover:bg-gray-100 ${className}`}
+        >
+          <Icon className="w-4 h-4 mr-2" />
+          <span>{label}</span>
+        </Button>
+      )
+
+      if (tooltip) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>{btn}</TooltipTrigger>
+              <TooltipContent>
+                <p>{tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )
+      }
+
+      return btn
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              disabled
+              className={`relative group border-gray-300 text-gray-500 cursor-not-allowed ${className}`}
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              <span>{label}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>This is a premium feature. Please upgrade to access.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  const requireBoard = () => {
+    if (!selectedBoard) {
+      const t = toast({
+        title: "Board not selected",
+        description: "Please connect and select a Pinterest board before publishing or scheduling posts.",
+        variant: "destructive",
+      })
+      setTimeout(() => t.dismiss(), 2000)
+
+      // Scroll board selection into view for clarity
+      const el = document.getElementById("board-section")
+      el?.scrollIntoView({ behavior: "smooth", block: "center" })
+
+      // Temporary red ring highlight
+      if (el) {
+        el.classList.add("ring-2", "ring-red-500")
+        setTimeout(() => el.classList.remove("ring-2", "ring-red-500"), 2000)
+      }
+      return false
+    }
+    return true
+  }
+
   return (
     <>
       {/* Pinterest Board Selection */}
-      <Card className="mb-6">
+      <Card id="board-section" className="mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <PinIcon className="h-5 w-5 text-red-600" />
@@ -909,18 +979,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     <SelectContent>
                       <SelectItem value="1">1 post</SelectItem>
                       <SelectItem value="2">2 posts</SelectItem>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        5 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        20 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        50 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        100 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
+                      {isPremium ? (
+                        <>
+                          <SelectItem value="5">5 posts</SelectItem>
+                          <SelectItem value="20">20 posts</SelectItem>
+                          <SelectItem value="50">50 posts</SelectItem>
+                          <SelectItem value="100">100 posts</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            5 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            20 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            50 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            100 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -932,21 +1013,33 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="image-size">Image Size</Label>
-                <Select value={imageSize} onValueChange={() => {}}>
+                <Select value={imageSize} onValueChange={setImageSize}>
                   <SelectTrigger className="w-[120px]">
-                    <span>9:16 (Portrait)</span>
+                    <span>
+                      {imageSize === "1:1"
+                        ? "1:1 (Square)"
+                        : imageSize === "16:9"
+                        ? "16:9 (Landscape)"
+                        : "9:16 (Portrait)"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
-                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                      1:1 (Square) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                    </div>
-                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                      16:9 (Landscape) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                    </div>
-                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                      2:3 (Pinterest) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                    </div>
+                    {isPremium ? (
+                      <>
+                        <SelectItem value="1:1">1:1 (Square)</SelectItem>
+                        <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                          1:1 (Square) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                        </div>
+                        <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                          16:9 (Landscape) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                        </div>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -1046,18 +1139,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     <SelectContent>
                       <SelectItem value="1">1 post</SelectItem>
                       <SelectItem value="2">2 posts</SelectItem>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        5 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        20 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        50 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
-                      <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                        100 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                      </div>
+                      {isPremium ? (
+                        <>
+                          <SelectItem value="5">5 posts</SelectItem>
+                          <SelectItem value="20">20 posts</SelectItem>
+                          <SelectItem value="50">50 posts</SelectItem>
+                          <SelectItem value="100">100 posts</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            5 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            20 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            50 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                          <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                            100 posts <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                          </div>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1071,15 +1175,25 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
-                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                      1:1 (Square) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                    </div>
-                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                      16:9 (Landscape) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                    </div>
-                    <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
-                      2:3 (Pinterest) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
-                    </div>
+                    {isPremium ? (
+                      <>
+                        <SelectItem value="1:1">1:1 (Square)</SelectItem>
+                        <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
+                        <SelectItem value="2:3">2:3 (Pinterest)</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                          1:1 (Square) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                        </div>
+                        <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                          16:9 (Landscape) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                        </div>
+                        <div className="px-2 py-1.5 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed select-none">
+                          2:3 (Pinterest) <span className="ml-2">🔒 <a href='/pricing' className='underline text-xs text-gray-400' target='_blank' rel='noopener noreferrer' tabIndex={0} onClick={e => e.stopPropagation()}>Upgrade</a></span>
+                        </div>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -1192,7 +1306,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           </div>
 
           {/* Action Buttons Row */}
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex items-center gap-4 mt-4">
             <Button
               onClick={handleSelectAll}
               variant={isSelectAllActive ? "default" : "outline"}
@@ -1200,43 +1314,39 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             >
               {isSelectAllActive ? "Deselect All" : "Select All"}
             </Button>
-
             <Button
-              className={getButtonClass(false) + " opacity-60 cursor-not-allowed"}
-              disabled
-              onMouseDown={() => setShowSchedulePopup(true)}
-              title="Premium feature"
+              variant="outline"
+              className="text-red-600 hover:text-red-700"
+              onClick={handleDeleteAll}
+              disabled={selectedPosts.size === 0}
             >
-              <Lock className="mr-2 h-4 w-4" />
-              Schedule Post
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete All Selected
             </Button>
-
             <Button
-              className={getButtonClass(false) + " opacity-60 cursor-not-allowed"}
-              disabled
-              title="Premium feature"
+              variant="outline"
+              onClick={() => setLinkAllDialogOpen(true)}
+              disabled={selectedPosts.size === 0}
             >
-              <Lock className="mr-2 h-4 w-4" />
-              Publish to Pinterest
+              <LinkIcon className="w-4 h-4 mr-2" />
+              Link All Selected
             </Button>
-
-            <Button
-              className={getButtonClass(hasSelectedPosts)}
-              disabled={!hasSelectedPosts}
-              onClick={handleLinkAllPosts}
-            >
-              <LinkIcon className="mr-2 h-4 w-4" />
-              Link All Posts
-            </Button>
-
-            <Button
-              className={getButtonClass(hasSelectedPosts)}
-              disabled={!hasSelectedPosts}
-              onClick={() => setPublishDialogOpen(true)}
-            >
-              <PinIcon className="mr-2 h-4 w-4" />
-              Publish to Pinterest
-            </Button>
+            <PremiumButton
+              icon={Calendar}
+              label="Schedule Selected"
+              onClick={() => {
+                if (!requireBoard()) return
+                handleScheduleAll()
+              }}
+            />
+            <PremiumButton
+              icon={PinIcon}
+              label="Publish to Pinterest"
+              onClick={() => {
+                if (!requireBoard()) return
+                setPublishDialogOpen(true)
+              }}
+            />
           </div>
 
           {/* Board Selection for Selected Posts */}
@@ -1271,7 +1381,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               return (
                 <Card
                   key={post.id}
-                  className={`overflow-hidden relative transition-all ${
+                  className={`relative transition-all ${
                     isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""
                   }`}
                 >
@@ -1305,8 +1415,8 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                     </Button>
                   </div>
 
-                  {/* In the posts grid, set the image frame to 9:16 aspect ratio */}
-                  <div className="aspect-[9/16] relative">
+                  {/* Dynamic aspect ratio frame based on selected size */}
+                  <div className={`${imageSize === "1:1" ? "aspect-square" : imageSize === "16:9" ? "aspect-[16/9]" : "aspect-[9/16]"} relative`}>
                     {post.imageUrl ? (
                       <img
                         src={post.imageUrl || "/placeholder.svg?height=600&width=400&query=abstract+post+image"}
@@ -1352,31 +1462,24 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                       </span>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        className="flex-1 bg-teal-600 hover:bg-teal-700"
+                    {/* Post action buttons */}
+                    <div className="flex items-center gap-2">
+                      <PremiumButton
+                        icon={PinIcon}
+                        label={isPublishing === post.id ? "Publishing..." : "Publish"}
                         onClick={() => handlePublish(post)}
                         disabled={isPublishing === post.id}
-                      >
-                        {isPublishing === post.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Publishing...
-                          </>
-                        ) : (
-                          "Publish"
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="flex-1 flex items-center justify-center opacity-60 cursor-not-allowed"
-                        disabled
-                        onMouseDown={() => setShowSchedulePopup(true)}
-                        title="Premium feature"
-                      >
-                        <Lock className="mr-2 h-4 w-4" />
-                        Schedule
-                      </Button>
+                        className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                      />
+                      <PremiumButton
+                        icon={Calendar}
+                        label="Schedule"
+                        onClick={() => {
+                          if (!requireBoard()) return
+                          setCurrentPostForScheduling(post)
+                          setScheduleDialogOpen(true)
+                        }}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -1755,7 +1858,7 @@ function ExpandableDescription({ description }: { description: string }) {
   const displayText = !expanded && shouldTruncate ? description.slice(0, maxChars) : description;
   return (
     <div className="mb-4">
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500" style={{ color: '#6B7280' }}>
         {displayText}
         {shouldTruncate && !expanded && (
           <span
@@ -1769,8 +1872,8 @@ function ExpandableDescription({ description }: { description: string }) {
         {shouldTruncate && expanded && (
           <span
             className="text-xs text-gray-500 hover:underline ml-1 cursor-pointer"
+            style={{ whiteSpace: 'nowrap', color: '#6B7280', fontWeight: 400, textDecoration: 'underline', cursor: 'pointer' }}
             onClick={() => setExpanded(false)}
-            style={{ whiteSpace: 'nowrap' }}
           >
             Show less
           </span>

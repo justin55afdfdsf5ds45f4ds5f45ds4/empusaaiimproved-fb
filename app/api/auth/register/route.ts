@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import clientPromise from "@/lib/mongodb"
+import { supabaseAdmin } from "@/lib/supabaseAdmin"
 
 export async function POST(req: Request) {
   try {
@@ -11,17 +11,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    if (password.length < 8) {
-      return NextResponse.json({ error: "Password must be at least 8 characters long" }, { status: 400 })
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters long" }, { status: 400 })
     }
 
-    // Connect to MongoDB
-    const client = await clientPromise
-    const db = client.db()
-    const users = db.collection("users")
-
     // Check if user already exists
-    const existing = await users.findOne({ email })
+    const { data: existing, error: checkErr } = await supabaseAdmin.from("users").select("id").eq("email", email).maybeSingle()
+
+    if (checkErr && checkErr.code !== "PGRST116" && checkErr.code !== "PGRST123") {
+      console.error("Error checking existing user:", checkErr)
+      return NextResponse.json({ error: "Database error" }, { status: 500 })
+    }
+
     if (existing) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 })
     }
@@ -29,22 +30,32 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user
-    const result = await users.insertOne({
-      name,
-      email,
-      password: hashedPassword,
-      emailVerified: null,
-      image: null,
-      createdAt: new Date(),
-    })
+    // Create user in Supabase
+    const { data: newUser, error: insertError } = await supabaseAdmin
+      .from("users")
+      .insert([
+        {
+          name,
+          email,
+          password: hashedPassword,
+          email_verified: null,
+          image: null,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select("id")
+      .single()
 
-    // Return success without sensitive data
+    if (insertError) {
+      console.error("Error inserting user:", insertError)
+      return NextResponse.json({ error: "Failed to create user" }, { status: 500 })
+    }
+
     return NextResponse.json(
       {
         success: true,
         user: {
-          id: result.insertedId.toString(),
+          id: newUser.id,
           name,
           email,
         },

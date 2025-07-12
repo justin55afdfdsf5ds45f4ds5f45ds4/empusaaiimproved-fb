@@ -1,10 +1,10 @@
 import NextAuth, { type NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
-import clientPromise from "@/lib/mongodb"
+import { SupabaseAdapter } from "@next-auth/supabase-adapter"
+import { supabaseAdmin } from "@/lib/supabaseAdmin"
 import bcrypt from "bcryptjs"
-;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET", "MONGODB_URI"].forEach((v) => {
+;["AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "AUTH_SECRET", "NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"].forEach((v) => {
   if (!process.env[v]) console.error(`⚠️  Missing env var: ${v}`)
 })
 
@@ -13,7 +13,10 @@ import bcrypt from "bcryptjs"
 // ─────────────────────────────────────────────
 export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: SupabaseAdapter({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  }),
 
   providers: [
     // ── Google ───────────────────────────────
@@ -40,9 +43,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const client = await clientPromise
-          const db = client.db()
-          const user = await db.collection("users").findOne({ email: credentials.email })
+          const { data: user, error } = await supabaseAdmin.from("users").select("*").eq("email", credentials.email).single()
+
+          if (error) {
+            console.error("Supabase query error:", error)
+            throw new Error("Invalid email or password")
+          }
 
           if (!user || !user.password) {
             throw new Error("Invalid email or password")
@@ -55,10 +61,11 @@ export const authOptions: NextAuthOptions = {
           }
 
           return {
-            id: user._id.toString(),
+            id: user.id,
             name: user.name,
             email: user.email,
             image: user.image,
+            premiumUntil: (user as any).premiumuntil ?? null,
           }
         } catch (error) {
           console.error("Auth error:", error)
@@ -76,21 +83,33 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
       if (user) {
-        token.id = user.id
+        token.id = (user as any).id
+        token.premiumUntil = (user as any).premiumUntil ?? null
       }
       if (account) {
         token.accessToken = account.access_token
+      }
+      // Add premiumUntil to token from DB if not present
+      if (!token.premiumUntil) {
+        try {
+          const { data: dbUser, error: dbErr } = await supabaseAdmin.from("users").select("premiumuntil").eq("id", token.id as string).single()
+          if (!dbErr) {
+            token.premiumUntil = (dbUser as any)?.premiumuntil ?? null
+          }
+        } catch (e) {
+          console.error("Error fetching premiumUntil:", e)
+        }
       }
       if (trigger === "update" && session) {
         token.name = session.name
         token.email = session.email
       }
-  
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.premiumUntil = token.premiumUntil as string | null
       }
       return session
     },

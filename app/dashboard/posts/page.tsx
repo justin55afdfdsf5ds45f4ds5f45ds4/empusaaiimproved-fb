@@ -145,16 +145,22 @@ export default function PostsPage() {
           <p className="text-muted-foreground mt-1">Manage your Pinterest posts and schedule new content</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleBulkShuffleClick} variant="outline" className="relative bg-transparent">
-            <div className="flex items-center gap-2">
-              <Shuffle className="h-4 w-4" />
-              <span>Bulk Shuffle Schedule</span>
-              <div className="flex items-center gap-1 ml-2">
-                <Lock className="h-3 w-3 text-gray-400" />
-                <Crown className="h-3 w-3 text-yellow-500" />
+          {session?.user?.premiumUntil && new Date(session.user.premiumUntil) > new Date() ? (
+            <Button onClick={handleBulkShuffleClick} variant="outline" className="relative bg-transparent">
+              <Shuffle className="h-4 w-4 mr-2" /> Bulk Shuffle Schedule
+            </Button>
+          ) : (
+            <Button onClick={handleBulkShuffleClick} variant="outline" className="relative bg-transparent cursor-not-allowed" disabled>
+              <div className="flex items-center gap-2">
+                <Shuffle className="h-4 w-4" />
+                <span>Bulk Shuffle Schedule</span>
+                <div className="flex items-center gap-1 ml-2">
+                  <Lock className="h-3 w-3 text-gray-400" />
+                  <Crown className="h-3 w-3 text-yellow-500" />
+                </div>
               </div>
-            </div>
-          </Button>
+            </Button>
+          )}
           <Button asChild>
             <Link href="/dashboard/create">
               <Plus className="h-4 w-4 mr-2" />
@@ -164,7 +170,7 @@ export default function PostsPage() {
         </div>
       </div>
 
-      {/* Storage Warning */}
+      {!session?.user?.premiumUntil || new Date(session.user.premiumUntil) <= new Date() ? (
       <Card className="border-orange-200 bg-orange-50">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
@@ -182,6 +188,7 @@ export default function PostsPage() {
           </div>
         </CardContent>
       </Card>
+      ) : null}
 
       {/* Posts Grid */}
       {posts.length === 0 ? (
