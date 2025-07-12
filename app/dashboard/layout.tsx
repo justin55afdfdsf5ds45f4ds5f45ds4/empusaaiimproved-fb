@@ -3,6 +3,7 @@ import Link from "next/link"
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
 import { UserNav } from "@/components/dashboard/user-nav"
 import { Suspense } from "react"
+import { Logo } from "@/components/logo"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,15 +11,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-6">
-            <div className="flex items-center">
-              <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
-                E
-              </div>
-              <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
-                A
-              </div>
-              <span className="ml-2 font-bold text-xl">Empusa AI</span>
-            </div>
+            <Logo />
             <nav className="hidden md:flex gap-6">
               <Link href="/dashboard" className="text-sm font-medium text-gray-500 hover:text-gray-900">
                 Dashboard

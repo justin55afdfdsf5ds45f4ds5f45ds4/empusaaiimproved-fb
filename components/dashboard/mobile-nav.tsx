@@ -8,6 +8,7 @@ import { Menu, X, LayoutDashboard, History, Settings, PlusCircle, Share2 } from 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/logo"
 
 const navItems = [
   {
@@ -53,15 +54,7 @@ export function MobileNav() {
         <div className="flex flex-col gap-6 px-2 py-4">
           <div className="flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2 font-bold text-2xl">
-              <div className="flex items-center">
-                <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
-                  E
-                </div>
-                <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
-                  A
-                </div>
-                <span className="ml-2 font-bold text-xl">Empusa AI</span>
-              </div>
+              <Logo href="/dashboard" />
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
               <X className="h-6 w-6" />

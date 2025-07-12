@@ -15,6 +15,7 @@ import { toast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { Logo } from "@/components/logo"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -93,16 +94,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col">
       <header className="w-full border-b bg-white shadow-sm py-4">
         <div className="container flex justify-center">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center">
-              <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
-                E
-              </div>
-              <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
-                A
-              </div>
-              <span className="ml-2 font-bold text-xl">Empusa AI</span>
-            </div>
+          <Link href="/">
+            <Logo />
           </Link>
         </div>
       </header>

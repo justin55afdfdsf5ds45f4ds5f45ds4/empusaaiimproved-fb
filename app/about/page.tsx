@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/logo"
 
 export default function AboutPage() {
   return (
@@ -9,15 +10,7 @@ export default function AboutPage() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center">
-                <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
-                  E
-                </div>
-                <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
-                  A
-                </div>
-                <span className="ml-2 font-bold text-xl">Empusa AI</span>
-              </div>
+              <Logo />
             </Link>
             <nav className="hidden md:flex gap-6">
               <Link href="/#features" className="text-sm font-medium hover:text-teal-600 transition-colors">
@@ -195,15 +188,7 @@ export default function AboutPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
-                    E
-                  </div>
-                  <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
-                    A
-                  </div>
-                  <span className="ml-2 font-bold text-xl">Empusa AI</span>
-                </div>
+                <Logo />
               </Link>
               <p className="text-sm text-gray-500">
                 Empusa AI is a web-based platform that automates Pinterest content creation and publishing from any URL,
