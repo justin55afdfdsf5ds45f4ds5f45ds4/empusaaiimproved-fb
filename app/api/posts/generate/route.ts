@@ -2,11 +2,11 @@ import { NextResponse } from "next/server"
 import { v4 as uuidv4 } from "uuid"
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore intentional typo to disable image generation during tests
-import { generateText, generateImage, generateIdeogramV2TurboImage } from "@/lib/replicate"
+import { generateText, generateIdeogramV2TurboImage } from "@/lib/replicate"
 import clientPromise from "@/lib/mongodb"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
-import { uploadImageBase64, deleteImage } from "@/lib/cloudinary1";
+import { uploadImageBase64, deleteImage } from "@/lib/cloudinary1"
 
 // Sample topics for generating content
 const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
@@ -34,9 +34,9 @@ const ADJECTIVES = [
 
 // Helper to clean LLM output
 function cleanLLMOutput(text: string): string {
-  let cleaned = text.replace(/<\|.*?\|>/g, '');
-  cleaned = cleaned.replace(/^\*+|\*+$/g, '').trim();
-  return cleaned;
+  let cleaned = text.replace(/<\|.*?\|>/g, "")
+  cleaned = cleaned.replace(/^\*+|\*+$/g, "").trim()
+  return cleaned
 }
 
 // Generate Title using AI
@@ -76,22 +76,21 @@ Your task is to write a **catchy, action-oriented, keyword-rich title** for a Pi
 - do not use the phrase "Discover the power" as a whole but you can use each letters without combining them.
 - do not use the phrase "Get ready to be inspired!" as a whole but you can use each letters without combining them.
 - do not use the phrase "Discover the secret to" as a whole but you can use each letters without combining them.
-- do not use the phrase "Learn the secrets" as a whole but you can use each letters without combining them.
 - do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
 
 Only output the final **title string** — no explanation, no formatting. don't make the title too long that you need comma to support the phrase because you should never use comma don't use colan at all in the title, we are not using colan at all.
-`;
-  let userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${promptData}".`;
+`
+  let userPrompt = `Generate one title like if it was written by a human based on this relevent information: "${promptData}".`
   if (hint) {
-    userPrompt += `\n\n${hint}`;
+    userPrompt += `\n\n${hint}`
   }
-  userPrompt += `\n\n" "`;
+  userPrompt += `\n\n" "`
   try {
-    const title = await generateText(`${systemPrompt}\n${userPrompt}`);
-    return cleanLLMOutput(title.replace(/"/g, ""));
+    const title = await generateText(`${systemPrompt}\n${userPrompt}`)
+    return cleanLLMOutput(title.replace(/"/g, ""))
   } catch (error) {
-    console.error("Error generating title with AI:", error);
-    return ` ${promptData.split(",")[0]?.trim() || "Pinterest"} `;
+    console.error("Error generating title with AI:", error)
+    return ` ${promptData.split(",")[0]?.trim() || "Pinterest"} `
   }
 }
 
@@ -139,25 +138,25 @@ Your task is to write a **concise, engaging, keyword-rich description** for a Pi
 - do not use the phrase "Fuel Your Body" as a whole but you can use each letters without combining them.
 
 Only output the **final description string**, nothing else.
-`;
-  let userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${promptData}".`;
+`
+  let userPrompt = `Generate one description like if it was written by a human based on this relevent information: "${promptData}".`
   if (hint) {
-    userPrompt += `\n\nAvoid these descriptions: ${hint}`;
-    userPrompt += `\n\n${hint}`;
+    userPrompt += `\n\nAvoid these descriptions: ${hint}`
+    userPrompt += `\n\n${hint}`
   }
-  userPrompt += `\n\n" "`;
+  userPrompt += `\n\n" "`
   try {
-    const description = await generateText(`${systemPrompt}\n${userPrompt}`);
-    return cleanLLMOutput(description.replace(/"/g, ""));
+    const description = await generateText(`${systemPrompt}\n${userPrompt}`)
+    return cleanLLMOutput(description.replace(/"/g, ""))
   } catch (error) {
-    console.error("Error generating description with AI:", error);
-    return ` ${promptData.split(",")[0]?.trim() || "Pinterest"} `;
+    console.error("Error generating description with AI:", error)
+    return ` ${promptData.split(",")[0]?.trim() || "Pinterest"} `
   }
 }
 
 // Generate Image Prompt using AI
 async function generateImagePrompt(promptData: string, aspect: string): Promise<string> {
-  const orientation = aspect === '1:1' ? 'square' : aspect === '16:9' ? 'landscape' : 'vertical';
+  const orientation = aspect === "1:1" ? "square" : aspect === "16:9" ? "landscape" : "vertical"
   const systemPrompt = `
 You are an expert Pinterest image prompt creator. Your job is to write a single-line prompt for a text-to-image AI model like ideogram-v2-turbo. The image must strictly be ${orientation} (${aspect} aspect ratio) with NO blank bars. Follow these rules:
 - Always use headline text that you will use from keywords that will be provided to you, so in prompt always say to the model to use that headline with 5-6 eye catching words in the top in a creative yet minimalist way
@@ -191,49 +190,49 @@ You are an expert Pinterest image prompt creator. Your job is to write a single-
 - ✅ You are a very greedy salesman that always only reads information and generate prompt that will result in a image that tells the people about just making them click somehow by indirectly using the best headlines and eye catching phrases to attract them and make them click the image
 - You will always use the given titles and headlines as a title for the image big headline or title. use information from the given titles.
 - **Do not use any thick lines, strokes, banners, or bars at the top or bottom of the image. No borders. The design should be creative, stylish, modern, and minimalist.**
-Only output 4 line of prompt. No explanation. No formatting.`;
-  const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${promptData}". The prompt must respect aspect ratio ${aspect}.`;
+Only output 4 line of prompt. No explanation. No formatting.`
+  const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${promptData}". The prompt must respect aspect ratio ${aspect}.`
   try {
-    const generatedPrompt = await generateText(`${systemPrompt}\n${userPrompt}`);
-    return cleanLLMOutput(generatedPrompt.replace(/"/g, "").trim());
+    const generatedPrompt = await generateText(`${systemPrompt}\n${userPrompt}`)
+    return cleanLLMOutput(generatedPrompt.replace(/"/g, "").trim())
   } catch (error) {
-    console.error("Error generating image prompt with AI:", error);
-    return `Beautiful ${promptData.split(",")[0]?.trim() || "Pinterest"} photography with natural lighting, professional quality, trending on Pinterest`;
+    console.error("Error generating image prompt with AI:", error)
+    return `Beautiful ${promptData.split(",")[0]?.trim() || "Pinterest"} photography with natural lighting, professional quality, trending on Pinterest`
   }
 }
 
 // Function to extract keywords from URL or use provided topic
 async function extractKeywords(url: string | null, topic: string | null): Promise<string | null> {
   if (topic && topic.trim().length > 0) {
-    return topic.trim().toLowerCase();
+    return topic.trim().toLowerCase()
   }
 
   if (url) {
     try {
       if (!process.env.FIRECRAWL_API_KEY) {
-        console.log("Missing FIRECRAWL_API_KEY for URL extraction, using fallback");
-        return null;
+        console.log("Missing FIRECRAWL_API_KEY for URL extraction, using fallback")
+        return null
       }
-      if (!/^https?:\/\//.test(url)) throw new Error("Invalid URL");
-      const { default: FirecrawlApp } = await import("firecrawl");
-      const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
-      console.log("🔎 Scraping page:", url);
-      const raw = await firecrawl.scrapeUrl(url, { onlyMainContent: false });
+      if (!/^https?:\/\//.test(url)) throw new Error("Invalid URL")
+      const { default: FirecrawlApp } = await import("firecrawl")
+      const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY })
+      console.log("🔎 Scraping page:", url)
+      const raw = await firecrawl.scrapeUrl(url, { onlyMainContent: false })
       if (!raw.success) {
-        throw new Error(raw.error);
+        throw new Error(raw.error)
       }
       // Cast raw as any to safely access data for Firecrawl response
-      const rawAny: any = raw as any;
-      const pageText = (typeof rawAny.data === 'object' && rawAny.data?.content) || (rawAny.metadata?.description) || "";
-      if (!pageText.trim()) throw new Error("No usable content from Firecrawl");
-      return pageText.trim();
+      const rawAny: any = raw as any
+      const pageText = (typeof rawAny.data === "object" && rawAny.data?.content) || rawAny.metadata?.description || ""
+      if (!pageText.trim()) throw new Error("No usable content from Firecrawl")
+      return pageText.trim()
     } catch (err: unknown) {
-      console.error("❌ Error extracting keywords:", err instanceof Error ? err.message : String(err));
-      return null;
+      console.error("❌ Error extracting keywords:", err instanceof Error ? err.message : String(err))
+      return null
     }
   }
   // Default to a random topic if no keywords could be extracted
-  return TOPICS[Math.floor(Math.random() * TOPICS.length)];
+  return TOPICS[Math.floor(Math.random() * TOPICS.length)]
 }
 
 // Fallback image URLs from Unsplash
@@ -247,97 +246,258 @@ const FALLBACK_IMAGE_URLS = [
 
 export async function POST(req: Request) {
   // Dynamically import sharp and node-fetch inside the handler
-  const sharp = (await import("sharp")).default;
-  const fetch = (await import("node-fetch")).default;
+  const sharp = (await import("sharp")).default
+  const fetch = (await import("node-fetch")).default
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session || !session.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Free-tier daily limit is handled later by counting posts in collection
-    const userId = session.user.id;
-    const body = await req.json();
-    const { url, topic, tone = "informative", count = 2, boardId, imageSize, referenceImage } = body;
-    const requestedCount = count;
+    const userId = session.user.id
+    const body = await req.json()
+    const { url, topic, tone = "informative", count = 2, boardId, imageSize, referenceImage } = body
+    const requestedCount = count
 
     // Determine premium status
-    const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > new Date();
+    const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > new Date()
 
     // Enforce premium gating for post count > 2
-    if(!isPremium && requestedCount > 2){
-      return NextResponse.json({ error: 'Generating more than 2 posts at once is a premium feature. Please upgrade to continue.' }, { status: 403 });
+    if (!isPremium && requestedCount > 2) {
+      return NextResponse.json(
+        { error: "Generating more than 2 posts at once is a premium feature. Please upgrade to continue." },
+        { status: 403 },
+      )
     }
 
     // Free trial enforcement (if you use it)
-    const client = await clientPromise;
-    const db = client.db();
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const client = await clientPromise
+    const db = client.db()
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date()
+    endOfDay.setHours(23, 59, 59, 999)
 
     // Count posts generated today
     const postsToday = await db.collection("posts").countDocuments({
       userId: userId,
       createdAt: { $gte: startOfDay, $lte: endOfDay },
-    });
+    })
 
     if (!isPremium && postsToday + requestedCount > 10) {
-      return NextResponse.json({ error: "You have reached your free trial limit of 10 posts per day. Please upgrade to continue generating more posts today." }, { status: 403 });
+      return NextResponse.json(
+        {
+          error:
+            "You have reached your free trial limit of 10 posts per day. Please upgrade to continue generating more posts today.",
+        },
+        { status: 403 },
+      )
     }
 
     // Check premium status earlier done. Add gating.
-    if (!isPremium && (imageSize === '1:1' || imageSize === '16:9')) {
-      return NextResponse.json({ error: 'Square and Landscape image sizes are premium features. Please upgrade to access them.' }, { status: 403 });
+    if (!isPremium && (imageSize === "1:1" || imageSize === "16:9")) {
+      return NextResponse.json(
+        { error: "Square and Landscape image sizes are premium features. Please upgrade to access them." },
+        { status: 403 },
+      )
     }
 
     // Step 1: Extract keywords using Llama-3 with the improved prompt
-    const extractedKeywords = await extractKeywords(url, topic);
-    const keywordsToUse = extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)];
+    const extractedKeywords = await extractKeywords(url, topic)
+    const keywordsToUse = extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)]
 
     // Fetch existing titles & descriptions for uniqueness across user history
-    const existingDocs = await db.collection("posts").find({ userId }).project({ title: 1, description: 1 }).toArray();
-    const existingTitles = new Set(existingDocs.map((d:any)=>d.title).filter(Boolean));
-    const existingDescriptions = new Set(existingDocs.map((d:any)=>d.description).filter(Boolean));
+    const existingDocs = await db.collection("posts").find({ userId }).project({ title: 1, description: 1 }).toArray()
+    const existingTitles = new Set(existingDocs.map((d: any) => d.title).filter(Boolean))
+    const existingDescriptions = new Set(existingDocs.map((d: any) => d.description).filter(Boolean))
 
     // Map imageSize string to width/height
     function getDimensions(size: string | undefined) {
       switch (size) {
-        case '1:1':
-          return { width: 1024, height: 1024 };
-        case '16:9':
-          return { width: 1600, height: 900 };
-        case '9:16':
-          return { width: 900, height: 1600 };
-        case '2:3':
-          return { width: 1024, height: 1536 };
+        case "1:1":
+          return { width: 1024, height: 1024 }
+        case "16:9":
+          return { width: 1600, height: 900 }
+        case "9:16":
+          return { width: 900, height: 1600 }
+        case "2:3":
+          return { width: 1024, height: 1536 }
         default:
-          return { width: 900, height: 1600 }; // Default to 9:16
+          return { width: 900, height: 1600 } // Default to 9:16
       }
     }
-    const { width, height } = getDimensions(imageSize);
-    const aspect = imageSize; // '1:1', '16:9', '9:16'
+    const { width, height } = getDimensions(imageSize)
+    const aspect = imageSize // '1:1', '16:9', '9:16'
 
     // Sets to track uniqueness (seeded with existing ones)
-    const usedTitles: Set<string> = new Set(existingTitles);
-    const usedDescriptions: Set<string> = new Set(existingDescriptions);
+    const usedTitles: Set<string> = new Set(existingTitles)
+    const usedDescriptions: Set<string> = new Set(existingDescriptions)
 
-    async function getUniqueValue(generateFn: (hint?: string) => Promise<string>, usedSet: Set<string>, type: string, maxRetries = 5) {
-      let value = await generateFn();
-      let retries = 0;
+    async function getUniqueValue(
+      generateFn: (hint?: string) => Promise<string>,
+      usedSet: Set<string>,
+      type: string,
+      maxRetries = 5,
+    ) {
+      let value = await generateFn()
+      let retries = 0
       while (usedSet.has(value) && retries < maxRetries) {
         // Stronger hint, placed at the start
-        const hint = `IMPORTANT: Do NOT repeat or use any of these ${type}s: [${[...usedSet].join('; ')}]. Generate a completely new, unique ${type} that is different from all of them.`;
-        value = await generateFn(hint);
-        retries++;
+        const hint = `IMPORTANT: Do NOT repeat or use any of these ${type}s: [${[...usedSet].join("; ")}]. Generate a completely new, unique ${type} that is different from all of them.`
+        value = await generateFn(hint)
+        retries++
       }
-      usedSet.add(value);
-      return value;
+      usedSet.add(value)
+      return value
     }
 
-    const postPromises = Array.from({ length: requestedCount }).map(
-      async () => {
-        // Step 2: Generate title, description, and image prompt using the full scraped data
-        // If topic mode, include tone and reference image in the prompt
-        let promptData = topic ? `${keywordsToUse}\n\nTONE: ${tone}` : keywordsToUse;
+    const postPromises = Array.from({ length: requestedCount }).map(async () => {
+      // Step 2: Generate title, description, and image prompt using the full scraped data
+      // If topic mode, include tone and reference image in the prompt
+      let promptData = topic ? `${keywordsToUse}\n\nTONE: ${tone}` : keywordsToUse
+      if (referenceImage) {
+        promptData += `\n\nREFERENCE_IMAGE: [A user-provided image is attached. Use it for inspiration and context in your content generation.]`
+      }
+      const title = await generateTitle(promptData)
+      const description = await generateDescription(promptData)
+      const imagePrompt = await generateImagePrompt(promptData, imageSize)
+
+      let imageUrl: string | null = null
+      let cloudinaryUrl: string | null = null
+      let cloudinaryPublicId: string | null = null
+      try {
+        const rawImageUrl = await generateIdeogramV2TurboImage(imagePrompt, false, width, height)
+        // If the result is an array, use the first element
+        if (Array.isArray(rawImageUrl)) {
+          imageUrl = rawImageUrl[0]
+        } else {
+          imageUrl = rawImageUrl
+        }
+        if (!imageUrl) throw new Error("Image generation failed")
+        // Download image and process to 900x1600 with sharp
+        const imageResponse = await fetch(imageUrl)
+        const buffer = await imageResponse.arrayBuffer()
+        // Use sharp to enforce requested dimensions, avoid cropping for non-portrait
+        const sharpBuffer = await sharp(Buffer.from(buffer))
+          .resize(width, height, { fit: "cover", position: "center" })
+          .jpeg()
+          .toBuffer()
+        const base64String = `data:image/jpeg;base64,${sharpBuffer.toString("base64")}`
+        // Upload to Cloudinary as JPEG
+        const uploadResult: { url: string; public_id: string } = await uploadImageBase64(base64String, "pinterest")
+        cloudinaryUrl = uploadResult.url
+        cloudinaryPublicId = uploadResult.public_id
+
+        // Store Cloudinary image info in DB for deletion automation
+        try {
+          const client = await clientPromise
+          const db = client.db()
+          await db.collection("cloudinary_images").insertOne({
+            public_id: cloudinaryPublicId,
+            createdAt: new Date(),
+            deleted: false,
+          })
+        } catch (dbErr) {
+          console.error("Failed to record Cloudinary image in DB:", dbErr)
+        }
+        // Schedule deletion of this image from Cloudinary after 5 hours (for production, use a persistent job)
+        if (cloudinaryPublicId) {
+          const deleteDelayMs = isPremium ? 3 * 24 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000 // 3 days vs 2 hours
+          setTimeout(() => {
+            deleteImage(cloudinaryPublicId as string).catch((err: unknown) =>
+              console.error("Failed to delete Cloudinary image:", err),
+            )
+          }, deleteDelayMs)
+        }
+      } catch (error) {
+        console.error("Error generating or uploading image:", error)
+        imageUrl = FALLBACK_IMAGE_URLS[Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)]
+        cloudinaryUrl = imageUrl
+      }
+
+      // Helper to create random fragment
+      function randomFragment(len = 8) {
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let r = ""
+        for (let i = 0; i < len; i++) {
+          r += chars[Math.floor(Math.random() * chars.length)]
+        }
+        return r
+      }
+
+      return {
+        id: uuidv4(),
+        title,
+        description,
+        imagePrompt, // Store the generated image prompt for logging/debugging
+        imageUrl: cloudinaryUrl,
+        cloudinaryPublicId,
+        defaultLink: url ? `${url}#${randomFragment(10)}` : undefined,
+      }
+    })
+
+    const posts = await Promise.all(postPromises)
+
+    // Uniqueness enforcement after generation
+    const maxRetries = 5
+    let retry = 0
+    while (retry < maxRetries) {
+      const titles = posts.map((p) => p.title)
+      const descriptions = posts.map((p) => p.description)
+      const titleSet = new Set()
+      const descSet = new Set()
+      const duplicateTitleIndexes: number[] = []
+      const duplicateDescIndexes: number[] = []
+      titles.forEach((t, i) => {
+        if (titleSet.has(t)) duplicateTitleIndexes.push(i)
+        else titleSet.add(t)
+      })
+      descriptions.forEach((d, i) => {
+        if (descSet.has(d)) duplicateDescIndexes.push(i)
+        else descSet.add(d)
+      })
+      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break
+      // Regenerate duplicates
+      for (const i of duplicateTitleIndexes) {
+        const usedTitles = posts.map((p) => p.title)
+        posts[i].title = await generateTitle(
+          keywordsToUse,
+          `Here are all the titles already used: [${usedTitles.join("; ")}]. Generate a new, unique title that is not in this list.`,
+        )
+      }
+      for (const i of duplicateDescIndexes) {
+        const usedDescs = posts.map((p) => p.description)
+        posts[i].description = await generateDescription(
+          keywordsToUse,
+          `Here are all the descriptions already used: [${usedDescs.join("; ")}]. Generate a new, unique description that is not in this list.`,
+        )
+      }
+      retry++
+    }
+
+    // After successful generation, increment free trial usage if needed
+    await db.collection("posts").insertMany(
+      posts.map((post) => ({
+        userId: userId,
+        postId: post.id,
+        title: post.title,
+        description: post.description || "",
+        imageUrl: post.imageUrl,
+        createdAt: new Date(),
+      })),
+    )
+
+    console.log(`Generated ${posts.length} posts`)
+
+    return NextResponse.json({ posts })
+  } catch (error) {
+    console.error("Error generating posts:", error)
+    return NextResponse.json(
+      {
+        error: `Failed to generate posts: ${error instanceof Error ? error.message : String(error)}`,
+      },
+      { status: 500 },
+    )
+  }
+}

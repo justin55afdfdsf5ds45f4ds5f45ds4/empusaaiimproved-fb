@@ -93,7 +93,7 @@ export default function Home() {
               <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/X37tgx0ngQE?si=p6YX1wy0MMY6sCkf"
+                  src="https://www.youtube.com/embed/9lVHjhWvuUg?si=TXSZwUxpKoMlddwN"
                   title="Empusa AI Demo Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -201,7 +201,7 @@ export default function Home() {
                 <Link href="#features" className="text-sm text-gray-500 hover:text-gray-900">
                   Features
                 </Link>
-                <Link href="#pricing" className="text-sm text-gray-500 hover:text-gray-900">
+                <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900">
                   Pricing
                 </Link>
               </nav>
