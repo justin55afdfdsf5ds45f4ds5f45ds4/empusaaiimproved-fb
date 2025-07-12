@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../[...nextauth]/route"
 import clientPromise from "@/lib/mongodb"
 
+// Ensure this route runs in a Node.js runtime (not Edge) because it uses Buffer and external network calls
+export const runtime = "nodejs"
+// Disable any static optimization attempts
+export const dynamic = "force-dynamic"
+
 export async function GET(req: NextRequest) {
   try {
     // Get the code and state from the query parameters
@@ -18,7 +23,7 @@ export async function GET(req: NextRequest) {
     // Get the state from the cookie
     const storedState = req.cookies.get("pinterest_oauth_state")?.value
     if (!storedState || storedState !== state) {
-      return NextResponse.redirect(new URL("dashboard//settings/social?error=invalid_state", req.url))
+      return NextResponse.redirect(new URL("/dashboard/settings/social?error=invalid_state", req.url))
     }
 
     // Check if user is authenticated
