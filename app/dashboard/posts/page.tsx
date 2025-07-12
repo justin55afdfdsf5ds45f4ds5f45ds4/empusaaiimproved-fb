@@ -479,16 +479,22 @@ export default function PostsPage() {
               <Shuffle className="h-4 w-4 mr-2" /> Bulk Shuffle Schedule
             </Button>
           ) : (
-            <Button onClick={handleBulkShuffleClick} variant="outline" className="relative bg-transparent cursor-not-allowed" disabled>
-              <div className="flex items-center gap-2">
-                <Shuffle className="h-4 w-4" />
-                <span>Bulk Shuffle Schedule</span>
-                <div className="flex items-center gap-1 ml-2">
-                  <Lock className="h-3 w-3 text-gray-400" />
-                  <Crown className="h-3 w-3 text-yellow-500" />
+            <div className="flex flex-col items-start">
+              <Button onClick={handleBulkShuffleClick} variant="outline" className="relative bg-transparent cursor-not-allowed" disabled>
+                <div className="flex items-center gap-2">
+                  <Shuffle className="h-4 w-4" />
+                  <span>Bulk Shuffle Schedule</span>
+                  <div className="flex items-center gap-1 ml-2">
+                    <Lock className="h-3 w-3 text-gray-400" />
+                    <Crown className="h-3 w-3 text-yellow-500" />
+                  </div>
                 </div>
-              </div>
-            </Button>
+              </Button>
+              <p className="text-xs text-muted-foreground mt-1">
+                Unlock Bulk Shuffle with {" "}
+                <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link>.
+              </p>
+            </div>
           )}
           <Button asChild>
             <Link href="/dashboard/create">

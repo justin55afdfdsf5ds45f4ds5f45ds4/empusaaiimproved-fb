@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/logo"
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,15 +20,7 @@ export function MobileMenu() {
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b">
               <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-md bg-teal-600 flex items-center justify-center text-white font-bold text-lg">
-                    E
-                  </div>
-                  <div className="h-8 w-8 rounded-md bg-orange-400 flex items-center justify-center text-white font-bold text-lg ml-[-4px]">
-                    A
-                  </div>
-                  <span className="ml-2 font-bold text-xl">Empusa AI</span>
-                </div>
+                <Logo href="/" />
               </Link>
               <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                 <X className="h-6 w-6" />

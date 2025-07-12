@@ -771,6 +771,27 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const { data: session } = useSession()
   const isPremium = session?.user?.premiumUntil && new Date(session.user.premiumUntil) > new Date()
 
+  const handlePostCountChange = (val:string) => {
+    if(!isPremium && (parseInt(val) > 2)){
+      toast({
+        title:"Premium Feature",
+        description:"Upgrade to premium to generate more than 2 posts at once.",
+      })
+      return;
+    }
+    setPostCount(val)
+  }
+
+  // Post count options array
+  const postCountOptions = [
+    { value: "1", label: "1 post", premium: false },
+    { value: "2", label: "2 posts", premium: false },
+    { value: "5", label: "5 posts", premium: true },
+    { value: "20", label: "20 posts", premium: true },
+    { value: "50", label: "50 posts", premium: true },
+    { value: "100", label: "100 posts", premium: true },
+  ];
+
   return (
     <div className="space-y-6">
 
@@ -871,19 +892,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             <div className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="postCount">Number of Posts</Label>
-                <Select value={postCount} onValueChange={setPostCount}>
+                <Select value={postCount} onValueChange={handlePostCountChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select number of posts" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">1 post</SelectItem>
-                    <SelectItem value="2">2 posts</SelectItem>
-                    <SelectItem value="5">5 posts</SelectItem>
-                    <SelectItem value="20">20 posts</SelectItem>
-                    <SelectItem value="50">50 posts</SelectItem>
-                    <SelectItem value="100">100 posts</SelectItem>
+                    {postCountOptions.map(opt => (
+                      <SelectItem
+                        key={opt.value}
+                        value={opt.value}
+                        className={opt.premium && !isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}
+                      >
+                        <span>{opt.label}</span>
+                        {opt.premium && !isPremium && (
+                          <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>
+                        )}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Generate more than 2 posts at once with {" "}
+                  <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link>.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -903,14 +934,20 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   </SelectTrigger>
   <SelectContent>
     <SelectItem value="9:16">Vertical (9:16)</SelectItem>
-    <SelectItem value="1:1" disabled={!isPremium} className={!isPremium ? "opacity-50 cursor-not-allowed" : ""}>
-      Square (1:1) {!isPremium && "🔒"}
+    <SelectItem value="1:1" className={!isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}>
+      <span>Square (1:1)</span>
+      {!isPremium && <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>}
     </SelectItem>
-    <SelectItem value="16:9" disabled={!isPremium} className={!isPremium ? "opacity-50 cursor-not-allowed" : ""}>
-      Landscape (16:9) {!isPremium && "🔒"}
+    <SelectItem value="16:9" className={!isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}>
+      <span>Landscape (16:9)</span>
+      {!isPremium && <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>}
     </SelectItem>
   </SelectContent>
 </Select>
+<p className="text-xs text-muted-foreground mt-1">
+  Unlock Square & Landscape sizes with {" "}
+  <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link>.
+</p>
               </div>
 
               <Button

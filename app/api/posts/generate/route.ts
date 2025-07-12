@@ -260,6 +260,15 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { url, topic, tone = "informative", count = 2, boardId, imageSize, referenceImage } = body;
     const requestedCount = count;
+
+    // Determine premium status
+    const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > new Date();
+
+    // Enforce premium gating for post count > 2
+    if(!isPremium && requestedCount > 2){
+      return NextResponse.json({ error: 'Generating more than 2 posts at once is a premium feature. Please upgrade to continue.' }, { status: 403 });
+    }
+
     // Free trial enforcement (if you use it)
     const client = await clientPromise;
     const db = client.db();
@@ -267,9 +276,8 @@ export async function POST(req: Request) {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
-    // Check premium status
-    const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > new Date();
 
+    // Count posts generated today
     const postsToday = await db.collection("posts").countDocuments({
       userId: userId,
       createdAt: { $gte: startOfDay, $lte: endOfDay },
@@ -333,134 +341,3 @@ export async function POST(req: Request) {
         // Step 2: Generate title, description, and image prompt using the full scraped data
         // If topic mode, include tone and reference image in the prompt
         let promptData = topic ? `${keywordsToUse}\n\nTONE: ${tone}` : keywordsToUse;
-        if (referenceImage) {
-          promptData += `\n\nREFERENCE_IMAGE: [A user-provided image is attached. Use it for inspiration and context in your content generation.]`;
-        }
-        const title = await generateTitle(promptData);
-        const description = await generateDescription(promptData);
-        const imagePrompt = await generateImagePrompt(promptData, imageSize);
-
-        let imageUrl: string | null = null;
-        let cloudinaryUrl: string | null = null;
-        let cloudinaryPublicId: string | null = null;
-        try {
-          let rawImageUrl = await ggenerateIdeogramV2TurboImage(imagePrompt, false, width, height);
-          // If the result is an array, use the first element
-          if (Array.isArray(rawImageUrl)) {
-            imageUrl = rawImageUrl[0];
-          } else {
-            imageUrl = rawImageUrl;
-          }
-          if (!imageUrl) throw new Error("Image generation failed");
-          // Download image and process to 900x1600 with sharp
-          const imageResponse = await fetch(imageUrl);
-          const buffer = await imageResponse.arrayBuffer();
-          // Use sharp to enforce requested dimensions, avoid cropping for non-portrait
-          const sharpBuffer = await sharp(Buffer.from(buffer))
-            .resize(width, height, { fit: 'cover', position: 'center' })
-            .jpeg()
-            .toBuffer();
-          const base64String = `data:image/jpeg;base64,${sharpBuffer.toString('base64')}`;
-          // Upload to Cloudinary as JPEG
-          const uploadResult: { url: string; public_id: string } = await uploadImageBase64(base64String, 'pinterest');
-          cloudinaryUrl = uploadResult.url;
-          cloudinaryPublicId = uploadResult.public_id;
-
-          // Store Cloudinary image info in DB for deletion automation
-          try {
-            const client = await clientPromise;
-            const db = client.db();
-            await db.collection('cloudinary_images').insertOne({
-              public_id: cloudinaryPublicId,
-              createdAt: new Date(),
-              deleted: false,
-            });
-          } catch (dbErr) {
-            console.error('Failed to record Cloudinary image in DB:', dbErr);
-          }
-          // Schedule deletion of this image from Cloudinary after 5 hours (for production, use a persistent job)
-          if (cloudinaryPublicId) {
-            const deleteDelayMs = isPremium ? 3*24*60*60*1000 : 2*60*60*1000; // 3 days vs 2 hours
-            setTimeout(() => {
-              deleteImage(cloudinaryPublicId as string).catch((err: unknown) => console.error('Failed to delete Cloudinary image:', err));
-            }, deleteDelayMs);
-          }
-        } catch (error) {
-          console.error("Error generating or uploading image:", error);
-          imageUrl = FALLBACK_IMAGE_URLS[Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)];
-          cloudinaryUrl = imageUrl;
-        }
-
-        // Helper to create random fragment
-        function randomFragment(len:number=8){const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";let r="";for(let i=0;i<len;i++){r+=chars[Math.floor(Math.random()*chars.length)];}return r;}
-
-        return {
-          id: uuidv4(),
-          title,
-          description,
-          imagePrompt, // Store the generated image prompt for logging/debugging
-          imageUrl: cloudinaryUrl,
-          cloudinaryPublicId,
-          defaultLink: url ? `${url}#${randomFragment(10)}` : undefined,
-        };
-      }
-    );
-
-    let posts = await Promise.all(postPromises);
-
-    // Uniqueness enforcement after generation
-    const maxRetries = 5;
-    let retry = 0;
-    while (retry < maxRetries) {
-      let titles = posts.map(p => p.title);
-      let descriptions = posts.map(p => p.description);
-      let titleSet = new Set();
-      let descSet = new Set();
-      let duplicateTitleIndexes: number[] = [];
-      let duplicateDescIndexes: number[] = [];
-      titles.forEach((t, i) => {
-        if (titleSet.has(t)) duplicateTitleIndexes.push(i);
-        else titleSet.add(t);
-      });
-      descriptions.forEach((d, i) => {
-        if (descSet.has(d)) duplicateDescIndexes.push(i);
-        else descSet.add(d);
-      });
-      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break;
-      // Regenerate duplicates
-      for (const i of duplicateTitleIndexes) {
-        const usedTitles = posts.map(p => p.title);
-        posts[i].title = await generateTitle(keywordsToUse, `Here are all the titles already used: [${usedTitles.join('; ')}]. Generate a new, unique title that is not in this list.`);
-      }
-      for (const i of duplicateDescIndexes) {
-        const usedDescs = posts.map(p => p.description);
-        posts[i].description = await generateDescription(keywordsToUse, `Here are all the descriptions already used: [${usedDescs.join('; ')}]. Generate a new, unique description that is not in this list.`);
-      }
-      retry++;
-    }
-
-    // After successful generation, increment free trial usage if needed
-    await db.collection("posts").insertMany(posts.map(post => ({
-      userId: userId,
-        postId: post.id,
-        title: post.title,
-        description: post.description || "",
-      imageUrl: post.imageUrl,
-        createdAt: new Date(),
-    })));
-    
-    console.log(`Generated ${posts.length} posts`);
-
-    return NextResponse.json({ posts });
-  } catch (error) {
-    console.error("Error generating posts:", error);
-    return NextResponse.json(
-      {
-        error: `Failed to generate posts: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      },
-      { status: 500 }
-    );
-  }
-}
