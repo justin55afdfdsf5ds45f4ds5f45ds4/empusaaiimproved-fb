@@ -94,7 +94,7 @@ export default function Home() {
         </section>
 
         {/* YouTube Video Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-teal-50 to-white">
+        <section className="w-full py-12 md:py-16 lg:py-20 bg-gradient-to-b from-teal-50 to-white">
           <div className="container px-4 md:px-6">
             <div className="mx-auto max-w-4xl">
               <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
@@ -105,6 +105,15 @@ export default function Home() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
+              </div>
+
+              {/* Call-to-action button */}
+              <div className="mt-8 flex justify-center">
+                <Link href="/signup-free-trial">
+                  <Button className="bg-green-500 hover:bg-green-600 text-white text-lg px-8 py-6 shadow-lg transition-transform hover:scale-105 hover:animate-bounce">
+                    Try it out for free!
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

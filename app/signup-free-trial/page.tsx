@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { supabase } from "@/lib/supabase"
+import bcrypt from "bcryptjs"
 
 export default function FreeTrialSignupPage() {
   const router = useRouter()
@@ -32,6 +33,9 @@ export default function FreeTrialSignupPage() {
     }
     setIsLoading(true)
     try {
+      // Hash password before storing
+      const hashedPassword = await bcrypt.hash(password, 10)
+      
       // Sign up with Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -39,11 +43,20 @@ export default function FreeTrialSignupPage() {
         options: { data: { name } }
       })
       if (error) throw error
-      // Insert into users table
-      const { error: userError } = await supabase.from("users").insert([{ email, name }])
+      
+      // Insert into users table with hashed password
+      const { error: userError } = await supabase.from("users").insert([{ 
+        email, 
+        name,
+        password: hashedPassword // Store hashed password
+      }])
       if (userError) throw userError
-      toast({ title: "Account created!", description: "Redirecting to dashboard..." })
-      router.push("/dashboard")
+      
+      toast({ 
+        title: "Account created successfully!", 
+        description: "Your account has been created. Please log in now to access your dashboard." 
+      })
+      router.push("/login")
     } catch (error: any) {
       toast({ title: "Registration failed", description: error.message || "An unexpected error occurred", variant: "destructive" })
     } finally {
@@ -53,7 +66,7 @@ export default function FreeTrialSignupPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/dashboard` } })
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/login` } })
     if (error) {
       toast({ title: "Authentication Error", description: "Failed to sign in with Google. Please try again.", variant: "destructive" })
       setIsLoading(false)

@@ -12,15 +12,31 @@ export async function POST(req: Request) {
   const premiumUntil = new Date()
   premiumUntil.setMonth(premiumUntil.getMonth() + 1)
 
-  const { error } = await supabaseAdmin
+  const { data: updatedById, error: idError } = await supabaseAdmin
     .from("users")
     .update({ premiumuntil: premiumUntil.toISOString() })
     .eq("id", session.user.id)
+    .select()
 
-  if (error) {
-    console.error("Error updating premiumUntil:", error)
-    return NextResponse.json({ error: "Failed to upgrade" }, { status: 500 })
+  if (idError) {
+    console.error("Error updating premiumUntil by id:", idError)
   }
 
-  return NextResponse.json({ success: true, premiumUntil })
+  // If no rows updated (user row may not match id), try updating by email
+  if (!idError && (updatedById ?? []).length === 0) {
+    const { error: emailError, data: updatedByEmail } = await supabaseAdmin
+      .from("users")
+      .update({ premiumuntil: premiumUntil.toISOString() })
+      .eq("email", session.user.email!)
+      .select()
+
+    if (emailError) {
+      console.error("Error updating premiumUntil by email:", emailError)
+      return NextResponse.json({ error: "Failed to upgrade" }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, premiumUntil, method: "email", rows: updatedByEmail.length })
+  }
+
+  return NextResponse.json({ success: true, premiumUntil, method: "id", rows: (updatedById ?? []).length })
 }

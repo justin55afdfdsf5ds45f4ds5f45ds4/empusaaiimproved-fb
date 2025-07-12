@@ -7,6 +7,7 @@ import { signIn } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
 import type { OnApproveData, OnApproveActions } from "@paypal/paypal-js";
 import { useSession } from "next-auth/react"
+import React from 'react';
 
 // IMPORTANT: For security, move this to a .env.local file
 // Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
@@ -20,6 +21,14 @@ export default function CheckoutPage() {
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const { data: authSession } = useSession();
+
+  // Prefill name and email when the user is already logged in
+  React.useEffect(() => {
+    if (authSession?.user) {
+      setBuyerName(authSession.user.name || "")
+      setBuyerEmail(authSession.user.email || "")
+    }
+  }, [authSession])
 
   const handleApprove = (data: OnApproveData, actions: OnApproveActions) => {
     return actions.order!.capture().then(async (details) => {
@@ -126,21 +135,24 @@ export default function CheckoutPage() {
               <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: "USD" }}>
                 <h2 className="text-2xl font-extrabold text-gray-800 mb-4">Pay with PayPal</h2>
 
-                <div className="space-y-3 mb-6">
-                  <Input
-                    placeholder="Your Name"
-                    value={buyerName}
-                    onChange={(e)=>setBuyerName(e.target.value)}
-                  />
-                  <Input
-                    type="email"
-                    placeholder="Email for account"
-                    value={buyerEmail}
-                    onChange={(e)=>setBuyerEmail(e.target.value)}
-                  />
-                </div>
+                {/* If user is not logged in, ask for name & email */}
+                {!authSession?.user && (
+                  <div className="space-y-3 mb-6">
+                    <Input
+                      placeholder="Your Name"
+                      value={buyerName}
+                      onChange={(e)=>setBuyerName(e.target.value)}
+                    />
+                    <Input
+                      type="email"
+                      placeholder="Email for account"
+                      value={buyerEmail}
+                      onChange={(e)=>setBuyerEmail(e.target.value)}
+                    />
+                  </div>
+                )}
 
-                {buyerEmail ? (
+                {(authSession?.user || buyerEmail) ? (
                   <PayPalButtons
                     style={{ layout: "vertical", shape: "rect", height: 55 }}
                     createOrder={(data, actions) => {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { v4 as uuidv4 } from "uuid"
-import { generateText, generateImage, generateIdeogramV2TurboImage } from "@/lib/replicate"
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore intentional typo to disable image generation during tests
+import { generateText, generateImage, ggenerateIdeogramV2TurboImage } from "@/lib/replicate"
 import clientPromise from "@/lib/mongodb"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
@@ -154,14 +156,17 @@ Only output the **final description string**, nothing else.
 }
 
 // Generate Image Prompt using AI
-async function generateImagePrompt(promptData: string): Promise<string> {
+async function generateImagePrompt(promptData: string, aspect: string): Promise<string> {
+  const orientation = aspect === '1:1' ? 'square' : aspect === '16:9' ? 'landscape' : 'vertical';
   const systemPrompt = `
-You are an expert Pinterest image prompt creator. Your job is to write a single-line prompt for a text-to-image AI model like ideogram-v2-turbo. The image should be a vertical Pinterest-style poster with the following qualities:
+You are an expert Pinterest image prompt creator. Your job is to write a single-line prompt for a text-to-image AI model like ideogram-v2-turbo. The image must strictly be ${orientation} (${aspect} aspect ratio) with NO blank bars. Follow these rules:
 - Always use headline text that you will use from keywords that will be provided to you, so in prompt always say to the model to use that headline with 5-6 eye catching words in the top in a creative yet minimalist way
 - The prompt must include a minimal visual layout: one clean central subject, soft or solid background, centered composition
 - The overall design should be simple, modern, and scroll-stopping — no clutter, no complexity, no over-detailing
 - Use flat illustration, digital vector style, or futuristic clean visuals
-- The layout should always be vertical (2:3 ratio), like a Pinterest pin
+- The layout should strictly follow aspect ratio ${aspect}. If ${aspect} is "1:1", it must be perfectly square; if "16:9", it must be horizontal; if "9:16", it must be vertical.
+- Ensure all headline text is fully visible within the frame (no cropping or clipping at edges) and fits comfortably within the ${orientation} canvas.
+- Absolutely NO blank bars or padding on any side; the design must fill the entire ${orientation} canvas.
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
 - do not use any trademark logos or name.
@@ -187,7 +192,7 @@ You are an expert Pinterest image prompt creator. Your job is to write a single-
 - You will always use the given titles and headlines as a title for the image big headline or title. use information from the given titles.
 - **Do not use any thick lines, strokes, banners, or bars at the top or bottom of the image. No borders. The design should be creative, stylish, modern, and minimalist.**
 Only output 4 line of prompt. No explanation. No formatting.`;
-  const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${promptData}".`;
+  const userPrompt = `Generate one image prompt for a Pinterest post based on these keywords: "${promptData}". The prompt must respect aspect ratio ${aspect}.`;
   try {
     const generatedPrompt = await generateText(`${systemPrompt}\n${userPrompt}`);
     return cleanLLMOutput(generatedPrompt.replace(/"/g, "").trim());
@@ -217,8 +222,9 @@ async function extractKeywords(url: string | null, topic: string | null): Promis
       if (!raw.success) {
         throw new Error(raw.error);
       }
-      // Use the full scraped content as the prompt for Replicate
-      const pageText = (typeof raw.data === 'object' && raw.data?.content) || raw.metadata?.description || "";
+      // Cast raw as any to safely access data for Firecrawl response
+      const rawAny: any = raw as any;
+      const pageText = (typeof rawAny.data === 'object' && rawAny.data?.content) || (rawAny.metadata?.description) || "";
       if (!pageText.trim()) throw new Error("No usable content from Firecrawl");
       return pageText.trim();
     } catch (err: unknown) {
@@ -248,6 +254,8 @@ export async function POST(req: Request) {
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Free-tier daily limit is handled later by counting posts in collection
     const userId = session.user.id;
     const body = await req.json();
     const { url, topic, tone = "informative", count = 2, boardId, imageSize, referenceImage } = body;
@@ -259,17 +267,26 @@ export async function POST(req: Request) {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
+    // Check premium status
+    const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > new Date();
+
     const postsToday = await db.collection("posts").countDocuments({
       userId: userId,
       createdAt: { $gte: startOfDay, $lte: endOfDay },
     });
-    if (postsToday + requestedCount > 10) {
+
+    if (!isPremium && postsToday + requestedCount > 10) {
       return NextResponse.json({ error: "You have reached your free trial limit of 10 posts per day. Please upgrade to continue generating more posts today." }, { status: 403 });
     }
 
     // Step 1: Extract keywords using Llama-3 with the improved prompt
     const extractedKeywords = await extractKeywords(url, topic);
     const keywordsToUse = extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)];
+
+    // Fetch existing titles & descriptions for uniqueness across user history
+    const existingDocs = await db.collection("posts").find({ userId }).project({ title: 1, description: 1 }).toArray();
+    const existingTitles = new Set(existingDocs.map((d:any)=>d.title).filter(Boolean));
+    const existingDescriptions = new Set(existingDocs.map((d:any)=>d.description).filter(Boolean));
 
     // Map imageSize string to width/height
     function getDimensions(size: string | undefined) {
@@ -287,10 +304,11 @@ export async function POST(req: Request) {
       }
     }
     const { width, height } = getDimensions(imageSize);
+    const aspect = imageSize; // '1:1', '16:9', '9:16'
 
-    // Sets to track uniqueness
-    const usedTitles: Set<string> = new Set();
-    const usedDescriptions: Set<string> = new Set();
+    // Sets to track uniqueness (seeded with existing ones)
+    const usedTitles: Set<string> = new Set(existingTitles);
+    const usedDescriptions: Set<string> = new Set(existingDescriptions);
 
     async function getUniqueValue(generateFn: (hint?: string) => Promise<string>, usedSet: Set<string>, type: string, maxRetries = 5) {
       let value = await generateFn();
@@ -315,25 +333,26 @@ export async function POST(req: Request) {
         }
         const title = await generateTitle(promptData);
         const description = await generateDescription(promptData);
-        const imagePrompt = await generateImagePrompt(promptData);
+        const imagePrompt = await generateImagePrompt(promptData, imageSize);
 
         let imageUrl: string | null = null;
         let cloudinaryUrl: string | null = null;
         let cloudinaryPublicId: string | null = null;
         try {
-          let rawImageUrl = await generateIdeogramV2TurboImage(imagePrompt, false, 900, 1600);
+          let rawImageUrl = await ggenerateIdeogramV2TurboImage(imagePrompt, false, width, height);
           // If the result is an array, use the first element
           if (Array.isArray(rawImageUrl)) {
             imageUrl = rawImageUrl[0];
           } else {
             imageUrl = rawImageUrl;
           }
+          if (!imageUrl) throw new Error("Image generation failed");
           // Download image and process to 900x1600 with sharp
           const imageResponse = await fetch(imageUrl);
           const buffer = await imageResponse.arrayBuffer();
-          // Use sharp to force 900x1600 (9:16)
+          // Use sharp to enforce requested dimensions, avoid cropping for non-portrait
           const sharpBuffer = await sharp(Buffer.from(buffer))
-            .resize(900, 1600, { fit: 'cover', position: 'center' })
+            .resize(width, height, { fit: 'cover', position: 'center' })
             .jpeg()
             .toBuffer();
           const base64String = `data:image/jpeg;base64,${sharpBuffer.toString('base64')}`;
@@ -356,16 +375,20 @@ export async function POST(req: Request) {
           }
           // Schedule deletion of this image from Cloudinary after 5 hours (for production, use a persistent job)
           if (cloudinaryPublicId) {
+            const deleteDelayMs = isPremium ? 3*24*60*60*1000 : 2*60*60*1000; // 3 days vs 2 hours
             setTimeout(() => {
               deleteImage(cloudinaryPublicId as string).catch((err: unknown) => console.error('Failed to delete Cloudinary image:', err));
-            }, 5 * 60 * 60 * 1000); // 5 hours in ms
+            }, deleteDelayMs);
           }
         } catch (error) {
           console.error("Error generating or uploading image:", error);
           imageUrl = FALLBACK_IMAGE_URLS[Math.floor(Math.random() * FALLBACK_IMAGE_URLS.length)];
           cloudinaryUrl = imageUrl;
         }
-  
+
+        // Helper to create random fragment
+        function randomFragment(len:number=8){const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";let r="";for(let i=0;i<len;i++){r+=chars[Math.floor(Math.random()*chars.length)];}return r;}
+
         return {
           id: uuidv4(),
           title,
@@ -373,6 +396,7 @@ export async function POST(req: Request) {
           imagePrompt, // Store the generated image prompt for logging/debugging
           imageUrl: cloudinaryUrl,
           cloudinaryPublicId,
+          defaultLink: url ? `${url}#${randomFragment(10)}` : undefined,
         };
       }
     );

@@ -5,9 +5,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from '../../lib/firebase'; // Make sure this path is correct
+import { signIn } from 'next-auth/react';
 
 function PublicSignUpPage() {
   const router = useRouter();
@@ -16,28 +14,39 @@ function PublicSignUpPage() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      // 1. Create user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // 2. Create user document in Firestore
-      // This is the step that was missing before
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        createdAt: new Date(),
-        isAdmin: false // Default to not being an admin
+      // Call our Supabase-backed register route
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: email.split('@')[0], email, password })
       });
 
-      // 3. Redirect to a new page on success (e.g., dashboard or login)
-      router.push('/dashboard'); // 💡 Change this to your desired page after signup
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Registration failed');
+      }
 
-    } catch (err) {
+      // Immediately sign the user in with credentials provider
+      const signInRes = await signIn('credentials', {
+        redirect: false,
+        email,
+        password
+      });
+
+      if (signInRes?.error) {
+        throw new Error(signInRes.error);
+      }
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+
+    } catch (err: any) {
       // Handle errors (e.g., email already in use)
       setError(err.message);
       console.error("Error signing up:", err);

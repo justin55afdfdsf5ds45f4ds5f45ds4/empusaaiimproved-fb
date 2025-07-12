@@ -109,7 +109,23 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.premiumUntil = token.premiumUntil as string | null
+
+        // Always fetch latest premiumUntil from DB so upgrades are reflected immediately
+        try {
+          const { data: dbUser, error: dbErr } = await supabaseAdmin
+            .from("users")
+            .select("premiumuntil")
+            .eq("id", token.id as string)
+            .single()
+
+          if (!dbErr) {
+            session.user.premiumUntil = (dbUser as any)?.premiumuntil ?? null
+          } else {
+            session.user.premiumUntil = token.premiumUntil as string | null
+          }
+        } catch {
+          session.user.premiumUntil = token.premiumUntil as string | null
+        }
       }
       return session
     },
