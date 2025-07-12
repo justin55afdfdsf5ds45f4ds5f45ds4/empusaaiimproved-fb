@@ -51,4 +51,4 @@ export function TimeSelect({ value, onValueChange, className }: TimeSelectProps)
       </SelectContent>
     </Select>
   )
-} 
+}

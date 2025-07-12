@@ -229,4 +229,4 @@ export function PostCard({
       </CardContent>
     </Card>
   );
-} 
+}
