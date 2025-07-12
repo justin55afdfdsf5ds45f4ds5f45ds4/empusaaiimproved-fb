@@ -18,15 +18,20 @@ export default function AuthErrorPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          router.push("/login")
           return 0
         }
         return prev - 1
       })
     }, 1000)
-
     return () => clearInterval(timer)
-  }, [router])
+  }, [])
+
+  // Redirect when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0) {
+      router.push("/login")
+    }
+  }, [countdown, router])
 
   const errorMessages: Record<string, string> = {
     Configuration: "There is a problem with the server configuration.",
