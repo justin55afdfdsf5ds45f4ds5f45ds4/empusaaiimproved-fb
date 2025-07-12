@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { v4 as uuidv4 } from "uuid"
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore intentional typo to disable image generation during tests
-import { generateText, generateImage, ggenerateIdeogramV2TurboImage } from "@/lib/replicate"
+import { generateText, generateImage, generateIdeogramV2TurboImage } from "@/lib/replicate"
 import clientPromise from "@/lib/mongodb"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
