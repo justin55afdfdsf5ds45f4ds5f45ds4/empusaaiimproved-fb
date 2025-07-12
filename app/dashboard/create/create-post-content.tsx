@@ -768,6 +768,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     });
   };
 
+  const { data: session } = useSession()
+  const isPremium = session?.user?.premiumUntil && new Date(session.user.premiumUntil) > new Date()
+
   return (
     <div className="space-y-6">
 
@@ -885,16 +888,29 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="imageSize">Image Size</Label>
-                <Select value={imageSize} onValueChange={setImageSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select image size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1:1">Square (1:1)</SelectItem>
-                    <SelectItem value="16:9">Landscape (16:9)</SelectItem>
-                    <SelectItem value="9:16">Vertical (9:16)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Select value={imageSize} onValueChange={(val) => {
+  if(!isPremium && (val === "1:1" || val === "16:9")){
+    toast({
+      title:"Premium Feature",
+      description:"Upgrade to premium to use Square or Landscape image sizes.",
+    })
+    return;
+  }
+  setImageSize(val)
+}}>
+  <SelectTrigger>
+    <SelectValue placeholder="Select image size" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="9:16">Vertical (9:16)</SelectItem>
+    <SelectItem value="1:1" disabled={!isPremium} className={!isPremium ? "opacity-50 cursor-not-allowed" : ""}>
+      Square (1:1) {!isPremium && "🔒"}
+    </SelectItem>
+    <SelectItem value="16:9" disabled={!isPremium} className={!isPremium ? "opacity-50 cursor-not-allowed" : ""}>
+      Landscape (16:9) {!isPremium && "🔒"}
+    </SelectItem>
+  </SelectContent>
+</Select>
               </div>
 
               <Button

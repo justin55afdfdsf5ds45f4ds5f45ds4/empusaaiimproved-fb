@@ -279,6 +279,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "You have reached your free trial limit of 10 posts per day. Please upgrade to continue generating more posts today." }, { status: 403 });
     }
 
+    // Check premium status earlier done. Add gating.
+    if (!isPremium && (imageSize === '1:1' || imageSize === '16:9')) {
+      return NextResponse.json({ error: 'Square and Landscape image sizes are premium features. Please upgrade to access them.' }, { status: 403 });
+    }
+
     // Step 1: Extract keywords using Llama-3 with the improved prompt
     const extractedKeywords = await extractKeywords(url, topic);
     const keywordsToUse = extractedKeywords || TOPICS[Math.floor(Math.random() * TOPICS.length)];
