@@ -52,9 +52,9 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/pricing">
-                    <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
-                      Get Started
+                  <Link href="/signup-free-trial">
+                    <Button className="bg-green-500 hover:bg-green-600 px-8 py-6 text-lg">
+                      Try it out for free!
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
