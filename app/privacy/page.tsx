@@ -181,7 +181,7 @@ export default function PrivacyPage() {
                   Contact
                 </Link>
                 <Link href="/terms" className="text-sm text-gray-500 hover:text-gray-900">
-                  Terms of Service
+                  Terms of Service <span className="hidden sm:inline">(TOS)</span>
                 </Link>
                 <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-900">
                   Privacy
