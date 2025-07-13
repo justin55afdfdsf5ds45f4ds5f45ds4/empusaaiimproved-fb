@@ -1,15 +1,32 @@
+export const dynamic = "force-dynamic";
+
+import { Suspense } from "react";
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<Loading />}> 
+      <CallbackClient />
+    </Suspense>
+  );
+}
+
+function Loading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500">Setting up your account...</p>
+    </div>
+  );
+}
+
+/* Client component split to satisfy Suspense requirements */
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-// getSession no longer needed
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/types/supabase';
 
-// Ensure this page is always rendered dynamically to safely use client-side hooks like useSearchParams.
-export const dynamic = "force-dynamic";
-
-export default function AuthCallbackPage() {
+function CallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient<Database>();
