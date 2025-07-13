@@ -1,50 +1,36 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
   try {
-    // Create a response to modify its headers
-    const response = NextResponse.next();
+    const token = await getToken({ req: request, secret: process.env.AUTH_SECRET })
+    const { pathname } = request.nextUrl
 
-    // Create a Supabase client
-    const supabase = createMiddlewareClient({ req: request, res: response });
-
-    // Refresh session if expired
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    // Log for debugging
-    console.log('Middleware session check:', {
-      hasSession: !!session,
-      path: request.nextUrl.pathname,
-      error: error?.message
-    });
-
-    // Handle auth redirects
-    if (request.nextUrl.pathname.startsWith('/dashboard')) {
-      if (!session) {
-        // Redirect to login if no session
-        return NextResponse.redirect(new URL('/login', request.url));
+    // Redirect unauthenticated users trying to access protected routes
+    if (pathname.startsWith("/dashboard")) {
+      if (!token) {
+        return NextResponse.redirect(new URL("/login", request.url))
       }
     }
 
-    return response;
+    // Redirect authenticated users away from auth pages
+    if ((pathname === "/login" || pathname === "/signup-free-trial" || pathname === "/signup" ) && token) {
+      return NextResponse.redirect(new URL("/dashboard", request.url))
+    }
+
+    return NextResponse.next()
   } catch (error) {
-    console.error('Middleware error:', error);
-    return NextResponse.next();
+    console.error("Middleware error:", error)
+    return NextResponse.next()
   }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     * - auth callback (to prevent redirect loops)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|auth/callback).*)',
+    "/dashboard/:path*",
+    "/login",
+    "/signup-free-trial",
   ],
-};
+}
+
