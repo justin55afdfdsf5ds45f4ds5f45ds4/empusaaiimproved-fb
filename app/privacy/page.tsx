@@ -57,7 +57,7 @@ export default function PrivacyPage() {
 
         <section className="w-full py-12 md:py-24 bg-white">
           <div className="container px-4 md:px-6">
-            <div className="max-w-3xl mx-auto prose">
+            <div className="prose lg:prose-lg prose-slate mx-auto max-w-3xl">
               <p>
                 At Empusa AI, we take your privacy seriously. This Privacy Policy explains how we collect, use,
                 disclose, and safeguard your information when you visit our website or use our service.

@@ -31,7 +31,7 @@ export default function TermsPage() {
         </section>
 
         <section className="w-full py-12 md:py-24 bg-white">
-          <div className="container px-4 md:px-6 max-w-3xl mx-auto prose">
+          <div className="container px-4 md:px-6 max-w-3xl mx-auto prose lg:prose-lg prose-slate">
             <p>Welcome to Empusa AI! These Terms of Service ("Terms") govern your use of our website and services. By accessing or using Empusa AI, you agree to be bound by these Terms.</p>
 
             <h2>1. Acceptance of Terms</h2>
