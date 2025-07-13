@@ -95,7 +95,7 @@ export default function LoginPage() {
       <header className="w-full border-b bg-white shadow-sm py-4">
         <div className="container flex justify-center">
           <Link href="/">
-            <Logo />
+            <Logo noLink />
           </Link>
         </div>
       </header>

@@ -4,6 +4,7 @@ import { authOptions } from "../../auth/[...nextauth]/route"
 import clientPromise from "@/lib/mongodb"
 import { refreshPinterestToken } from "@/lib/pinterest"
 import { uploadToCloudinary } from "../../cloudinary/upload"
+import { incrementDailyLimit } from "@/lib/daily-limits"
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +20,15 @@ export async function POST(req: Request) {
     // Validate required fields
     if (!boardId || !imageUrl || !title || !scheduledTime) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    // Check daily limits
+    const incrementResult = await incrementDailyLimit(session.user.id, "postsScheduled", 1);
+    if (!incrementResult.success) {
+      return NextResponse.json(
+        { error: "Daily scheduling limit reached" },
+        { status: 403 }
+      );
     }
 
     // Get the user's Pinterest tokens from the database

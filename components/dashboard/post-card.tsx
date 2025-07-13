@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { useState } from "react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Eye,
   Heart,
@@ -44,6 +43,7 @@ interface PostCardProps {
   onEditLink?: (id: string) => void
   onDelete?: (id: string) => void
   className?: string
+  imageSize?: string
 }
 
 function ExpandableDescription({ description }: { description: string }) {
@@ -69,30 +69,6 @@ function ExpandableDescription({ description }: { description: string }) {
   );
 }
 
-function truncateToThreeLines(text: string): { truncated: string; isTruncated: boolean } {
-  const avgCharsPerLine = 60; // Approximate characters per line
-  const threeLineLimit = avgCharsPerLine * 3;
-  
-  if (text.length <= threeLineLimit) {
-    return { truncated: text, isTruncated: false };
-  }
-
-  // Find the last space before the limit
-  const lastSpace = text.substring(0, threeLineLimit).lastIndexOf(' ');
-  const truncated = text.substring(0, lastSpace);
-  
-  return { truncated, isTruncated: true };
-}
-
-// Utility to truncate text to roughly three lines (approx 240 chars)
-function getTruncated(text: string, limit = 240) {
-  if (text.length <= limit) return { truncated: text, isTruncated: false }
-  // truncate at last space within limit
-  const cutoff = text.lastIndexOf(' ', limit)
-  const snippet = text.slice(0, cutoff > 0 ? cutoff : limit).trim()
-  return { truncated: snippet + '...', isTruncated: true }
-}
-
 export function PostCard({
   post,
   boardName,
@@ -107,13 +83,23 @@ export function PostCard({
   onGenerateImage,
   onEditLink,
   onDelete,
+  imageSize = "9:16"
 }: PostCardProps) {
-  const [expanded, setExpanded] = useState(false);
-  const { truncated, isTruncated } = truncateToThreeLines(post.description);
-  const { truncated: descSnippet, isTruncated: isDescSnippetTruncated } = getTruncated(post.description)
-
-  // determine if showMoreNeeded
-  const showMoreNeeded = post.description.length > 120 && !expanded;
+  // Function to get aspect ratio class based on image size
+  const getAspectRatioClass = (size: string) => {
+    switch (size) {
+      case "1:1":
+        return "aspect-square"; // 1:1
+      case "16:9":
+        return "aspect-video"; // 16:9
+      case "9:16":
+        return "aspect-[9/16]"; // 9:16
+      case "2:3":
+        return "aspect-[2/3]"; // 2:3
+      default:
+        return "aspect-[9/16]"; // default to 9:16
+    }
+  };
 
   return (
     <Card className={`relative transition-all ${isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}>
@@ -148,12 +134,12 @@ export function PostCard({
         </Button>
       </div>
 
-      <div className={`aspect-[9/16] relative`}>
+      <div className={`${getAspectRatioClass(imageSize)} relative`}>
         {post.imageUrl ? (
           <img
             src={post.imageUrl}
             alt={post.title}
-            className="w-full h-full object-contain bg-white"
+            className="w-full h-full object-cover bg-white"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">

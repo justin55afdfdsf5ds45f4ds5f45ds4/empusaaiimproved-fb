@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { generateImage } from "@/lib/falai";
+import { generateIdeogramV2TurboImage } from "@/lib/replicate";
 
 // Sample image URLs from Unsplash for different categories (FALLBACK MODE)
 const FALLBACK_IMAGE_URLS = {
@@ -109,11 +109,19 @@ Include specific details about style, lighting, and quality but keep it under 10
   }
 }
 
+// Default dimensions for different aspect ratios
+const DIMENSIONS = {
+  "1:1": { width: 1024, height: 1024 },
+  "16:9": { width: 1600, height: 900 },
+  "9:16": { width: 900, height: 1600 },
+  "2:3": { width: 1024, height: 1536 }
+};
+
 export async function POST(req: Request) {
   try {
     // Parse the request body
     const body = await req.json();
-    const { prompt } = body;
+    const { prompt, imageSize = "9:16" } = body;
 
     if (!prompt) {
       return NextResponse.json(
@@ -122,12 +130,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get dimensions based on imageSize or default to 9:16
+    const dimensions = DIMENSIONS[imageSize as keyof typeof DIMENSIONS] || DIMENSIONS["9:16"];
+
     // Enhance the prompt using OpenAI
     const enhancedPromptResult = await enhancePrompt(prompt);
     const finalPrompt = enhancedPromptResult.prompt;
 
-    // Generate the image using the enhanced prompt
-    const imageUrl = await generateImage(finalPrompt);
+    // Generate the image using the enhanced prompt and dimensions
+    const imageUrl = await generateIdeogramV2TurboImage(finalPrompt, false, dimensions.width, dimensions.height);
 
     // Return the response with all relevant information
     return NextResponse.json({
@@ -135,8 +146,8 @@ export async function POST(req: Request) {
       images: [
         {
           url: imageUrl,
-          width: 1024,
-          height: 1024,
+          width: dimensions.width,
+          height: dimensions.height,
         },
       ],
       original_prompt: prompt,

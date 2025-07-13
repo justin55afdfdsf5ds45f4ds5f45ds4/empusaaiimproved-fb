@@ -7,6 +7,7 @@ import clientPromise from "@/lib/mongodb"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
 import { uploadImageBase64, deleteImage } from "@/lib/cloudinary1"
+import { incrementDailyLimit } from "@/lib/daily-limits";
 
 // Sample topics for generating content
 const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
@@ -169,7 +170,8 @@ You are an expert Pinterest image prompt creator. Your job is to write a single-
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
 - do not use any trademark logos or name.
-- Make sure the text fits completely inside the image — nothing should get cut off or go outside the edges.
+- Provide the prompt as an instruction to the image gen model to generte the image.
+- when you give the headline to put in the image, always make sure it is super short and eye catching.
 - So do not use too much long image headline/title that will be in the image, make them short as possible but informative.
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
@@ -198,7 +200,7 @@ Only output 4 line of prompt. No explanation. No formatting.`
     return cleanLLMOutput(generatedPrompt.replace(/"/g, "").trim())
   } catch (error) {
     console.error("Error generating image prompt with AI:", error)
-    return `Beautiful ${promptData.split(",")[0]?.trim() || "Pinterest"} photography with natural lighting, professional quality, trending on Pinterest`
+    return `Beautiful ${promptData.split(",")[0]?.trim() || "Pinterest"} photography with natural lighting, professional quality, trending on Pinterest, ${aspect} aspect ratio, ${orientation} format`
   }
 }
 
@@ -255,6 +257,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Get MongoDB client
+    const client = await clientPromise
+    const db = client.db()
+
     // Free-tier daily limit is handled later by counting posts in collection
     const userId = session.user.id
     const body = await req.json()
@@ -272,28 +278,37 @@ export async function POST(req: Request) {
       )
     }
 
-    // Free trial enforcement (if you use it)
-    const client = await clientPromise
-    const db = client.db()
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date()
-    endOfDay.setHours(23, 59, 59, 999)
+    // Check daily limits
+    const incrementResult = await incrementDailyLimit(session.user.id, "postsGenerated", requestedCount);
+    if (!incrementResult.success) {
+      const limitType = isPremium ? "Premium" : "Free";
+      const maxPosts = isPremium ? "100" : "10";
+      // Format the reset time
+      const resetTime = new Date();
+      resetTime.setHours(24, 0, 0, 0); // Set to midnight tonight
+      const formattedTime = resetTime.toLocaleTimeString('en-US', { 
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true 
+      });
 
-    // Count posts generated today
-    const postsToday = await db.collection("posts").countDocuments({
-      userId: userId,
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
-    })
-
-    if (!isPremium && postsToday + requestedCount > 10) {
       return NextResponse.json(
         {
-          error:
-            "You have reached your free trial limit of 10 posts per day. Please upgrade to continue generating more posts today.",
+          error: "Daily generation limit reached",
+          details: {
+            title: `${limitType} Plan Limit`,
+            description: `You've reached today's limit of ${maxPosts} posts. Resets at ${formattedTime}. ${
+              !isPremium ? "Get unlimited posts with Enterprise." : ""
+            }`,
+            action: !isPremium ? "Upgrade to Enterprise →" : undefined,
+            remaining: incrementResult.remaining,
+            nextResetTime: formattedTime,
+            isPremium,
+            maxPosts
+          }
         },
-        { status: 403 },
-      )
+        { status: 403 }
+      );
     }
 
     // Check premium status earlier done. Add gating.
@@ -310,23 +325,37 @@ export async function POST(req: Request) {
 
     // Fetch existing titles & descriptions for uniqueness across user history
     const existingDocs = await db.collection("posts").find({ userId }).project({ title: 1, description: 1 }).toArray()
-    const existingTitles = new Set(existingDocs.map((d: any) => d.title).filter(Boolean))
-    const existingDescriptions = new Set(existingDocs.map((d: any) => d.description).filter(Boolean))
+    const existingTitles = new Set<string>(existingDocs.map((d: any) => d.title).filter(Boolean))
+    const existingDescriptions = new Set<string>(existingDocs.map((d: any) => d.description).filter(Boolean))
 
     // Map imageSize string to width/height
     function getDimensions(size: string | undefined) {
+      console.log('\n=== Image Size Calculation ===');
+      console.log('Requested size:', size);
+      
+      let dimensions;
       switch (size) {
         case "1:1":
-          return { width: 1024, height: 1024 }
+          dimensions = { width: 1024, height: 1024 };
+          break;
         case "16:9":
-          return { width: 1600, height: 900 }
+          dimensions = { width: 1600, height: 900 };
+          break;
         case "9:16":
-          return { width: 900, height: 1600 }
+          dimensions = { width: 900, height: 1600 };
+          break;
         case "2:3":
-          return { width: 1024, height: 1536 }
+          dimensions = { width: 1024, height: 1536 };
+          break;
         default:
-          return { width: 900, height: 1600 } // Default to 9:16
+          dimensions = { width: 900, height: 1600 }; // Default to 9:16
+          console.log('Using default 9:16 dimensions');
       }
+      
+      console.log('Selected dimensions:', dimensions);
+      console.log('Aspect ratio:', dimensions.width/dimensions.height);
+      console.log('===============================\n');
+      return dimensions;
     }
     const { width, height } = getDimensions(imageSize)
     const aspect = imageSize // '1:1', '16:9', '9:16'
@@ -368,27 +397,61 @@ export async function POST(req: Request) {
       let cloudinaryUrl: string | null = null
       let cloudinaryPublicId: string | null = null
       try {
+        console.log('\n=== Starting Image Generation Process ===');
+        console.log('Using dimensions:', { width, height });
+        console.log('Aspect ratio:', width/height);
+        
         const rawImageUrl = await generateIdeogramV2TurboImage(imagePrompt, false, width, height)
+        console.log('Raw image URL received:', rawImageUrl);
+        
         // If the result is an array, use the first element
         if (Array.isArray(rawImageUrl)) {
           imageUrl = rawImageUrl[0]
+          console.log('Using first image from array');
         } else {
           imageUrl = rawImageUrl
+          console.log('Using single image URL');
         }
+        
         if (!imageUrl) throw new Error("Image generation failed")
+        
         // Download image and process to 900x1600 with sharp
+        console.log('Downloading image for processing');
         const imageResponse = await fetch(imageUrl)
         const buffer = await imageResponse.arrayBuffer()
-        // Use sharp to enforce requested dimensions, avoid cropping for non-portrait
+        
+        // Get original image dimensions before processing
+        const originalImage = sharp(Buffer.from(buffer));
+        const metadata = await originalImage.metadata();
+        console.log('Original image metadata:', metadata);
+        
+        // Use sharp to enforce requested dimensions while maintaining aspect ratio
+        console.log('Processing image with Sharp');
+        console.log('Target dimensions:', { width, height });
+        
         const sharpBuffer = await sharp(Buffer.from(buffer))
-          .resize(width, height, { fit: "cover", position: "center" })
+          .resize(width, height, { 
+            fit: "fill", // Use fill to force exact dimensions without cropping
+            withoutEnlargement: false // Allow upscaling if needed
+          })
           .jpeg()
           .toBuffer()
+          
+        // Get processed image dimensions
+        const processedImage = sharp(sharpBuffer);
+        const processedMetadata = await processedImage.metadata();
+        console.log('Processed image metadata:', processedMetadata);
+        
         const base64String = `data:image/jpeg;base64,${sharpBuffer.toString("base64")}`
+        console.log('Image converted to base64');
+        
         // Upload to Cloudinary as JPEG
+        console.log('Uploading to Cloudinary');
         const uploadResult: { url: string; public_id: string } = await uploadImageBase64(base64String, "pinterest")
         cloudinaryUrl = uploadResult.url
         cloudinaryPublicId = uploadResult.public_id
+        console.log('Cloudinary upload complete:', { cloudinaryUrl });
+        console.log('=======================================\n');
 
         // Store Cloudinary image info in DB for deletion automation
         try {

@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { supabase } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
 import { Logo } from "@/components/logo"
+import { signIn } from 'next-auth/react';
 
 export default function FreeTrialSignupPage() {
   const router = useRouter()
@@ -66,20 +67,32 @@ export default function FreeTrialSignupPage() {
   }
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/login` } })
-    if (error) {
-      toast({ title: "Authentication Error", description: "Failed to sign in with Google. Please try again.", variant: "destructive" })
-      setIsLoading(false)
+    console.log('Starting Google sign-in process...');
+    setIsLoading(true);
+    try {
+      await signIn('google', { callbackUrl: '/dashboard' });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      console.error("Error details:", {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      toast({
+        title: "Authentication Error",
+        description: error instanceof Error ? error.message : "Failed to sign in with Google. Please try again.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full border-b bg-white shadow-sm py-4">
         <div className="container flex justify-center">
           <Link href="/">
-            <Logo />
+            <Logo noLink />
           </Link>
         </div>
       </header>

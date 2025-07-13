@@ -2,9 +2,10 @@ import Link from "next/link"
 
 interface LogoProps {
   href?: string
+  noLink?: boolean
 }
 
-export function Logo({ href = "/" }: LogoProps) {
+export function Logo({ href = "/", noLink = false }: LogoProps) {
   const logo = (
     <div className="flex items-center gap-2">
       <img
@@ -16,7 +17,7 @@ export function Logo({ href = "/" }: LogoProps) {
     </div>
   )
 
-  if (href) {
+  if (href && !noLink) {
     return <Link href={href}>{logo}</Link>
   }
 

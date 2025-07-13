@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,51 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useSession } from "next-auth/react"
 import { PostCard } from "@/components/dashboard/post-card"
 import { PinterestAuth } from "@/components/pinterest-auth"
+// Remove the direct import of daily-limits
+// import { getRemainingLimits, incrementDailyLimit, getTimeUntilReset } from "@/lib/daily-limits";
+
+// Add utility functions
+function generateRandomFragment(length: number): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+function generateRandomUniqueDates(count: number): Date[] {
+  const dates: Date[] = [];
+  const now = new Date();
+  const oneDay = 24 * 60 * 60 * 1000;
+  
+  for (let i = 0; i < count; i++) {
+    const randomDays = Math.floor(Math.random() * 30); // Random day within next 30 days
+    const date = new Date(now.getTime() + (randomDays * oneDay));
+    date.setHours(9 + Math.floor(Math.random() * 12)); // Random hour between 9 AM and 8 PM
+    date.setMinutes(Math.floor(Math.random() * 60));
+    dates.push(date);
+  }
+  
+  return dates.sort((a, b) => a.getTime() - b.getTime());
+}
+
+function getTimeUntilReset(nextResetTime: Date): string {
+  const now = new Date();
+  const diffMs = nextResetTime.getTime() - now.getTime();
+  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${diffHrs}h ${diffMins}m`;
+}
+
+// Add ConnectPinterestInline component
+const ConnectPinterestInline = () => {
+  return (
+    <div className="mt-4">
+      <PinterestAuth />
+    </div>
+  );
+};
 
 interface Post {
   id: string
@@ -61,93 +107,54 @@ interface CreatePostContentProps {
   initialUrl?: string
 }
 
-function ConnectPinterestInline() {
-  const [isConnecting, setIsConnecting] = useState(false)
-  const handleClick = async () => {
-    setIsConnecting(true)
-    try {
-      const res = await fetch("/api/pinterest/connect", { method: "POST" })
-      if(!res.ok){ throw new Error("Failed") }
-      const data = await res.json()
-      window.location.href = data.url
-    } catch(e){
-      toast({ title:"Connection Failed", description:"Could not initiate Pinterest OAuth.", variant:"destructive" })
-      setIsConnecting(false)
-    }
-  }
+interface LimitInfo {
+  postsGenerated: { remaining: number; nextResetTime: Date };
+  postsPublished: { remaining: number; nextResetTime: Date };
+  postsScheduled: { remaining: number; nextResetTime: Date };
+  isPremium: boolean;
+}
+
+// Move LimitsAlert component definition to the top, before CreatePostContent
+const LimitsAlert = ({ limits, isLoadingLimits }: { limits: LimitInfo | null; isLoadingLimits: boolean }) => {
+  if (!limits || isLoadingLimits) return null;
+
+  const hasReachedAnyLimit = 
+    limits.postsGenerated.remaining === 0 ||
+    limits.postsPublished.remaining === 0 ||
+    limits.postsScheduled.remaining === 0;
+
+  if (!hasReachedAnyLimit) return null;
+
   return (
-    <Button className="bg-red-600 hover:bg-red-700" onClick={handleClick} disabled={isConnecting}>
-      {isConnecting ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting...
-        </>
-      ) : (
-        <>
-          <PinIcon className="mr-2 h-4 w-4" /> Connect Pinterest
-        </>
-      )}
-    </Button>
-  )
-}
-
-function generateRandomFragment(length: number) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
-function generateRandomUniqueDates(count: number) {
-  const dates: string[] = [];
-  const startDate = new Date();
-  startDate.setHours(0, 0, 0, 0); // Start of today
-  const usedTimestamps = new Set();
-
-  while (dates.length < count) {
-    // Random day within the next 7 days
-    const randomDayOffset = Math.floor(Math.random() * 7); // 0-6 days ahead
-    const randomDate = new Date(startDate.getTime() + randomDayOffset * 24 * 60 * 60 * 1000);
-    // Random hour between 8 and 20 (8am to 8pm)
-    const randomHour = 8 + Math.floor(Math.random() * 13); // 8-20
-    // Random minute (0, 15, 30, 45)
-    const randomMinute = [0, 15, 30, 45][Math.floor(Math.random() * 4)];
-    randomDate.setHours(randomHour, randomMinute, 0, 0);
-    const isoString = randomDate.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:mm:ss'
-    if (!usedTimestamps.has(isoString)) {
-      dates.push(isoString);
-      usedTimestamps.add(isoString);
-    }
-  }
-  return dates;
-}
-
-// Update ExpandableDescription component
-function ExpandableDescription({ description }: { description: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const maxChars = 3 * 40; // Approximate 3 lines at 40 chars per line
-  const shouldTruncate = description.length > maxChars;
-  const displayText = !expanded && shouldTruncate ? description.slice(0, maxChars) : description;
-  
-  return (
-    <div className="mb-4">
-      <p className="text-sm text-gray-500 inline" style={{ color: '#6B7280' }}>
-        {displayText}
-        {shouldTruncate && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs text-gray-400 hover:text-gray-500 ml-1 inline-block"
-          >
-            {expanded ? "Show less" : "... Show more"}
-          </button>
-        )}
-      </p>
-    </div>
+    <Alert variant={limits.isPremium ? "default" : "destructive"} className="mb-4">
+      <AlertTitle>Daily Limits Status</AlertTitle>
+      <AlertDescription>
+        <div className="space-y-1">
+          {limits.postsGenerated.remaining === 0 && (
+            <p>• Post generation will reset in {getTimeUntilReset(limits.postsGenerated.nextResetTime)}</p>
+          )}
+          {limits.postsPublished.remaining === 0 && (
+            <p>• Publishing will reset in {getTimeUntilReset(limits.postsPublished.nextResetTime)}</p>
+          )}
+          {limits.postsScheduled.remaining === 0 && (
+            <p>• Scheduling will reset in {getTimeUntilReset(limits.postsScheduled.nextResetTime)}</p>
+          )}
+          {!limits.isPremium && (
+            <p className="mt-2">
+              <a href="/pricing" className="text-blue-600 hover:underline">
+                Upgrade to premium
+              </a>{" "}
+              for higher limits!
+            </p>
+          )}
+        </div>
+      </AlertDescription>
+    </Alert>
   );
-}
+};
 
 export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
+  const { data: session } = useSession(); // Move session declaration to top
   const router = useRouter()
   const [url, setUrl] = useState(initialUrl || "")
   const [postCount, setPostCount] = useState("1")
@@ -194,6 +201,11 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   // Add scheduleAllTime state
   const [scheduleAllTime, setScheduleAllTime] = useState<string>("");
 
+  // Add state for daily limits
+  const [limits, setLimits] = useState<LimitInfo | null>(null);
+  const [isLoadingLimits, setIsLoadingLimits] = useState(true);
+  const [error, setError] = useState<{ title: string; description: string; action?: string } | null>(null);
+
   // Set the initial URL and tab if provided
   useEffect(() => {
     if (initialUrl) {
@@ -238,6 +250,24 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     fetchBoards()
   }, [])
 
+  useEffect(() => {
+    async function fetchLimits() {
+      if (!session?.user?.id) return;
+      setIsLoadingLimits(true);
+      try {
+        const response = await fetch('/api/user/limits');
+        const data = await response.json();
+        setLimits(data);
+      } catch (error) {
+        console.error('Error fetching limits:', error);
+      } finally {
+        setIsLoadingLimits(false);
+      }
+    }
+
+    fetchLimits();
+  }, [session?.user?.id]);
+
   const requireBoard = () => {
     if (!selectedBoard) {
       toast({
@@ -251,7 +281,33 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   }
 
   const handleGenerate = async () => {
+    if (!session?.user?.id) return;
+    setError(null); // Clear any previous errors
+
+    // Check generation limits
+    if (limits?.postsGenerated.remaining === 0) {
+      const limitType = limits.isPremium ? "Premium" : "Free";
+      const maxPosts = limits.isPremium ? "100" : "10";
+      const resetTime = getTimeUntilReset(new Date(limits.postsGenerated.nextResetTime));
+      const errorMsg = {
+        title: `${limitType} Plan Daily Limit Reached`,
+        description: `You have reached your daily limit of ${maxPosts} posts. Your limits will reset in ${resetTime}.`,
+        action: !limits.isPremium ? "Upgrade to Enterprise for 100 posts per day" : undefined,
+      };
+      setError(errorMsg);
+      toast({
+        title: errorMsg.title,
+        description: errorMsg.description,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!url && activeTab === "url") {
+      setError({
+        title: "URL Required",
+        description: "Please enter a URL to generate posts.",
+      });
       toast({
         title: "URL Required",
         description: "Please enter a URL to generate posts.",
@@ -261,6 +317,10 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
 
     if (!topic && activeTab === "scratch") {
+      setError({
+        title: "Topic Required",
+        description: "Please enter a topic to generate posts.",
+      });
       toast({
         title: "Topic Required",
         description: "Please enter a topic to generate posts.",
@@ -270,6 +330,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     }
 
     setIsGenerating(true)
+    setError(null);
     // show wait message after 30s
     const waitTimer = setTimeout(()=> setShowGeneratingWait(true), 30000)
 
@@ -288,19 +349,70 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         }),
       })
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error("Failed to generate posts")
+        if (response.status === 403 && data.details) {
+          // Handle detailed limit error
+          setError({
+            title: data.details.title,
+            description: data.details.description,
+            action: data.details.action,
+          });
+          toast({
+            title: data.details.title,
+            description: (
+              <div className="space-y-2">
+                <p>{data.details.description}</p>
+                {data.details.action && (
+                  <Link 
+                    href="/pricing" 
+                    className="text-white underline hover:text-blue-100 block"
+                  >
+                    {data.details.action}
+                  </Link>
+                )}
+              </div>
+            ),
+            variant: "destructive",
+          });
+        } else {
+          // Handle other errors
+          const errorMsg = {
+            title: "Generation Failed",
+            description: data.error || "Failed to generate posts",
+          };
+          setError(errorMsg);
+          toast({
+            title: errorMsg.title,
+            description: errorMsg.description,
+            variant: "destructive",
+          });
+        }
+        throw new Error(data.error || "Failed to generate posts");
       }
 
-      const data = await response.json()
       setGeneratedPosts(data.posts)
+      setError(null);
+
+      // Update limits after successful generation
+      const limitsResponse = await fetch('/api/user/limits');
+      const newLimits = await limitsResponse.json();
+      setLimits(newLimits);
     } catch (error) {
       console.error("Error generating posts:", error)
-      toast({
-        title: "Error",
-        description: "Failed to generate posts. Please try again.",
-        variant: "destructive",
-      })
+      if (!error) {
+        const errorMsg = {
+          title: "Error",
+          description: "Failed to generate posts. Please try again.",
+        };
+        setError(errorMsg);
+        toast({
+          title: errorMsg.title,
+          description: errorMsg.description,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false)
       clearTimeout(waitTimer)
@@ -336,18 +448,21 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   finalDateTime.setHours(hours, minutes, 0, 0);
 
   try {
-    const response = await fetch("/api/pinterest/schedule", {
+    const response = await fetch("/api/posts/schedule", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         boardId: selectedBoard,
-        imageUrl: currentPostForScheduling.imageUrl,
-        title: currentPostForScheduling.title,
-        description: currentPostForScheduling.description,
-        link: postLinks[currentPostForScheduling.id] || currentPostForScheduling.defaultLink || "",
-        scheduledTime: finalDateTime.toISOString(),
+        posts: [{
+          id: currentPostForScheduling.id,
+          title: currentPostForScheduling.title,
+          description: currentPostForScheduling.description,
+          imageUrl: currentPostForScheduling.imageUrl,
+          link: postLinks[currentPostForScheduling.id] || currentPostForScheduling.defaultLink || "",
+          scheduledTime: finalDateTime.toISOString(),
+        }],
       }),
     });
 
@@ -386,19 +501,23 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     const post = generatedPosts.find(p => p.id === postId)
     if (!post) return
 
+    console.log('Generating image with size:', imageSize);
     setIsGeneratingImage(postId)
     try {
+      const requestBody = {
+        title: post.title,
+        description: post.description,
+        imagePrompt: post.imagePrompt,
+        imageSize,
+      };
+      console.log('Image generation request:', requestBody);
+
       const response = await fetch("/api/fal/generate-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title: post.title,
-          description: post.description,
-          imagePrompt: post.imagePrompt,
-          imageSize,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
@@ -406,6 +525,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       }
 
       const data = await response.json()
+      console.log('Image generation response:', data);
       
       // Update the post with the generated image URL
       setGeneratedPosts((prevPosts) =>
@@ -703,7 +823,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     setScheduleAllDate(undefined)
   }
 
-  const confirmScheduleAll = () => {
+  const confirmScheduleAll = async () => {
     if (!scheduleAllDate || !scheduleAllTime) {
       toast({
         title: "Date and Time Required",
@@ -717,58 +837,180 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     const finalDateTime = new Date(scheduleAllDate);
     finalDateTime.setHours(hours, minutes, 0, 0);
 
-    generatedPosts.forEach(async (post) => {
-      if (selectedPosts.has(post.id)) {
+    try {
+      const selectedPostsArray = generatedPosts.filter(post => selectedPosts.has(post.id));
+      const postsToSchedule = selectedPostsArray.map((post, index) => ({
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        link: postLinks[post.id] || post.defaultLink || "",
+        scheduledTime: new Date(finalDateTime.getTime() + (index * 60 * 60 * 1000)).toISOString(), // 1 hour apart
+      }));
+
+      const response = await fetch("/api/posts/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boardId: selectedBoard,
+          posts: postsToSchedule,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to schedule posts");
+      }
+
+      // Remove scheduled posts from the list
+      setGeneratedPosts((prev) => prev.filter((post) => !selectedPosts.has(post.id)));
+      setSelectedPosts(new Set());
+      setIsSelectAllActive(false);
+      setScheduleAllDialogOpen(false);
+      setScheduleAllDate(undefined);
+      setScheduleAllTime("");
+
+      toast({
+        title: "Posts Scheduled",
+        description: `Successfully scheduled ${selectedPosts.size} posts starting from ${format(finalDateTime, "PPP 'at' p")}.`,
+      });
+    } catch (error) {
+      console.error("Error scheduling posts:", error);
+      toast({
+        title: "Error",
+        description: "Failed to schedule posts. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkPublish = async () => {
+    if (selectedPosts.size === 0) {
+      toast({
+        title: "No Posts Selected",
+        description: "Please select posts to publish.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedBoard) {
+      toast({
+        title: "Board Required",
+        description: "Please select a Pinterest board to publish your posts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPublishDialogOpen(true);
+  };
+
+  const confirmBulkPublish = async () => {
+    if (!session?.user?.id) return;
+
+    // Check publishing limits
+    const selectedCount = selectedPosts.size;
+    if (limits?.postsPublished.remaining === 0) {
+      toast({
+        title: limits.isPremium ? "Daily Publishing Limit Reached" : "Free Trial Publishing Limit Reached",
+        description: `You can publish more posts in ${getTimeUntilReset(new Date(limits.postsPublished.nextResetTime))}. ${
+          !limits.isPremium ? "Upgrade to premium for higher limits!" : ""
+        }`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsPublishing("bulk");
+      const selectedPostsArray = generatedPosts.filter(post => selectedPosts.has(post.id));
+
+      // Try to publish each post
+      for (const post of selectedPostsArray) {
         try {
-          const response = await fetch("/api/posts/schedule", {
+          // Try to publish
+          const response = await fetch("/api/pinterest/pins/", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              boardId: selectedBoard,
-              posts: [
-                {
-                  id: post.id,
-                  title: post.title,
-                  description: post.description,
-                  imageUrl: post.imageUrl,
-                  link: postLinks[post.id] || post.defaultLink,
-                  scheduledTime: finalDateTime.toISOString(),
-                },
-              ],
+              boardId: selectedBoardForPosts[post.id] || selectedBoard,
+              title: post.title,
+              description: post.description,
+              imageUrl: post.imageUrl,
+              link: postLinks[post.id] || post.defaultLink,
             }),
           });
 
           if (!response.ok) {
-            throw new Error("Failed to schedule post to Pinterest");
+            const errorData = await response.json();
+            // If Pinterest error, try to schedule instead
+            if (errorData.error?.includes("spam") || errorData.error?.includes("limit")) {
+              const scheduleTime = generateRandomScheduleTime();
+              const scheduleResponse = await fetch("/api/posts/schedule", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  boardId: selectedBoardForPosts[post.id] || selectedBoard,
+                  posts: [{
+                    id: post.id,
+                    title: post.title,
+                    description: post.description,
+                    imageUrl: post.imageUrl,
+                    link: postLinks[post.id] || post.defaultLink,
+                    scheduledTime: scheduleTime.toISOString(),
+                  }],
+                }),
+              });
+
+              if (scheduleResponse.ok) {
+                // Remove the post from the list
+                setGeneratedPosts((prev) => prev.filter((p) => p.id !== post.id));
+                setSelectedPosts((prev) => {
+                  const next = new Set(prev);
+                  next.delete(post.id);
+                  return next;
+                });
+                continue;
+              }
+            }
+          } else {
+            // Successfully published, remove from list
+            setGeneratedPosts((prev) => prev.filter((p) => p.id !== post.id));
+            setSelectedPosts((prev) => {
+              const next = new Set(prev);
+              next.delete(post.id);
+              return next;
+            });
           }
         } catch (error) {
-          console.error("Error scheduling post:", error);
-          toast({
-            title: "Error",
-            description: "Failed to schedule some posts. Please try again.",
-            variant: "destructive",
-          });
+          console.error(`Error processing post ${post.id}:`, error);
         }
       }
-    });
 
-    const remainingPosts = generatedPosts.filter((post) => !selectedPosts.has(post.id));
-    setGeneratedPosts(remainingPosts);
-    setSelectedPosts(new Set());
-    setIsSelectAllActive(false);
-    setScheduleAllDialogOpen(false);
-    setScheduleAllDate(undefined);
-    setScheduleAllTime("");
+      // Update limits
+      const limitsResponse = await fetch('/api/user/limits');
+      const newLimits = await limitsResponse.json();
+      setLimits(newLimits);
 
-    toast({
-      title: "Posts Scheduled",
-      description: `Successfully scheduled ${selectedPosts.size} posts for ${format(finalDateTime, "PPP 'at' p")}.`,
-    });
+      toast({
+        title: "Posts Processed",
+        description: "Successfully processed selected posts.",
+      });
+    } catch (error) {
+      console.error("Error in bulk publish:", error);
+      toast({
+        title: "Error",
+        description: "Some posts failed to process. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPublishing(null);
+      setPublishDialogOpen(false);
+    }
   };
 
-  const { data: session } = useSession()
   const isPremium = session?.user?.premiumUntil && new Date(session.user.premiumUntil) > new Date()
 
   const handlePostCountChange = (val:string) => {
@@ -792,9 +1034,20 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     { value: "100", label: "100 posts", premium: true },
   ];
 
+  function generateRandomScheduleTime(daysAhead: number = 7): Date {
+    const now = new Date();
+    const randomDays = Math.floor(Math.random() * daysAhead);
+    const result = new Date(now);
+    result.setDate(result.getDate() + randomDays);
+    // Set random hour between 9 AM and 8 PM
+    result.setHours(9 + Math.floor(Math.random() * 12), Math.floor(Math.random() * 60), 0, 0);
+    return result;
+  }
+
   return (
     <div className="space-y-6">
-
+      {/* Remove LimitsAlert */}
+      
       {/* Board Selection */}
       <Card>
         <CardHeader>
@@ -919,35 +1172,49 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="imageSize">Image Size</Label>
-                <Select value={imageSize} onValueChange={(val) => {
-  if(!isPremium && (val === "1:1" || val === "16:9")){
-    toast({
-      title:"Premium Feature",
-      description:"Upgrade to premium to use Square or Landscape image sizes.",
-    })
-    return;
-  }
-  setImageSize(val)
-}}>
-  <SelectTrigger>
-    <SelectValue placeholder="Select image size" />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="9:16">Vertical (9:16)</SelectItem>
-    <SelectItem value="1:1" className={!isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}>
-      <span>Square (1:1)</span>
-      {!isPremium && <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>}
-    </SelectItem>
-    <SelectItem value="16:9" className={!isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}>
-      <span>Landscape (16:9)</span>
-      {!isPremium && <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>}
-    </SelectItem>
-  </SelectContent>
-</Select>
-<p className="text-xs text-muted-foreground mt-1">
-  Unlock Square & Landscape sizes with {" "}
-  <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link>.
-</p>
+                <Select 
+                  value={imageSize} 
+                  onValueChange={(val) => {
+                    // For non-premium users, only allow 9:16
+                    if (!isPremium && (val === "1:1" || val === "16:9")) {
+                      toast({
+                        title: "Premium Feature",
+                        description: "Upgrade to premium to use Square or Landscape image sizes.",
+                      });
+                      // Keep the current value (9:16) instead of changing
+                      return;
+                    }
+                    console.log('Setting image size to:', val);
+                    setImageSize(val);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select image size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="9:16">Vertical (9:16)</SelectItem>
+                    <SelectItem 
+                      value="1:1" 
+                      className={!isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}
+                      disabled={!isPremium}
+                    >
+                      <span>Square (1:1)</span>
+                      {!isPremium && <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>}
+                    </SelectItem>
+                    <SelectItem 
+                      value="16:9" 
+                      className={!isPremium ? "opacity-50 cursor-not-allowed flex justify-between" : "flex justify-between"}
+                      disabled={!isPremium}
+                    >
+                      <span>Landscape (16:9)</span>
+                      {!isPremium && <Link href="/pricing" onClick={(e)=>e.stopPropagation()} className="text-teal-600 hover:underline text-xs">Upgrade</Link>}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Unlock Square & Landscape sizes with {" "}
+                  <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link>.
+                </p>
               </div>
 
               <Button
@@ -1021,10 +1288,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                if (!requireBoard()) return;
-                setPublishDialogOpen(true);
-              }}
+              onClick={handleBulkPublish}
               disabled={selectedPosts.size === 0}
             >
               <PinIcon className="w-4 h-4 mr-2" />
@@ -1063,12 +1327,37 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                   onGenerateImage={handleGenerateImage}
                   onEditLink={handleEditLink}
                   onDelete={handleDelete}
+                  imageSize={imageSize}
                 />
               );
             })}
           </div>
         </div>
       )}
+
+      {/* Error Alert - Updated styling */}
+      {error && (
+        <Alert variant="default" className="mb-4 bg-gray-100 border-gray-200">
+          <AlertCircle className="h-4 w-4 text-gray-500" />
+          <AlertTitle className="text-gray-700 font-medium">{error.title}</AlertTitle>
+          <AlertDescription className="text-gray-600 mt-1">
+            <p>{error.description}</p>
+            {error.action && (
+              <div className="mt-2">
+                <Link 
+                  href="/pricing" 
+                  className="text-blue-600 hover:text-blue-700 inline-flex items-center font-medium"
+                >
+                  {error.action}
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Remove daily limits display */}
 
       {/* Schedule Dialog */}
 <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
@@ -1312,6 +1601,54 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Publish Dialog */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Publish Posts to Pinterest</DialogTitle>
+            <DialogDescription>
+              You are about to publish {selectedPosts.size} posts to Pinterest board "{pinterestBoards.find(b => b.id === selectedBoard)?.name || 'Selected Board'}"
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="mb-4 p-3 border rounded-lg bg-blue-50">
+              <p className="font-medium text-blue-800">Publishing Details:</p>
+              <ul className="mt-2 text-sm text-blue-700 space-y-1">
+                <li>• Number of posts: {selectedPosts.size}</li>
+                <li>• Board: {pinterestBoards.find(b => b.id === selectedBoard)?.name}</li>
+                {Object.keys(selectedBoardForPosts).length > 0 && (
+                  <li>• Some posts have custom board selections</li>
+                )}
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setPublishDialogOpen(false)}
+              disabled={isPublishing === "bulk"}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmBulkPublish}
+              disabled={isPublishing === "bulk"}
+              className="bg-teal-600 hover:bg-teal-700"
+            >
+              {isPublishing === "bulk" ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                "Publish All"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Toaster />
     </div>
   )
 }

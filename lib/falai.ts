@@ -13,7 +13,11 @@ const FALLBACK_IMAGE_URLS = [
   "https://images.unsplash.com/photo-1511649475669-e288648b2339?w=800&h=1200&fit=crop",
 ]
 
-export async function generateImage(prompt: string) {
+// Default dimensions for 9:16 aspect ratio
+const DEFAULT_WIDTH = 900;
+const DEFAULT_HEIGHT = 1600;
+
+export async function generateImage(prompt: string, width: number = DEFAULT_WIDTH, height: number = DEFAULT_HEIGHT) {
   try {
     if (!process.env.FALAI_API_KEY) {
       throw new Error("FALAI_API_KEY is not set in environment variables")
@@ -31,7 +35,8 @@ export async function generateImage(prompt: string) {
     const res = await fal.subscribe("fal-ai/flux/dev", {
       input: {
         prompt: prompt,
-        image_size: "square_hd",
+        width: width,
+        height: height,
         sync_mode: true,
       },
     });
