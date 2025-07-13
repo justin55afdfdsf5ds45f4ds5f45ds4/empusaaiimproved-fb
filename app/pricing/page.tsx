@@ -155,20 +155,27 @@ export default function PricingPage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Button
+              asChild
               size="lg"
               className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
             >
-              <Phone className="mr-2 h-5 w-5" /> Book a Call
+              <a
+                href="https://cal.com/justin-lord-a80mr6/30min"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Phone className="mr-2 h-5 w-5" /> Book a Call
+              </a>
             </Button>
             <Button
               variant="outline"
+              asChild
               size="lg"
               className="font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-900/30 dark:hover:text-green-400"
-              asChild
             >
-              <a href="mailto:justinlord@empusaai.com">
+              <Link href="/contact">
                 Contact Us
-              </a>
+              </Link>
             </Button>
           </div>
         </section>
