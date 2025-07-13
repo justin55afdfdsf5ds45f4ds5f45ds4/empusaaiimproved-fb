@@ -169,6 +169,7 @@ You are an expert Pinterest image prompt creator. Your job is to write a single-
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
 - do not use any trademark logos or name.
+- make sure no text is getting truncated and should be within the image and not cut off.
 - So do not use too much long image headline/title that will be in the image, make them short as possible but informative.
 - Do not include fonts, color codes, or layout instructions — only describe the look and feel
 - Always mention that this prompt is for pinterest post
