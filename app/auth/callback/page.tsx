@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/types/supabase';
 
+// Ensure this page is always rendered dynamically to safely use client-side hooks like useSearchParams.
+export const dynamic = "force-dynamic";
+
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
