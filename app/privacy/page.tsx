@@ -180,6 +180,9 @@ export default function PrivacyPage() {
                 <Link href="/contact" className="text-sm text-gray-500 hover:text-gray-900">
                   Contact
                 </Link>
+                <Link href="/terms" className="text-sm text-gray-500 hover:text-gray-900">
+                  Terms of Service
+                </Link>
                 <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-900">
                   Privacy
                 </Link>
