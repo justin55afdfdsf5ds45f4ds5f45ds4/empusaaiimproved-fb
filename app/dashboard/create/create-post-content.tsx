@@ -289,10 +289,21 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
       const limitType = limits.isPremium ? "Premium" : "Free";
       const maxPosts = limits.isPremium ? "100" : "10";
       const resetTime = getTimeUntilReset(new Date(limits.postsGenerated.nextResetTime));
+
+      // Determine appropriate upgrade CTA
+      let actionText: string | undefined;
+      if (!limits.isPremium) {
+        // Free user -> suggest Premium
+        actionText = "Upgrade to Premium for 100 posts per day";
+      } else {
+        // Premium user -> suggest Enterprise
+        actionText = "Upgrade to Enterprise for unlimited posts per day";
+      }
+
       const errorMsg = {
         title: `${limitType} Plan Daily Limit Reached`,
         description: `You have reached your daily limit of ${maxPosts} posts. Your limits will reset in ${resetTime}.`,
-        action: !limits.isPremium ? "Upgrade to Enterprise for 100 posts per day" : undefined,
+        action: actionText,
       };
       setError(errorMsg);
       toast({
