@@ -6,6 +6,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
+import { signInWithGoogle } from "@/lib/auth"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -96,10 +97,7 @@ export default function SignupPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true)
-      await signIn("google", {
-        callbackUrl: "/dashboard/social",
-        redirect: true,
-      })
+      await signInWithGoogle()
     } catch (error) {
       console.error("Google sign-in error:", error)
       toast({

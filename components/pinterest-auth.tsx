@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { signIn } from "next-auth/react"
 import { PinIcon } from "lucide-react"
+import { toast } from "@/components/ui/use-toast"
 
 export function PinterestAuth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -11,10 +11,24 @@ export function PinterestAuth() {
   const handleConnect = async () => {
     setIsLoading(true)
     try {
-      await signIn("pinterest", { callbackUrl: "/dashboard" })
+      const response = await fetch("/api/pinterest/connect", {
+        method: "POST",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to initiate Pinterest connection")
+      }
+
+      const data = await response.json()
+      // Redirect the user to Pinterest OAuth URL returned by the server
+      window.location.href = data.url
     } catch (error) {
       console.error("Error connecting to Pinterest:", error)
-    } finally {
+      toast({
+        title: "Connection Failed",
+        description: "Unable to initiate Pinterest connection. Please try again.",
+        variant: "destructive",
+      })
       setIsLoading(false)
     }
   }

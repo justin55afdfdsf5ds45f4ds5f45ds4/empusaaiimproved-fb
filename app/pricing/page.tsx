@@ -11,6 +11,7 @@ const GrowthPlanFeatures = [
   { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "Pinterest strategy coach access" },
   { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "AI content generation" },
   { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "Bulk post scheduling" },
+  { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "7-day post storage" },
   { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "Custom link insertion" },
   { icon: <CheckCircle2 className="h-5 w-5 text-green-500" />, text: "Access to new features" },
 ]

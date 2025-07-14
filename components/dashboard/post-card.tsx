@@ -102,7 +102,7 @@ export function PostCard({
   };
 
   return (
-    <Card className={`relative transition-all ${isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}>
+    <Card className={`relative transition-all flex flex-col h-auto ${isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}>
       {showCheckbox && (
         <div className="absolute top-2 left-2 z-10">
           <input

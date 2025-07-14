@@ -1,6 +1,12 @@
-export const dynamic = "force-dynamic";
+"use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import bcrypt from "bcryptjs";
+import { supabase } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export default function AuthCallbackPage() {
   return (
@@ -18,18 +24,9 @@ function Loading() {
   );
 }
 
-/* Client component split to satisfy Suspense requirements */
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
-
 function CallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClientComponentClient<Database>();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -56,19 +53,22 @@ function CallbackClient() {
           const { user } = session;
           const metadata = user.user_metadata || {};
 
-          console.log('Upserting user data to Supabase...');
+          console.log('Upserting user data to Supabase & ensuring credentials login compatibility...');
+
+          // Generate a deterministic password based on user id (hashed before storing).
+          const plainPassword = user.id;
+          const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
           const { data: upsertData, error: upsertError } = await supabase
             .from('users')
             .upsert({
               id: user.id,
               email: user.email,
               name: metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Anonymous',
-              avatar_url: metadata.avatar_url || null,
-              provider: 'google',
+              password: hashedPassword, // store hashed password for Credentials provider
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
-              last_sign_in: new Date().toISOString(),
-            })
+            } as any)
             .select()
             .single();
 
@@ -78,19 +78,35 @@ function CallbackClient() {
 
           console.log('User data stored successfully:', upsertData);
 
+          // Automatically establish NextAuth session using Credentials provider
+          try {
+            await signIn('credentials', {
+              redirect: false,
+              email: user.email,
+              password: plainPassword,
+            });
+          } catch (err) {
+            console.error('Failed to create NextAuth session:', err);
+          }
+
           router.push('/dashboard');
         };
 
-        // First check if session is already available
-        const { data: { session: currentSession }} = await supabase.auth.getSession();
+        // Attempt to get an existing session (this will automatically
+        // exchange the auth code for a session if one isn't cached yet)
+        const { data: { session: currentSession }, error: getSessionError } = await supabase.auth.getSession();
+
+        if (getSessionError) {
+          throw getSessionError;
+        }
 
         if (currentSession) {
           await proceedWithSession(currentSession);
           return;
         }
 
-        // Otherwise wait for SIGNED_IN event
-        const { data: { subscription }} = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Wait for SIGNED_IN event if session isn't immediately available
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'SIGNED_IN' && session) {
             try {
               await proceedWithSession(session);
@@ -99,15 +115,6 @@ function CallbackClient() {
             }
           }
         });
-
-        // Timeout after 10 seconds if session not established
-        setTimeout(() => {
-          console.error('Session not established within timeout');
-          subscription.unsubscribe();
-          router.push('/login?error=Session+not+established');
-        }, 10000);
-
-        // Exit early; rest handled in listener
         return;
 
         // Get user metadata

@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { TimeSelect } from "@/components/ui/time-select"
 import {
   Dialog,
   DialogContent,
@@ -458,6 +459,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const finalDateTime = new Date(scheduledDate);
   finalDateTime.setHours(hours, minutes, 0, 0);
 
+  const linkVal = postLinks[currentPostForScheduling.id] || currentPostForScheduling.defaultLink || "";
+  if (!linkVal) {
+    const proceed = confirm("This post doesn't have a link. Schedule anyway?");
+    if (!proceed) return;
+  }
+
   try {
     const response = await fetch("/api/posts/schedule", {
       method: "POST",
@@ -471,14 +478,37 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
           title: currentPostForScheduling.title,
           description: currentPostForScheduling.description,
           imageUrl: currentPostForScheduling.imageUrl,
-          link: postLinks[currentPostForScheduling.id] || currentPostForScheduling.defaultLink || "",
+          link: linkVal,
           scheduledTime: finalDateTime.toISOString(),
         }],
       }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      throw new Error("Failed to schedule post");
+      if (response.status === 403 && data.details) {
+        toast({
+          title: data.details.title,
+          description: (
+            <div className="space-y-2">
+              <p>{data.details.description}</p>
+              {data.details.action && (
+                <Link href="/pricing" className="text-white underline hover:text-blue-100 block">
+                  {data.details.action}
+                </Link>
+              )}
+            </div>
+          ),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to schedule post. Please try again.",
+          variant: "destructive",
+        });
+      }
+      return;
     }
 
     // Remove the scheduled post from the list
@@ -562,6 +592,12 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
   const post = generatedPosts.find(p => p.id === postId);
   if (!post) return;
 
+  const linkValue = postLinks[post.id] || post.defaultLink || "";
+  if (!linkValue) {
+    const proceed = confirm("This post doesn't have a link. Publish anyway?");
+    if (!proceed) return;
+  }
+
   setIsPublishing(postId);
   try {
     const response = await fetch("/api/pinterest/pins", {
@@ -574,12 +610,35 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         title: post.title,
         description: post.description,
         imageUrl: post.imageUrl,
-        link: postLinks[post.id] || post.defaultLink || "",
+        link: linkValue,
       }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      throw new Error("Failed to publish post");
+      if (response.status === 403 && data.details) {
+        toast({
+          title: data.details.title,
+          description: (
+            <div className="space-y-2">
+              <p>{data.details.description}</p>
+              {data.details.action && (
+                <Link href="/pricing" className="text-white underline hover:text-blue-100 block">
+                  {data.details.action}
+                </Link>
+              )}
+            </div>
+          ),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to publish post. Please try again.",
+          variant: "destructive",
+        });
+      }
+      return;
     }
 
     toast({
@@ -721,7 +780,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         link += `#${frag}`;
       }
       // Output date as unquoted ISO 8601 string, trimmed
-      const publishDate = String(randomDates[idx]).trim();
+      const publishDate = randomDates[idx].toISOString().split(".")[0];
       return [
         post.title?.trim() ?? "",
         post.imageUrl && post.imageUrl.startsWith('http') ? post.imageUrl.trim() : '',
@@ -808,7 +867,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     if (linkAllText) {
       const newPostLinks = { ...postLinks }
       selectedPosts.forEach((postId) => {
-        newPostLinks[postId] = linkAllText
+        newPostLinks[postId] = `${linkAllText}#${generateRandomFragment(8)}`
       })
       setPostLinks(newPostLinks)
       setLinkAllDialogOpen(false)
@@ -848,6 +907,21 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
     const finalDateTime = new Date(scheduleAllDate);
     finalDateTime.setHours(hours, minutes, 0, 0);
 
+    // Check scheduling limits before attempting API call
+    if (limits) {
+      const remain = limits.postsScheduled.remaining;
+      if (remain === 0 || selectedPosts.size > remain) {
+        toast({
+          title: limits.isPremium ? "Daily Scheduling Limit Reached" : "Free Plan Limit Reached",
+          description: `You can schedule more posts in ${getTimeUntilReset(new Date(limits.postsScheduled.nextResetTime))}. ${
+            !limits.isPremium ? "Upgrade to Premium for higher limits!" : "Upgrade to Enterprise for unlimited posts!"
+          }`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       const selectedPostsArray = generatedPosts.filter(post => selectedPosts.has(post.id));
       const postsToSchedule = selectedPostsArray.map((post, index) => ({
@@ -870,8 +944,31 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         }),
       });
 
+      const respData = await response.json();
       if (!response.ok) {
-        throw new Error("Failed to schedule posts");
+        if (response.status === 403 && respData.details) {
+          toast({
+            title: respData.details.title,
+            description: (
+              <div className="space-y-2">
+                <p>{respData.details.description}</p>
+                {respData.details.action && (
+                  <Link href="/pricing" className="text-white underline hover:text-blue-100 block">
+                    {respData.details.action}
+                  </Link>
+                )}
+              </div>
+            ),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: respData.error || "Failed to schedule posts. Please try again.",
+            variant: "destructive",
+          });
+        }
+        return;
       }
 
       // Remove scheduled posts from the list
@@ -923,15 +1020,18 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
     // Check publishing limits
     const selectedCount = selectedPosts.size;
-    if (limits?.postsPublished.remaining === 0) {
-      toast({
-        title: limits.isPremium ? "Daily Publishing Limit Reached" : "Free Trial Publishing Limit Reached",
-        description: `You can publish more posts in ${getTimeUntilReset(new Date(limits.postsPublished.nextResetTime))}. ${
-          !limits.isPremium ? "Upgrade to premium for higher limits!" : ""
-        }`,
-        variant: "destructive",
-      });
-      return;
+    if (limits) {
+      const remaining = limits.postsPublished.remaining;
+      if (remaining === 0 || selectedCount > remaining) {
+        toast({
+          title: limits.isPremium ? "Daily Publishing Limit Reached" : "Free Plan Limit Reached",
+          description: `You can publish more posts in ${getTimeUntilReset(new Date(limits.postsPublished.nextResetTime))}. ${
+            !limits.isPremium ? "Upgrade to Premium for higher limits!" : "Upgrade to Enterprise for unlimited posts!"
+          }`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -956,7 +1056,27 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
           if (!response.ok) {
             const errorData = await response.json();
-            // If Pinterest error, try to schedule instead
+
+            // Handle daily limit error details
+            if (response.status === 403 && errorData.details) {
+              toast({
+                title: errorData.details.title,
+                description: (
+                  <div className="space-y-2">
+                    <p>{errorData.details.description}</p>
+                    {errorData.details.action && (
+                      <Link href="/pricing" className="text-white underline hover:text-blue-100 block">
+                        {errorData.details.action}
+                      </Link>
+                    )}
+                  </div>
+                ),
+                variant: "destructive",
+              });
+              break; // stop further processing
+            }
+
+            // If Pinterest spam/limit error, try to schedule instead
             if (errorData.error?.includes("spam") || errorData.error?.includes("limit")) {
               const scheduleTime = generateRandomScheduleTime();
               const scheduleResponse = await fetch("/api/posts/schedule", {
@@ -1007,7 +1127,7 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
 
       toast({
         title: "Posts Processed",
-        description: "Successfully processed selected posts.",
+        description: "Finished processing selected posts.",
       });
     } catch (error) {
       console.error("Error in bulk publish:", error);
@@ -1409,10 +1529,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
         <div>
           <Label>Time</Label>
           <div className="mt-2">
-            <Input
-              type="time"
+            <TimeSelect
               value={scheduledTime}
-              onChange={(e) => setScheduledTime(e.target.value)}
+              onValueChange={setScheduledTime}
               className="w-full"
             />
           </div>
@@ -1587,11 +1706,9 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
               <div>
                 <Label htmlFor="schedule-all-time">Time</Label>
                 <div className="mt-2">
-                  <Input
-                    id="schedule-all-time"
-                    type="time"
+                  <TimeSelect
                     value={scheduleAllTime}
-                    onChange={(e) => setScheduleAllTime(e.target.value)}
+                    onValueChange={setScheduleAllTime}
                     className="w-full"
                   />
                 </div>

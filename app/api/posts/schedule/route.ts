@@ -19,11 +19,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    const clientDb = await clientPromise;
+    const mongo = clientDb.db();
+    const userDoc = await mongo.collection("users").findOne({ id: session.user.id });
+    const isPremium = userDoc?.premiumUntil && new Date(userDoc.premiumUntil) > new Date();
+
     // Check daily limits
     const incrementResult = await incrementDailyLimit(session.user.id, "postsScheduled", posts.length);
     if (!incrementResult.success) {
+      const limitType = isPremium ? "Premium" : "Free";
+      const maxPosts = isPremium ? 100 : 5;
+      const nextReset = incrementResult.nextResetTime.toLocaleTimeString("en-US", {hour:"numeric",minute:"numeric",hour12:true});
       return NextResponse.json(
-        { error: "Daily scheduling limit reached" },
+        { details:{
+            title: `${limitType} Plan Limit`,
+            description:`You've reached today's schedule limit of ${maxPosts} posts. Resets at ${nextReset}.`,
+            action: isPremium?"Upgrade to Enterprise →":"Upgrade to Premium →"
+        } },
         { status: 403 }
       );
     }

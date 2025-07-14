@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { signIn, useSession } from "next-auth/react"
+import { signInWithGoogle } from "@/lib/auth"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -75,10 +76,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true)
-      await signIn("google", { 
-        callbackUrl: "/dashboard",
-        redirect: true
-      })
+      await signInWithGoogle()
+      // Redirect handled by Supabase; no further code necessary
     } catch (error) {
       console.error("Google sign-in error:", error)
       toast({

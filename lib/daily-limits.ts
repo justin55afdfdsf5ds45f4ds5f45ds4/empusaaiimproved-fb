@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import clientPromise from "@/lib/mongodb";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 interface DailyLimits {
   postsGenerated: number;
@@ -45,8 +46,8 @@ export async function getDailyLimits(userId: string): Promise<DailyLimits> {
       postsPublished: 0,
       postsScheduled: 0,
       lastResetDate: startOfDay
-    };
-    await db.collection("daily_limits").insertOne(limits);
+    } as any;
+    await db.collection("daily_limits").insertOne(limits as any);
   }
 
   return limits;
@@ -62,7 +63,19 @@ export async function incrementDailyLimit(
 
   // Get user's premium status
   const user = await db.collection("users").findOne({ id: userId });
-  const isPremium = user?.premiumUntil && new Date(user.premiumUntil) > new Date();
+  let premiumUntil = user?.premiumUntil as string | null | undefined;
+
+  if (!premiumUntil) {
+    // Fallback to Supabase value
+    const { data: sbUser } = await supabaseAdmin
+      .from("users")
+      .select("premiumuntil")
+      .eq("id", userId)
+      .single();
+    premiumUntil = sbUser?.premiumuntil ?? null;
+  }
+
+  const isPremium = premiumUntil ? new Date(premiumUntil) > new Date() : false;
   const limits = isPremium ? PREMIUM_LIMITS : FREE_LIMITS;
 
   // Get today's start and end timestamps
@@ -72,7 +85,7 @@ export async function incrementDailyLimit(
   endOfDay.setHours(23, 59, 59, 999);
 
   // Get or create daily limits record
-  let dailyLimits = await db.collection("daily_limits").findOne({
+  let dailyLimits: any = await db.collection("daily_limits").findOne({
     userId,
     date: { $gte: startOfDay, $lte: endOfDay }
   });
@@ -85,8 +98,8 @@ export async function incrementDailyLimit(
       postsPublished: 0,
       postsScheduled: 0,
       lastResetDate: startOfDay
-    };
-    await db.collection("daily_limits").insertOne(dailyLimits);
+    } as any;
+    await db.collection("daily_limits").insertOne(dailyLimits as any);
   }
 
   // Check if increment would exceed limit
@@ -113,6 +126,14 @@ export async function incrementDailyLimit(
     { $inc: { [type]: count } }
   );
 
+  // If generating posts, also update Supabase users.count_num_posts for reporting
+  if (type === "postsGenerated") {
+    await supabaseAdmin
+      .from("users")
+      .update({ count_num_posts: (user?.count_num_posts || 0) + count })
+      .eq("id", userId);
+  }
+
   // Calculate remaining
   const remaining = limits[limitKey] - (currentCount + count);
   const nextResetTime = new Date(startOfDay);
@@ -136,7 +157,19 @@ export async function getRemainingLimits(userId: string): Promise<{
 
   // Get user's premium status
   const user = await db.collection("users").findOne({ id: userId });
-  const isPremium = user?.premiumUntil && new Date(user.premiumUntil) > new Date();
+  let premiumUntil = user?.premiumUntil as string | null | undefined;
+
+  if (!premiumUntil) {
+    // Fallback to Supabase value
+    const { data: sbUser } = await supabaseAdmin
+      .from("users")
+      .select("premiumuntil")
+      .eq("id", userId)
+      .single();
+    premiumUntil = sbUser?.premiumuntil ?? null;
+  }
+
+  const isPremium = premiumUntil ? new Date(premiumUntil) > new Date() : false;
   const limits = isPremium ? PREMIUM_LIMITS : FREE_LIMITS;
 
   const dailyLimits = await getDailyLimits(userId);

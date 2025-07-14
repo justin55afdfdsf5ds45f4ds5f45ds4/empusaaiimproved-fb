@@ -22,20 +22,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Check daily limits
-    const incrementResult = await incrementDailyLimit(session.user.id, "postsPublished", 1);
-    if (!incrementResult.success) {
-      return NextResponse.json(
-        { error: "Daily publishing limit reached" },
-        { status: 403 }
-      );
-    }
-
-    // Get the user's Pinterest tokens from the database
+    // Get the user's Pinterest tokens and premium
     const client = await clientPromise
     const db = client.db()
 
     const user = await db.collection("users").findOne({ email: session.user.email })
+    const isPremium = user?.premiumUntil && new Date(user.premiumUntil) > new Date()
+
+    // Check daily limits
+    const incrementResult = await incrementDailyLimit(session.user.id, "postsPublished", 1);
+    if (!incrementResult.success) {
+      const nextReset = incrementResult.nextResetTime.toLocaleTimeString("en-US", {hour:"numeric",minute:"numeric",hour12:true});
+      return NextResponse.json(
+        { details:{
+          title: isPremium?"Premium Plan Limit":"Free Plan Limit",
+          description:`You've reached today's limit of ${isPremium?100:10} posts. Resets at ${nextReset}.`,
+          action: isPremium?"Upgrade to Enterprise →":"Upgrade to Premium →"
+        }},
+        { status: 403 }
+      );
+    }
 
     if (!user || !user.pinterest || !user.pinterest.accessToken) {
       return NextResponse.json({ error: "Pinterest account not connected" }, { status: 400 })

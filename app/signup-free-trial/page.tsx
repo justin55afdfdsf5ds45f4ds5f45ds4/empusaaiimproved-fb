@@ -12,7 +12,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { supabase } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
 import { Logo } from "@/components/logo"
-import { signIn } from 'next-auth/react';
+import { signInWithGoogle } from "@/lib/auth";
 
 export default function FreeTrialSignupPage() {
   const router = useRouter()
@@ -67,21 +67,17 @@ export default function FreeTrialSignupPage() {
   }
 
   const handleGoogleSignIn = async () => {
-    console.log('Starting Google sign-in process...');
-    setIsLoading(true);
     try {
-      await signIn('google', { callbackUrl: '/dashboard' });
+      setIsLoading(true);
+      await signInWithGoogle();
+      // The browser will redirect; no further action needed here
     } catch (error) {
       console.error("Google sign-in error:", error);
-      console.error("Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
       toast({
         title: "Authentication Error",
-        description: error instanceof Error ? error.message : "Failed to sign in with Google. Please try again.",
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
       });
       setIsLoading(false);
     }

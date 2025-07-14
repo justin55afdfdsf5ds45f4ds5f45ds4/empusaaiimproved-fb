@@ -11,6 +11,8 @@ const alertVariants = cva(
         default: "bg-background text-foreground",
         destructive:
           "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        warning:
+          "border-[#FFAA2C] bg-[#FFF4E5] text-[#4B5563]", // custom light orange warning
       },
     },
     defaultVariants: {

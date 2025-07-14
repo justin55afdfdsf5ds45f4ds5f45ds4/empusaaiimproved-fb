@@ -11,7 +11,13 @@ export async function POST(req: Request) {
     const { postId, title, description, imageUrl } = await req.json()
 
     if (!postId || !title || !description || !imageUrl) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Missing required fields",
+          received: { postId, title, description, imageUrl },
+        },
+        { status: 400 },
+      )
     }
 
     // In a real app, you would use the Pinterest API to publish the post

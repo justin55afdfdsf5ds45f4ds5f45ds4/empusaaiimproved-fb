@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { Plus, Shuffle, Lock, Crown, Calendar, Loader2 } from "lucide-react"
+import { Plus, Shuffle, Lock, Crown, Calendar, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { PostCard } from "@/components/dashboard/post-card"
 import {
@@ -23,12 +23,22 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TimeSelect } from "@/components/ui/time-select"
 import { DatePicker } from "@/components/ui/date-picker"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Toaster } from "@/components/ui/toaster"
+
+function formatResetTime(date: Date){
+  const diffMs = date.getTime()-new Date().getTime();
+  const hrs=Math.floor(diffMs/ (1000*60*60));
+  const mins=Math.floor((diffMs%(1000*60*60))/(1000*60));
+  return `${hrs}h ${mins}m`;
+}
 
 interface Post {
   _id: string
   title: string
   description: string
   imageUrl: string
+  imageSize?: string
   status: "draft" | "scheduled" | "published"
   scheduledFor?: string
   publishedAt?: string
@@ -63,6 +73,18 @@ export default function PostsPage() {
   const [missingFields, setMissingFields] = useState<string[]>([])
   const [eligibleCount, setEligibleCount] = useState(0)
   const [csvError, setCsvError] = useState("")
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [currentPostForLink, setCurrentPostForLink] = useState<Post | null>(null)
+  const [linkInput, setLinkInput] = useState("")
+  // limits state
+  interface LimitInfo {
+    postsGenerated: { remaining: number; nextResetTime: Date };
+    postsPublished: { remaining: number; nextResetTime: Date };
+    postsScheduled: { remaining: number; nextResetTime: Date };
+    isPremium: boolean;
+  }
+  const [limits,setLimits]=useState<LimitInfo|null>(null);
+  const [isLoadingLimits,setIsLoadingLimits]=useState(false);
 
   const buildCsv = (rows: string[][]) => {
     return rows.map(r => r.map(v => {
@@ -76,7 +98,19 @@ export default function PostsPage() {
   useEffect(() => {
     fetchPosts()
     fetchBoards()
+    fetchLimits();
   }, [])
+
+  async function fetchLimits(){
+    try{
+      setIsLoadingLimits(true);
+      const res=await fetch('/api/user/limits');
+      if(res.ok){
+        const data=await res.json();
+        setLimits(data);
+      }
+    }catch(e){console.error('limits fetch',e)}finally{setIsLoadingLimits(false)}
+  }
 
   const fetchPosts = async () => {
     try {
@@ -220,34 +254,91 @@ export default function PostsPage() {
     const post = posts.find(p => p._id === postId)
     if (!post) return
 
+    if (!post.imageUrl) {
+      toast({
+        title: "No Image",
+        description: "Generate an image for this post before publishing.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const boardId = selectedBoardForPosts[postId] || pinterestBoards[0]?.id
+    if (!boardId) {
+      toast({
+        title: "No Board Selected",
+        description: "Connect Pinterest and choose a board before publishing.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const linkValue = postLinks[post._id] || post.defaultLink || ""
+    if (!linkValue) {
+      const proceed = confirm("This post doesn't have a link. Publish anyway?")
+      if (!proceed) return
+    }
+
     setIsPublishing(postId)
     try {
-      const response = await fetch("/api/posts/publish", {
+      // local limit check
+      if(limits){
+        if(limits.postsPublished.remaining===0){
+          toast({
+            title:limits.isPremium?"Daily Publishing Limit Reached":"Free Plan Limit Reached",
+            description:`You can publish more posts in ${formatResetTime(new Date(limits.postsPublished.nextResetTime))}. ${!limits.isPremium?"Upgrade to Premium for higher limits!":"Upgrade to Enterprise for unlimited posts!"}`,
+            variant:"destructive"
+          });
+          return;
+        }
+      }
+      const response = await fetch("/api/pinterest/pins", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          boardId: selectedBoardForPosts[postId] || pinterestBoards[0]?.id,
-          posts: [
-            {
-              id: post._id,
-              title: post.title,
-              description: post.description,
-              imageUrl: post.imageUrl,
-              link: postLinks[post._id] || post.defaultLink || "",
-            },
-          ],
+          boardId,
+          imageUrl: post.imageUrl,
+          title: post.title,
+          description: post.description,
+          link: linkValue,
         }),
       })
 
+      console.log('Publish response status',response.status);
+      const resp = await response.json().catch(()=>({}));
+      console.log('Publish response body',resp);
       if (!response.ok) {
-        throw new Error("Failed to publish post")
+        if (response.status === 403 && resp.details) {
+          toast({
+            title: resp.details.title,
+            description: (
+              <div className="space-y-2">
+                <p>{resp.details.description}</p>
+                {resp.details.action && (
+                  <Link href="/pricing" className="text-white underline hover:text-blue-100 block">
+                    {resp.details.action}
+                  </Link>
+                )}
+              </div>
+            ),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: resp.error || "Failed to publish post. Please try again.",
+            variant: "destructive",
+          });
+        }
+        return;
       }
 
-      toast({
-        title: "Published!",
-      })
+      toast({ title:"Published!" })
+
+      // refresh limits
+      fetchLimits();
 
       // Remove the published post from the list
       setPosts((prev) => prev.filter((p) => p._id !== postId))
@@ -287,6 +378,18 @@ export default function PostsPage() {
       const [hours, minutes] = selectedTime.split(":")
       scheduledDateTime.setHours(parseInt(hours), parseInt(minutes))
 
+      // limit check
+      if(limits){
+        if(limits.postsScheduled.remaining===0){
+          toast({
+            title:limits.isPremium?"Daily Scheduling Limit Reached":"Free Plan Limit Reached",
+            description:`You can schedule more posts in ${formatResetTime(new Date(limits.postsScheduled.nextResetTime))}. ${!limits.isPremium?"Upgrade to Premium for higher limits!":"Upgrade to Enterprise for unlimited posts!"}`,
+            variant:"destructive"
+          });
+          return;
+        }
+      }
+
       const response = await fetch("/api/pinterest/schedule", {
         method: "POST",
         headers: {
@@ -302,14 +405,19 @@ export default function PostsPage() {
         }),
       })
 
+      console.log('Schedule response status',response.status);
+      const resp=await response.json().catch(()=>({}));
+      console.log('Schedule response body',resp);
       if (!response.ok) {
-        throw new Error("Failed to schedule post")
+        if(response.status===403 && resp.details){
+           toast({title:resp.details.title,description:(<div className="space-y-2"><p>{resp.details.description}</p>{resp.details.action&&(<Link href="/pricing" className="text-white underline hover:text-blue-100 block">{resp.details.action}</Link>)}</div>),variant:"destructive"});
+        }else{
+           toast({title:"Error",description:resp.error||"Failed to schedule post.",variant:"destructive"});
+        }
+        return;
       }
 
-      toast({
-        title: "Success",
-        description: "Post scheduled successfully!",
-      })
+      toast({title:"Post Scheduled"})
 
       // Reset form and close dialog
       setSelectedDate(undefined)
@@ -332,19 +440,39 @@ export default function PostsPage() {
   }
 
   const handleEditLink = (postId: string) => {
-    // TODO: Implement link editing logic
-    toast({
-      title: "Coming Soon",
-      description: "Link editing will be available soon!",
-    })
+    const post = posts.find(p=>p._id === postId)
+    if(!post) return
+    setCurrentPostForLink(post)
+    setLinkInput(post.defaultLink || "")
+    setLinkDialogOpen(true)
   }
 
   const handleDelete = (postId: string) => {
-    // TODO: Implement delete logic
-    toast({
-      title: "Coming Soon",
-      description: "Post deletion will be available soon!",
+    if(!confirm("Delete this post permanently?")) return
+    fetch(`/api/posts/recentposts/${postId}`, {method:"DELETE"}).then(async res=>{
+      if(!res.ok) throw new Error()
+      setPosts(prev=>prev.filter(p=>p._id!==postId))
+      toast({title:"Deleted"})
+    }).catch(()=>{
+      toast({title:"Error",description:"Unable to delete.",variant:"destructive"})
     })
+  }
+
+  const handleLinkSave = async ()=>{
+    if(!currentPostForLink) return
+    try{
+      const res = await fetch(`/api/posts/recentposts/${currentPostForLink._id}`,{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({link:linkInput})
+      })
+      if(!res.ok) throw new Error()
+      setPosts(prev=>prev.map(p=>p._id===currentPostForLink._id?{...p, defaultLink:linkInput}:p))
+      toast({title:"Link updated"})
+      setLinkDialogOpen(false)
+    }catch{
+      toast({title:"Error",description:"Failed to update link",variant:"destructive"})
+    }
   }
 
   const togglePostSelection = (postId: string) => {
@@ -458,6 +586,33 @@ export default function PostsPage() {
     )
   }
 
+  // Determine storage notice
+  const now = new Date()
+  const isPremium = session?.user?.premiumUntil && new Date(session.user.premiumUntil) > now
+  const storageHours = isPremium ? 24 : 2
+
+  const StorageAlert = () => (
+    <Alert variant={isPremium ? "default" : "warning"} className="mb-6 flex items-center gap-3">
+      <AlertCircle className="h-5 w-5 text-[#FFAA2C]" />
+      <div>
+        <AlertTitle className="mb-0 font-semibold text-[#D97706]">Limited Storage Period</AlertTitle>
+        <AlertDescription className="mt-0 text-[#4B5563]">
+          {isPremium ? (
+            <span>
+              Your posts are stored for <strong>7&nbsp;days</strong>. Need longer?&nbsp;
+              <Link href="/pricing" className="text-[#F97316] underline">Upgrade to Enterprise</Link> for unlimited storage.
+            </span>
+          ) : (
+            <span className="text-[#F97316]">
+              Your posts are stored for <strong>2&nbsp;hours</strong> only. &nbsp;
+              <Link href="/pricing" className="underline">Upgrade to Premium</Link> for 7-day storage.
+            </span>
+          )}
+        </AlertDescription>
+      </div>
+    </Alert>
+  )
+
   return (
     <div className="space-y-6">
       {/* Header with Actions */}
@@ -492,7 +647,7 @@ export default function PostsPage() {
               </Button>
               <p className="text-xs text-muted-foreground mt-1">
                 Unlock Bulk Shuffle with {" "}
-                <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link>.
+                <Link href="/pricing" className="text-teal-600 hover:underline">Premium</Link> for unlimited storage.
               </p>
             </div>
           )}
@@ -504,6 +659,7 @@ export default function PostsPage() {
           </Button>
         </div>
       </div>
+      <StorageAlert />
 
       {posts.length === 0 ? (
         <Card>
@@ -517,7 +673,7 @@ export default function PostsPage() {
               <Button asChild>
                 <Link href="/dashboard/create">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Post
+                  Create Your New Post
                 </Link>
               </Button>
             </div>
@@ -554,6 +710,7 @@ export default function PostsPage() {
                 onSchedule={handleSchedule}
                 onEditLink={handleEditLink}
                 onDelete={handleDelete}
+                imageSize={post.imageSize || "9:16"}
               />
             )
           })}
@@ -703,6 +860,21 @@ export default function PostsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Link Edit Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Link</DialogTitle>
+          </DialogHeader>
+          <Input value={linkInput} onChange={e=>setLinkInput(e.target.value)} placeholder="https://..." />
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={()=>setLinkDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleLinkSave}>Save</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Toaster />
     </div>
   )
 }

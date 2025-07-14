@@ -25,8 +25,20 @@ export async function POST(req: Request) {
     // Check daily limits
     const incrementResult = await incrementDailyLimit(session.user.id, "postsScheduled", 1);
     if (!incrementResult.success) {
+      const client = await clientPromise;
+      const db = client.db();
+      const userDoc = await db.collection("users").findOne({ id: session.user.id });
+      const isPremium = userDoc?.premiumUntil && new Date(userDoc.premiumUntil) > new Date();
+      const limitType = isPremium?"Premium":"Free";
+      const maxPosts = isPremium?100:5;
+      const nextReset = incrementResult.nextResetTime.toLocaleTimeString("en-US",{hour:"numeric",minute:"numeric",hour12:true});
+      console.log("[ScheduleRoute] Daily limit reached",{user:session.user.email,isPremium,remaining:incrementResult.remaining});
       return NextResponse.json(
-        { error: "Daily scheduling limit reached" },
+        { details:{
+            title:`${limitType} Plan Limit`,
+            description:`You've reached today's schedule limit of ${maxPosts} posts. Resets at ${nextReset}.`,
+            action:isPremium?"Upgrade to Enterprise →":"Upgrade to Premium →"
+        } },
         { status: 403 }
       );
     }

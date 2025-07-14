@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
 import clientPromise from "@/lib/mongodb"
 import { refreshPinterestToken } from "@/lib/pinterest"
+import { logDebug } from "@/lib/logger"
 
 export async function GET() {
   try {
@@ -12,13 +13,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    logDebug("PinterestBoards", { step: "session", email: session.user.email })
+
     // Get the user's Pinterest tokens from the database
     const client = await clientPromise
     const db = client.db()
 
     const user = await db.collection("users").findOne({ email: session.user.email })
 
+    logDebug("PinterestBoards", { step: "db_user", found: !!user, userHasPinterest: !!user?.pinterest })
+
     if (!user || !user.pinterest || !user.pinterest.accessToken) {
+      logDebug("PinterestBoards", { step: "no_token" })
       return NextResponse.json({ error: "Pinterest account not connected" }, { status: 403 })
     }
 

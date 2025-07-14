@@ -8,6 +8,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
 import { uploadImageBase64, deleteImage } from "@/lib/cloudinary1"
 import { incrementDailyLimit } from "@/lib/daily-limits";
+import { logDebug } from "@/lib/logger"
+import { supabaseAdmin } from "@/lib/supabaseAdmin"
 
 // Sample topics for generating content
 const TOPICS = ["travel", "food", "fashion", "home decor", "fitness", "technology", "art", "beauty", "gardening", "diy"]
@@ -267,8 +269,26 @@ export async function POST(req: Request) {
     const { url, topic, tone = "informative", count = 2, boardId, imageSize, referenceImage } = body
     const requestedCount = count
 
-    // Determine premium status
-    const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > new Date()
+    // Fetch user record and determine premium status from DB
+    const userDoc = await db.collection("users").findOne({ id: userId })
+    let premiumUntil = userDoc?.premiumUntil as string | null | undefined
+
+    if (!premiumUntil) {
+      const { data: sbUser } = await supabaseAdmin
+        .from("users")
+        .select("premiumuntil")
+        .eq("id", userId)
+        .single()
+      premiumUntil = sbUser?.premiumuntil ?? null
+    }
+
+    const isPremium = premiumUntil ? new Date(premiumUntil) > new Date() : false
+
+    logDebug("GenerateRoute", {
+      email: session.user.email,
+      premiumUntil,
+      isPremium,
+    })
 
     // Enforce premium gating for post count > 2
     if (!isPremium && requestedCount > 2) {
@@ -300,7 +320,7 @@ export async function POST(req: Request) {
             description: `You've reached today's limit of ${maxPosts} posts. Resets at ${formattedTime}. ${
               !isPremium ? "Get unlimited posts with Enterprise." : ""
             }`,
-            action: !isPremium ? "Upgrade to Enterprise →" : undefined,
+            action: isPremium ? "Upgrade to Enterprise →" : "Upgrade to Premium →",
             remaining: incrementResult.remaining,
             nextResetTime: formattedTime,
             isPremium,
@@ -467,7 +487,7 @@ export async function POST(req: Request) {
         }
         // Schedule deletion of this image from Cloudinary after 5 hours (for production, use a persistent job)
         if (cloudinaryPublicId) {
-          const deleteDelayMs = isPremium ? 3 * 24 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000 // 3 days vs 2 hours
+          const deleteDelayMs = isPremium ? 7 * 24 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000 // 7 days vs 2 hours
           setTimeout(() => {
             deleteImage(cloudinaryPublicId as string).catch((err: unknown) =>
               console.error("Failed to delete Cloudinary image:", err),
@@ -498,6 +518,7 @@ export async function POST(req: Request) {
         imageUrl: cloudinaryUrl,
         cloudinaryPublicId,
         defaultLink: url ? `${url}#${randomFragment(10)}` : undefined,
+        imageSize,
       }
     })
 
@@ -548,10 +569,28 @@ export async function POST(req: Request) {
         title: post.title,
         description: post.description || "",
         imageUrl: post.imageUrl,
+        defaultLink: post.defaultLink || null,
         createdAt: new Date(),
+        imageSize: post.imageSize,
       })),
     )
 
+    // Recompute today's generated count and sync to Supabase
+    const startOfDay = new Date();
+    startOfDay.setHours(0,0,0,0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23,59,59,999);
+
+    const todayCount = await db.collection("posts").countDocuments({
+      userId: userId,
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    });
+
+    await supabaseAdmin
+      .from("users")
+      .update({ count_num_posts: todayCount })
+      .eq("id", userId);
+ 
     console.log(`Generated ${posts.length} posts`)
 
     return NextResponse.json({ posts })

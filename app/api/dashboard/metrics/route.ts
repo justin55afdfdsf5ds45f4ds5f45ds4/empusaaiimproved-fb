@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const client = await clientPromise
     const db = client.db()
 
-    const userId = new ObjectId(session.user.id)
+    const userId = ObjectId.isValid(session.user.id) ? new ObjectId(session.user.id) : session.user.id
 
     // Count posts created within the date range
     const totalPosts = await db.collection("posts").countDocuments({

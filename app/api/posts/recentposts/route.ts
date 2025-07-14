@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]/route"
+import { deleteImage } from "@/lib/cloudinary1"
 
 async function fetchRecent(session:any){
   if(!session?.user?.id){
@@ -12,9 +13,20 @@ async function fetchRecent(session:any){
   const postsCollection = db.collection("posts")
 
   const now = new Date()
-  const since = new Date(now.getTime() - 24*60*60*1000)
+  const isPremium = session.user.premiumUntil && new Date(session.user.premiumUntil) > now
+  const expiryHours = isPremium ? 168 : 2 // 7 days for premium, 2 hours for free
+  const expireBefore = new Date(now.getTime() - expiryHours*60*60*1000)
 
-  const recentPosts = await postsCollection.find({userId:session.user.id, createdAt:{$gte:since}}).sort({createdAt:-1}).toArray()
+  // Delete posts older than expiry window
+  const oldPosts = await postsCollection.find({userId:session.user.id, createdAt:{$lt:expireBefore}}).toArray()
+  await Promise.all(oldPosts.map(async (p:any)=>{
+    if(p.cloudinaryPublicId){
+      try{ await deleteImage(p.cloudinaryPublicId) }catch{}
+    }
+  }))
+  if(oldPosts.length) await postsCollection.deleteMany({_id:{$in:oldPosts.map(p=>p._id)}})
+
+  const recentPosts = await postsCollection.find({userId:session.user.id, createdAt:{$gte:expireBefore}}).sort({createdAt:-1}).toArray()
   return NextResponse.json({posts:recentPosts})
 }
 
@@ -40,7 +52,6 @@ export async function DELETE(){
   const userId = session.user.id
   const posts = await postsCollection.find({userId}).toArray()
   // delete images in parallel
-  const { deleteImage } = await import("@/lib/cloudinary1")
   await Promise.all(posts.map(async (p:any)=>{
     if(p.cloudinaryPublicId){
       try{ await deleteImage(p.cloudinaryPublicId) }catch(e){ console.error("Cloudinary delete fail", e) }
