@@ -25,7 +25,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+      redirectTo: 'https://www.empusaai.com/auth/callback',
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
