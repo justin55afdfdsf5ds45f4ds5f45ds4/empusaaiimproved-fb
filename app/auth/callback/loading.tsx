@@ -4,4 +4,4 @@ export default function Loading() {
       <p className="text-gray-500">Setting up your account...</p>
     </div>
   )
-} 
+}
