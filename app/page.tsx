@@ -30,8 +30,13 @@ export default function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
-              <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
+            <Link href="/login">
+              <Button className="bg-teal-600 hover:bg-teal-700">Get Started</Button>
+            </Link>
+            <Link href="https://www.empusaai.com/signup-free-trial" target="_blank">
+              <Button variant="ghost" className="text-sm font-semibold leading-6 text-white">
+                Book a demo <span aria-hidden="true">→</span>
+              </Button>
             </Link>
             <MobileMenu />
           </div>

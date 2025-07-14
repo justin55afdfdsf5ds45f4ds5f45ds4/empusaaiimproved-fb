@@ -29,7 +29,7 @@ export default function ContactPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
+            <Link href="https://www.empusaai.com/signup-free-trial" target="_blank">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
           </div>
@@ -68,13 +68,13 @@ export default function ContactPage() {
                 </div>
 
                 <div className="p-6 border rounded-lg shadow-sm">
-                  <h3 className="text-xl font-bold mb-4">Schedule a Demo</h3>
+                  <h3 className="text-xl font-bold mb-4">Sign up for free</h3>
                   <p className="text-gray-500 mb-6">
                     See Empusa AI in action and learn how it can transform your Pinterest strategy.
                   </p>
-                  <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
+                  <Link href="https://www.empusaai.com/signup-free-trial" target="_blank">
                     <Button className="w-full bg-teal-600 hover:bg-teal-700">
-                      Book a call
+                      Sign up for free
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -84,11 +84,11 @@ export default function ContactPage() {
               <div className="mt-12 p-6 border rounded-lg shadow-sm text-center">
                 <h3 className="text-xl font-bold mb-4">Qualify for Free Access</h3>
                 <p className="text-gray-500 mb-6">
-                  If you have over 100k followers on Pinterest, TikTok, YouTube, Instagram, or Facebook, you may qualify
-                  for free access to Empusa AI.
+                  If you have over 100k followers on Pinterest, TikTok, YouTube, Instagram, or Facebook, we want to work with you
+                  so contact us.
                 </p>
-                <Link href="https://cal.com/justin-lord-a80mr6/30min" target="_blank">
-                  <Button className="bg-teal-600 hover:bg-teal-700">Check eligibility</Button>
+                <Link href="https://www.empusaai.com/signup-free-trial" target="_blank">
+                  <Button className="bg-teal-600 hover:bg-teal-700">Sign up to try our product</Button>
                 </Link>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function ContactPage() {
                   Pricing
                 </Link>
                 <Link
-                  href="https://cal.com/justin-lord-a80mr6/30min"
+                  href="https://www.empusaai.com/signup-free-trial"
                   target="_blank"
                   className="text-sm text-gray-500 hover:text-gray-900"
                 >

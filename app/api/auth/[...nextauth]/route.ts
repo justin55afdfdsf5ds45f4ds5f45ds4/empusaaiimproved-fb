@@ -81,6 +81,13 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
     async jwt({ token, user, account, trigger, session }) {
       if (user) {
         token.id = (user as any).id
@@ -128,13 +135,6 @@ export const authOptions: NextAuthOptions = {
         }
       }
       return session
-    },
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
     },
   },
 

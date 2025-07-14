@@ -1,63 +1,55 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import bcrypt from "bcryptjs";
-import { supabase } from "@/lib/auth";
-
-export const dynamic = "force-dynamic";
+import { Suspense } from "react"
+import Loading from "./loading"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect } from "react"
+import { supabase } from "@/lib/auth"
+import { signIn } from "next-auth/react"
+import bcrypt from "bcryptjs"
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<Loading />}> 
+    <Suspense fallback={<Loading />}>
       <CallbackClient />
     </Suspense>
-  );
-}
-
-function Loading() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-500">Setting up your account...</p>
-    </div>
-  );
+  )
 }
 
 function CallbackClient() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('Auth callback started...');
-      console.log('URL search params:', Object.fromEntries(searchParams.entries()));
+      console.log('Auth callback started...')
+      console.log('URL search params:', Object.fromEntries(searchParams.entries()))
 
       try {
         // Get the code from the URL
-        const code = searchParams.get('code');
+        const code = searchParams.get('code')
         
         if (!code) {
-          console.error('No code found in URL');
-          throw new Error('No code found in URL');
+          console.error('No code found in URL')
+          throw new Error('No code found in URL')
         }
 
-        console.log('Found auth code:', code);
+        console.log('Found auth code:', code)
 
         const proceedWithSession = async (session: any) => {
           console.log('Session obtained:', {
             userId: session.user.id,
             email: session.user.email,
-          });
+          })
 
-          const { user } = session;
-          const metadata = user.user_metadata || {};
+          const { user } = session
+          const metadata = user.user_metadata || {}
 
-          console.log('Upserting user data to Supabase & ensuring credentials login compatibility...');
+          console.log('Upserting user data to Supabase & ensuring credentials login compatibility...')
 
-          // Generate a deterministic password based on user id (hashed before storing).
-          const plainPassword = user.id;
-          const hashedPassword = await bcrypt.hash(plainPassword, 10);
+          // Generate a deterministic password based on user id (hashed before storing)
+          const plainPassword = user.id
+          const hashedPassword = await bcrypt.hash(plainPassword, 10)
 
           const { data: upsertData, error: upsertError } = await supabase
             .from('users')
@@ -70,13 +62,13 @@ function CallbackClient() {
               updated_at: new Date().toISOString(),
             } as any)
             .select()
-            .single();
+            .single()
 
           if (upsertError) {
-            throw upsertError;
+            throw upsertError
           }
 
-          console.log('User data stored successfully:', upsertData);
+          console.log('User data stored successfully:', upsertData)
 
           // Automatically establish NextAuth session using Credentials provider
           try {
@@ -84,58 +76,52 @@ function CallbackClient() {
               redirect: false,
               email: user.email,
               password: plainPassword,
-            });
+            })
           } catch (err) {
-            console.error('Failed to create NextAuth session:', err);
+            console.error('Failed to create NextAuth session:', err)
           }
 
-          router.push('/dashboard');
-        };
+          router.push('/dashboard')
+        }
 
-        // Attempt to get an existing session (this will automatically
-        // exchange the auth code for a session if one isn't cached yet)
-        const { data: { session: currentSession }, error: getSessionError } = await supabase.auth.getSession();
+        // Attempt to get an existing session
+        const { data: { session: currentSession }, error: getSessionError } = await supabase.auth.getSession()
 
         if (getSessionError) {
-          throw getSessionError;
+          throw getSessionError
         }
 
         if (currentSession) {
-          await proceedWithSession(currentSession);
-          return;
+          await proceedWithSession(currentSession)
+          return
         }
 
         // Wait for SIGNED_IN event if session isn't immediately available
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'SIGNED_IN' && session) {
             try {
-              await proceedWithSession(session);
+              await proceedWithSession(session)
             } finally {
-              subscription.unsubscribe();
+              subscription.unsubscribe()
             }
           }
-        });
-        return;
-
-        // Get user metadata
-        const metadata = {} as any; // placeholder to satisfy existing coderemoved
+        })
       } catch (error) {
-        console.error('Auth callback error:', error);
+        console.error('Auth callback error:', error)
         console.error('Full error details:', {
           name: error instanceof Error ? error.name : 'Unknown',
           message: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined,
-        });
+        })
         
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        console.log('Redirecting to login with error:', errorMsg);
-        router.push('/login?error=' + encodeURIComponent(errorMsg));
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        console.log('Redirecting to login with error:', errorMsg)
+        router.push('/login?error=' + encodeURIComponent(errorMsg))
       }
-    };
+    }
 
-    // Run the callback handler
-    handleCallback();
-  }, [router, searchParams, supabase]);
+    handleCallback()
+  }, [router, searchParams])
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -145,5 +131,5 @@ function CallbackClient() {
         <p className="text-sm text-gray-400 mt-2">Check the browser console for detailed progress.</p>
       </div>
     </div>
-  );
+  )
 }

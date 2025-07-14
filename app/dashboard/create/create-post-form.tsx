@@ -27,9 +27,13 @@ interface Post {
   imageUrl: string
 }
 
-export function CreatePostForm() {
+interface CreatePostFormProps {
+  initialUrl?: string
+}
+
+export function CreatePostForm({ initialUrl = "" }: CreatePostFormProps) {
   const searchParams = useSearchParams()
-  const initialUrl = searchParams.get("url") || ""
+  const urlFromParams = searchParams.get("url") || ""
 
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -37,7 +41,7 @@ export function CreatePostForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
-  const [url, setUrl] = useState(initialUrl)
+  const [url, setUrl] = useState(initialUrl || urlFromParams)
   const [topic, setTopic] = useState("")
   const [posts, setPosts] = useState<Post[]>([])
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)

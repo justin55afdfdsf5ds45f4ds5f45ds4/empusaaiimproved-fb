@@ -28,7 +28,10 @@ export default function AboutPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+            <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
+              Log in
+            </Link>
+            <Link href="/pricing">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
           </div>
@@ -174,7 +177,7 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="https://calendly.com/fk146543/30min" target="_blank">
+                <Link href="/pricing">
                   <Button className="bg-white text-teal-600 hover:bg-gray-100">Grab a demo</Button>
                 </Link>
               </div>
@@ -205,7 +208,7 @@ export default function AboutPage() {
                   Pricing
                 </Link>
                 <Link
-                  href="https://calendly.com/fk146543/30min"
+                  href="/pricing"
                   target="_blank"
                   className="text-sm text-gray-500 hover:text-gray-900"
                 >

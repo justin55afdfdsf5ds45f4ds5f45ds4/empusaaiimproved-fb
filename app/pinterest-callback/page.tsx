@@ -1,10 +1,31 @@
 "use client"
 
-import { useEffect } from "react"
+import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 import { Loader2 } from "lucide-react"
 
 export default function PinterestCallbackPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <CallbackHandler />
+    </Suspense>
+  )
+}
+
+function Loading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="mx-auto h-12 w-12 animate-spin text-teal-600" />
+        <h1 className="mt-4 text-xl font-semibold">Connecting your Pinterest account...</h1>
+        <p className="mt-2 text-gray-500">Please wait while we complete the authentication process.</p>
+      </div>
+    </div>
+  )
+}
+
+function CallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -40,8 +61,8 @@ export default function PinterestCallbackPage() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <Loader2 className="mx-auto h-12 w-12 animate-spin text-teal-600" />
-        <h1 className="mt-4 text-xl font-semibold">Connecting your Pinterest account...</h1>
-        <p className="mt-2 text-gray-500">Please wait while we complete the authentication process.</p>
+        <h1 className="mt-4 text-xl font-semibold">Processing Pinterest authentication...</h1>
+        <p className="mt-2 text-gray-500">Please wait while we complete the process.</p>
       </div>
     </div>
   )

@@ -63,7 +63,11 @@ export default function TermsPage() {
             <p>We may update these Terms occasionally. Material changes will be notified via email or within the Service. Continued use constitutes acceptance of the revised Terms.</p>
 
             <h2>9. Contact</h2>
-            <p>If you have questions about these Terms, contact us at <a href="mailto:justinlord@empusaai.com">justinlord@empusaai.com</a>.</p>
+            <p>If you have any questions about these Terms, please
+              <Link href="https://www.empusaai.com/signup-free-trial" target="_blank">
+                <span className="text-teal-400 hover:underline"> contact us</span>
+              </Link>.
+            </p>
           </div>
         </section>
       </main>

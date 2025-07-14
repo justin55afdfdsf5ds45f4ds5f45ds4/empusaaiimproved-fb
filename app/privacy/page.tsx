@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
               Log in
             </Link>
-            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+            <Link href="/pricing">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
           </div>
@@ -118,12 +118,11 @@ export default function PrivacyPage() {
               </p>
 
               <h2>Contact Us</h2>
-              <p>
-                If you have any questions about this Privacy Policy, please contact us at{" "}
-                <a href="mailto:justinlord@empusaai.com" className="text-teal-600 hover:text-teal-700">
-                  justinlord@empusaai.com
-                </a>
-                .
+              <p className="mt-6 text-gray-300">
+                If you have any questions about this Privacy Policy, please
+                <Link href="/pricing">
+                  <span className="text-teal-400 hover:underline"> contact us</span>
+                </Link>.
               </p>
             </div>
           </div>
@@ -152,8 +151,7 @@ export default function PrivacyPage() {
                   Pricing
                 </Link>
                 <Link
-                  href="https://calendly.com/fk146543/30min"
-                  target="_blank"
+                  href="/pricing"
                   className="text-sm text-gray-500 hover:text-gray-900"
                 >
                   Enterprise

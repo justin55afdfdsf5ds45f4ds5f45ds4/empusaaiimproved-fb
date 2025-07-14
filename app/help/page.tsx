@@ -32,7 +32,7 @@ export default function HelpPage() {
             <Link href="/login" className="hidden md:block text-sm font-medium hover:text-teal-600 transition-colors">
               Log in
             </Link>
-            <Link href="https://calendly.com/fk146543/30min" target="_blank">
+            <Link href="/pricing">
               <Button className="bg-teal-600 hover:bg-teal-700">Grab a demo</Button>
             </Link>
           </div>
@@ -145,7 +145,7 @@ export default function HelpPage() {
                   Pricing
                 </Link>
                 <Link
-                  href="https://calendly.com/fk146543/30min"
+                  href="/pricing"
                   target="_blank"
                   className="text-sm text-gray-500 hover:text-gray-900"
                 >
