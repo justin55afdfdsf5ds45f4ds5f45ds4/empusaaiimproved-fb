@@ -18,6 +18,24 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     flowType: 'pkce',
     debug: process.env.NODE_ENV === 'development',
+    storage: {
+      getItem: (key: string) => {
+        if (typeof window !== 'undefined') {
+          return window.localStorage.getItem(key)
+        }
+        return null
+      },
+      setItem: (key: string, value: string) => {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(key, value)
+        }
+      },
+      removeItem: (key: string) => {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(key)
+        }
+      },
+    },
   },
 });
 
@@ -25,7 +43,9 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://www.empusaai.com/auth/callback',
+      redirectTo: process.env.NODE_ENV === 'production' 
+        ? 'https://www.empusaai.com/auth/callback'
+        : 'http://localhost:3000/auth/callback',
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
