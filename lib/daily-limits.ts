@@ -201,4 +201,4 @@ export function getTimeUntilReset(nextResetTime: Date): string {
   const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
   return `${diffHrs}h ${diffMins}m`;
-} 
+}

@@ -49,4 +49,4 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     console.error("Delete post error", e)
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
-} 
+}

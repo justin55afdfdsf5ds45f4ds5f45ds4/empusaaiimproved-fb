@@ -52,4 +52,4 @@ export async function getSession() {
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error) throw error;
   return session;
-} 
+}

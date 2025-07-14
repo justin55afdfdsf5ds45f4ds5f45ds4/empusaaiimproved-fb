@@ -15,4 +15,4 @@ export function logDebug(label: string, data: Record<string, unknown>) {
   }))
   // eslint-disable-next-line no-console
   console.log(`[${timestamp}] [${label}]`, sanitized)
-} 
+}

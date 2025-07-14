@@ -18,4 +18,4 @@ export const authConfig = {
     verifyRequest: '/auth/verify-request',
     newUser: '/dashboard'
   },
-}; 
+};
