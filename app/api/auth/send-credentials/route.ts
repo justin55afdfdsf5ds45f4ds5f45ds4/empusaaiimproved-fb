@@ -26,10 +26,28 @@ export async function POST(req: Request) {
       auth: { user, pass },
     });
 
-    const html = `
-    <div style="max-width: 480px; margin: 0 auto; padding: 32px; background: #ffffff; font-family: Arial, sans-serif; text-align: center; color: #333;">
-      <img src="https://res.cloudinary.com/dbalp1654/image/upload/v1752251975/upscalemedia-transformed-Photoroom_w0wqo9.png" alt="EmpusaAI Logo" style="max-width: 180px; margin-bottom: 24px;" />
-      <h2 style="font-size: 24px; margin-bottom: 24px;">Your EmpusaAI Login Code 🚀</h2>
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .button { 
+      display: inline-block; 
+      padding: 12px 24px; 
+      background-color: #E60023; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 6px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://res.cloudinary.com/dbalp1654/image/upload/v1752251975/upscalemedia-transformed-Photoroom_w0wqo9.png" alt="EmpusaAI Logo" style="max-width: 180px; margin-bottom: 24px;" />
+    <h2>Welcome to EmpusaAI!</h2>
       <p style="font-size: 16px; margin-bottom: 8px;">Hey, It's EmpusaAI — excited to have you here!</p>
       <p style="font-size: 16px; margin-bottom: 24px;">Here's your 6-digit login code:</p>
       <h1 style="font-size: 40px; letter-spacing: 8px; color: #000; margin: 16px 0;">${password}</h1>
@@ -38,12 +56,15 @@ export async function POST(req: Request) {
       <p style="font-size: 14px; color: #666;">This code will expire in 10 minutes.</p>
       <p style="font-size: 12px; color: #aaa; margin-top: 40px;">© ${new Date().getFullYear()} EmpusaAI. All rights reserved.</p>
     </div>
-    `;
+  </div>
+</body>
+</html>
+`;
     await transporter.sendMail({
       from,
       to: email,
       subject: "Confirm Your Signup",
-      html,
+      html: emailHtml,
     });
 
     return NextResponse.json({ success: true });

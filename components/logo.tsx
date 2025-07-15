@@ -1,13 +1,15 @@
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface LogoProps {
   href?: string
   noLink?: boolean
+  className?: string
 }
 
-export function Logo({ href = "/", noLink = false }: LogoProps) {
+export const Logo = ({ href = "/", noLink = false, className }: LogoProps) => {
   const logo = (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex items-center gap-2", className)}>
       <img
         src="https://res.cloudinary.com/dbalp1654/image/upload/v1752251975/upscalemedia-transformed-Photoroom_w0wqo9.png"
         alt="Empusa AI logo"
@@ -17,9 +19,15 @@ export function Logo({ href = "/", noLink = false }: LogoProps) {
     </div>
   )
 
-  if (href && !noLink) {
-    return <Link href={href}>{logo}</Link>
+  // Only return the logo without Link if noLink is true
+  if (noLink) {
+    return logo
   }
 
-  return logo
+  // Return the logo wrapped in Link
+  return (
+    <Link href={href} className="no-underline">
+      {logo}
+    </Link>
+  )
 }

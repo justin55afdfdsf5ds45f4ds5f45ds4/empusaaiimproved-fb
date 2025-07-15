@@ -11,6 +11,8 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useSession } from "next-auth/react"
 
 interface PostCardProps {
   post: {
@@ -85,6 +87,8 @@ export function PostCard({
   onDelete,
   imageSize = "9:16"
 }: PostCardProps) {
+  // Remove session and isPremium check since individual actions are free
+
   // Function to get aspect ratio class based on image size
   const getAspectRatioClass = (size: string) => {
     switch (size) {

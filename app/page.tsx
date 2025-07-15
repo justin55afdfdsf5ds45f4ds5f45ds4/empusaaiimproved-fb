@@ -1,15 +1,27 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { motion } from "@/components/motion-wrapper"
 
 import { Button } from "@/components/ui/button"
 import { MobileMenu } from "@/components/mobile-menu"
 import { Logo } from "@/components/logo"
+import { fadeInUp, staggerContainer, fadeIn, scaleIn, slideInFromLeft, slideInFromRight } from "@/lib/animation-variants"
+import { PinterestGridBg } from "@/components/pinterest-grid-bg"
+import { AnimatedCTA } from "@/components/animated-cta"
+import { AnimatedHero } from "@/components/animated-hero"
+import { PinterestAutomation } from "@/components/pinterest-automation"
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
+        <motion.div 
+          initial="initial"
+          animate="animate"
+          variants={fadeIn}
+          className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-6">
             <Link href="/">
               <Logo />
@@ -30,72 +42,53 @@ export default function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button className="bg-teal-600 hover:bg-teal-700">Get Started</Button>
-            </Link>
+            <AnimatedCTA href="/login" variant="primary">
+              Get Started
+            </AnimatedCTA>
             <Link href="https://www.empusaai.com/signup-free-trial" target="_blank">
-              <Button variant="ghost" className="text-sm font-semibold leading-6 text-white">
-                Book a demo <span aria-hidden="true">→</span>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="ghost" className="text-sm font-semibold leading-6 text-gray-600">
+                  Book a demo <span aria-hidden="true">→</span>
+                </Button>
+              </motion.div>
             </Link>
             <MobileMenu />
           </div>
-        </div>
+        </motion.div>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-white to-teal-50">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Dominate Pinterest with AI-Generated Content
-                  </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl">
-                    Empusa AI automatically creates and publishes SEO-optimized Pinterest content from any URL, helping
-                    brands and creators save time and boost engagement.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/pricing">
-                    <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
-                      Get Started
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="relative w-full max-w-[500px] aspect-video overflow-hidden rounded-xl border shadow-xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-teal-100 to-orange-100 grid grid-cols-2 grid-rows-2 gap-2 p-4">
-                    {[1, 2, 3, 4].map((item) => (
-                      <div
-                        key={item}
-                        className="rounded-lg overflow-hidden shadow-md bg-white hover:scale-105 transition-transform"
-                        style={{
-                          aspectRatio: item % 3 === 0 ? "2/3" : "1/1",
-                          animation: `float ${2 + item}s ease-in-out infinite`,
-                        }}
-                      >
-                        <div className="h-3/4 bg-gradient-to-br from-teal-200 to-orange-200"></div>
-                        <div className="p-2">
-                          <div className="h-2 w-3/4 bg-gray-200 rounded mb-1"></div>
-                          <div className="h-2 w-1/2 bg-gray-200 rounded"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+        <AnimatedHero />
+        <PinterestAutomation />
+        <section className="relative bg-gradient-to-b from-white to-teal-50/30">
+          <div className="container px-4 md:px-6 pb-12 md:pb-24">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+              className="flex justify-center gap-4"
+            >
+              <AnimatedCTA href="/pricing" variant="primary" className="px-8 py-6 text-lg">
+                Get Started Now
+              </AnimatedCTA>
+              <AnimatedCTA href="/signup-free-trial" variant="secondary" className="px-8 py-6 text-lg">
+                Try For Free
+              </AnimatedCTA>
+            </motion.div>
           </div>
         </section>
 
         {/* YouTube Video Section */}
         <section className="w-full py-12 md:py-16 lg:py-20 bg-gradient-to-b from-teal-50 to-white">
-          <div className="container px-4 md:px-6">
+          <motion.div 
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="container px-4 md:px-6">
             <div className="mx-auto max-w-4xl">
-              <div className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
+              <motion.div 
+                variants={scaleIn}
+                className="aspect-video w-full overflow-hidden rounded-xl shadow-xl">
                 <iframe
                   className="w-full h-full"
                   src="https://www.youtube.com/embed/9lVHjhWvuUg?si=TXSZwUxpKoMlddwN"
@@ -103,23 +96,31 @@ export default function Home() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
-              </div>
+              </motion.div>
 
               {/* Call-to-action button */}
-              <div className="mt-8 flex justify-center">
-                <Link href="/signup-free-trial">
-                  <Button className="bg-green-500 hover:bg-green-600 text-white text-lg px-8 py-6 shadow-lg transition-transform hover:scale-105 hover:animate-bounce">
-                    Try it out for free!
-                  </Button>
-                </Link>
-              </div>
+              <motion.div 
+                variants={fadeInUp}
+                className="mt-8 flex justify-center">
+                <AnimatedCTA href="/signup-free-trial" variant="secondary" className="text-lg px-8 py-6">
+                  Try it out for free!
+                </AnimatedCTA>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-white" id="features">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white relative overflow-hidden" id="features">
+          <PinterestGridBg />
+          <motion.div 
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="container px-4 md:px-6 relative">
+            <motion.div 
+              variants={fadeInUp}
+              className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
                   Pinterest Content Creation Made Simple
@@ -128,7 +129,7 @@ export default function Home() {
                   Empusa AI handles everything from content generation to Pinterest publishing with just one click
                 </p>
               </div>
-            </div>
+            </motion.div>
             <div className="grid gap-8 mt-12 md:grid-cols-3">
               {[
                 {
@@ -136,42 +137,42 @@ export default function Home() {
                   description:
                     "Our AI analyzes your URL and generates Pinterest-optimized images with SEO-friendly titles and descriptions that drive engagement.",
                   icon: "✨",
-                  animation: "animate-bounce",
                 },
                 {
                   title: "Save 10+ hours a week on Pinterest marketing",
                   description:
                     "Automatically publish to Pinterest with optimized content. No more manual pinning or struggling with content creation.",
                   icon: "⏱️",
-                  animation: "animate-pulse",
                 },
                 {
                   title: "Boost Pinterest traffic instantly",
                   description:
                     "Our SEO-optimized pins help increase visibility and drive more traffic to your website from Pinterest's 450+ million users.",
                   icon: "📈",
-                  animation: "animate-bounce",
                 },
               ].map((feature, i) => (
-                <div
+                <motion.div
                   key={i}
-                  className={`flex flex-col items-center text-center gap-4 rounded-lg border bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
-                  style={{
-                    animation: `float ${3 + i}s ease-in-out infinite`,
-                    animationDelay: `${i * 0.5}s`,
-                  }}
+                  variants={fadeInUp}
+                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                  className="flex flex-col items-center text-center gap-4 rounded-lg border bg-white p-6 shadow-lg"
                 >
-                  <div className={`text-4xl ${feature.animation}`}>{feature.icon}</div>
+                  <div className="text-4xl">{feature.icon}</div>
                   <h3 className="text-xl font-bold">{feature.title}</h3>
                   <p className="text-gray-500">{feature.description}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-teal-600">
-          <div className="container px-4 md:px-6">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-teal-600 relative overflow-hidden">
+          <motion.div 
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center text-white">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Ready to dominate Pinterest?</h2>
@@ -179,17 +180,24 @@ export default function Home() {
                   Join brands, creators, and marketers who use Empusa AI to automate their Pinterest content strategy.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="/pricing">
-                  <Button className="bg-white text-teal-600 hover:bg-gray-100">Get Started</Button>
-                </Link>
-              </div>
+              <motion.div 
+                variants={scaleIn}
+                className="flex flex-col gap-2 min-[400px]:flex-row">
+                <AnimatedCTA href="/pricing" variant="white">
+                  Get Started
+                </AnimatedCTA>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </section>
       </main>
       <footer className="w-full border-t bg-white py-12">
-        <div className="container px-4 md:px-6">
+        <motion.div 
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+          variants={fadeIn}
+          className="container px-4 md:px-6">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <Link href="/">
@@ -240,7 +248,7 @@ export default function Home() {
           <div className="mt-8 border-t pt-8 text-center text-sm text-gray-500">
             © {new Date().getFullYear()} Empusa AI. All rights reserved.
           </div>
-        </div>
+        </motion.div>
       </footer>
     </div>
   )

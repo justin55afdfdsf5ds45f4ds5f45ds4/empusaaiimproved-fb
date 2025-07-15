@@ -1412,18 +1412,56 @@ export function CreatePostContent({ initialUrl }: CreatePostContentProps) {
                 if (!requireBoard()) return;
                 setScheduleAllDialogOpen(true);
               }}
-              disabled={selectedPosts.size === 0}
+              disabled={selectedPosts.size === 0 || !isPremium}
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule Selected
+              {!isPremium ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Schedule Selected
+                        <Crown className="w-4 h-4 ml-2 text-yellow-500" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Upgrade to Premium to schedule multiple posts at once</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule Selected
+                </>
+              )}
             </Button>
             <Button
               variant="outline"
               onClick={handleBulkPublish}
-              disabled={selectedPosts.size === 0}
+              disabled={selectedPosts.size === 0 || !isPremium}
             >
-              <PinIcon className="w-4 h-4 mr-2" />
-              Publish to Pinterest
+              {!isPremium ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center">
+                        <PinIcon className="w-4 h-4 mr-2" />
+                        Publish to Pinterest
+                        <Crown className="w-4 h-4 ml-2 text-yellow-500" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Upgrade to Premium to publish multiple posts at once</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <>
+                  <PinIcon className="w-4 h-4 mr-2" />
+                  Publish to Pinterest
+                </>
+              )}
             </Button>
             <Button variant="outline" onClick={handleDownloadCsv}>
               Download CSV
