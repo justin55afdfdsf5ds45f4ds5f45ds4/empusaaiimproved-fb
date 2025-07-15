@@ -11,7 +11,7 @@ import React from 'react';
 
 // IMPORTANT: For security, move this to a .env.local file
 // Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ARze3QZCv1Oh-xpRK-A-1QoaSlGI-bA7S2Mw7Gp--AWXHJ-fYG0UWRgtcZT18gIU7OFQ7moexbZFMGYX";
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
 
 export default function CheckoutPage() {
   const router = useRouter();
