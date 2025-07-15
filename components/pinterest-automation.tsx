@@ -467,4 +467,4 @@ export const PinterestAutomation = () => {
       </div>
     </section>
   )
-} 
+}

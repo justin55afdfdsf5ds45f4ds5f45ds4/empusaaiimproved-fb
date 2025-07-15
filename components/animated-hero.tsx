@@ -171,4 +171,4 @@ export const AnimatedHero = () => {
       </div>
     </div>
   )
-} 
+}

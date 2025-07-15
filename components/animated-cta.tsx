@@ -79,4 +79,4 @@ export const AnimatedCTA = ({ href, children, variant = "primary", className = "
       </Button>
     </motion.div>
   )
-} 
+}
