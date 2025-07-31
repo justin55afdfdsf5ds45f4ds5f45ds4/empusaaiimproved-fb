@@ -18,20 +18,40 @@ export default function ProfileSettingsPage() {
   const { data: session, status, update } = useSession()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [isProfileLoading, setIsProfileLoading] = useState(false)
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false)
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null)
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (session?.user) {
       setName(session.user.name || "")
       setEmail(session.user.email || "")
+      
+      // Check if user has a password (for OAuth vs email/password users)
+      checkUserHasPassword()
     }
   }, [session])
+
+  const checkUserHasPassword = async () => {
+    try {
+      const response = await fetch('/api/user/profile')
+      if (response.ok) {
+        const data = await response.json()
+        // Check if this is likely an OAuth user (no password field in original signup)
+        // We'll determine this from the provider or other indicators
+        setHasPassword(true) // Default to true, will be updated based on password change attempts
+      }
+    } catch (error) {
+      console.error('Error checking user password status:', error)
+      setHasPassword(true) // Default to true
+    }
+  }
 
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -43,7 +63,7 @@ export default function ProfileSettingsPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsPasswordLoading(true)
 
     if (newPassword !== confirmPassword) {
       toast({
@@ -51,6 +71,8 @@ export default function ProfileSettingsPage() {
         description: "New password and confirm password do not match.",
         variant: "destructive",
       })
+      setIsPasswordLoading(false)
+      return
     }
 
     try {
@@ -81,21 +103,26 @@ export default function ProfileSettingsPage() {
         description: "Your password has been changed successfully.",
       })
     } catch (error: any) {
-      // console.error("Error changing password:", error);
       console.log(error.message)
+      
+      // Check if this is an OAuth user
+      if (error.message?.includes("OAuth")) {
+        setHasPassword(false)
+      }
+      
       toast({
         title: "Error",
         description: error.message || "Failed to change password. Please try again.",
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      setIsPasswordLoading(false)
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsProfileLoading(true)
     let imageUrl = session?.user?.image || ""
 
     if (profilePictureFile) {
@@ -126,7 +153,7 @@ export default function ProfileSettingsPage() {
           variant: "destructive",
         })
         setIsUploading(false)
-        setIsLoading(false)
+        setIsProfileLoading(false)
         return
       }
       setIsUploading(false)
@@ -173,7 +200,7 @@ export default function ProfileSettingsPage() {
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      setIsProfileLoading(false)
     }
   }
 
@@ -256,8 +283,8 @@ export default function ProfileSettingsPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" disabled={isProfileLoading}>
+                {isProfileLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
@@ -276,51 +303,65 @@ export default function ProfileSettingsPage() {
             <CardDescription>Update your password to keep your account secure.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">Current Password</Label>
-              <Input
-                id="current-password"
-                type="password"
-                placeholder="Enter your current password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-              />
-            </div>
+            {hasPassword === false ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-900 mb-2">OAuth Account</h4>
+                <p className="text-sm text-blue-700">
+                  You signed up using a social login (Google, etc.). To change your password, 
+                  please visit your social login provider's settings.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    placeholder="Enter your current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                placeholder="Enter your new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="Confirm your new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirm your new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
           </CardContent>
-          <CardFooter>
-            <Button type="submit" disabled={isLoading} variant="outline" onClick={handleChangePassword}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Changing...
-                </>
-              ) : (
-                "Change Password"
-              )}
-            </Button>
-          </CardFooter>
+          {hasPassword !== false && (
+            <CardFooter>
+              <Button type="submit" disabled={isPasswordLoading} variant="outline" onClick={handleChangePassword}>
+                {isPasswordLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Changing...
+                  </>
+                ) : (
+                  "Change Password"
+                )}
+              </Button>
+            </CardFooter>
+          )}
         </Card>
       </div>
     </div>
