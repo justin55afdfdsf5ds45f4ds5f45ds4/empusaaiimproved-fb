@@ -274,18 +274,17 @@ export default function PricingPage() {
                           Get Started
                         </Button>
                       </Link>
+                    ) : session.user.plan === 'free' ? (
+                      // Show "Get Started" for free users to redirect to checkout
+                      <Link href={`/checkout?plan=growth&term=${isYearly ? 'yearly' : 'monthly'}`}>
+                        <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium">
+                          Get Started
+                        </Button>
+                      </Link>
                     ) : (
-                      // Show PayPal buttons for logged-in free users
-                      <div className="space-y-3">
-                        {isClient ? (
-                          <div 
-                            id={isYearly ? "paypal-button-container-yearly" : "paypal-button-container-monthly"}
-                            className="min-h-[50px]"
-                          ></div>
-                        ) : (
-                          <div className="w-full h-12 bg-gray-200 animate-pulse rounded"></div>
-                        )}
-                      </div>
+                      <Button disabled className="w-full bg-teal-200 text-teal-700 cursor-not-allowed">
+                        Your Current Plan
+                      </Button>
                     )}
                   </div>
                 </CardHeader>

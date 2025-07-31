@@ -73,6 +73,7 @@ Your task is to write a **catchy, action-oriented, keyword-rich title** for a Pi
 - do not use the sign ":" colon at all i am repeatedly saying it so listen to it and follow.
 - Get the information from the provided headlines and pick any of those to craft the title each time unique.
 - You will always use the given titles and headlines as a title for the title big headline or title. use title from the given titles, just fetch and add 1 or two words of your own..
+- Always start with different words - never begin titles the same way. Use varied opening words and sentence structures to ensure uniqueness.
 - You should not give "here is the title" phrases or any formal AI words like you're saying here is the thing you should not do that instead you should only provide the original title and nothing else of you saying anything.
 - You should not say "Here is a catchy, action-oriented" or anything formal words, instruction from you that here is the title, you should only give the original title and not overlay text of you saying anything.
 - do not use the phrase "Discover the ultimate guide" as a whole but you can use each letters without combining them.
@@ -542,7 +543,13 @@ export async function POST(req: Request) {
         if (descSet.has(d)) duplicateDescIndexes.push(i)
         else descSet.add(d)
       })
-      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) break
+      if (duplicateTitleIndexes.length === 0 && duplicateDescIndexes.length === 0) {
+        const titleStarts = posts.map(p => p.title.split(' ').slice(0, 3).join(' ').toLowerCase());
+        const uniqueStarts = new Set(titleStarts);
+        if (uniqueStarts.size === titleStarts.length) {
+          break; // All titles start differently
+        }
+      }
       // Regenerate duplicates
       for (const i of duplicateTitleIndexes) {
         const usedTitles = posts.map((p) => p.title)

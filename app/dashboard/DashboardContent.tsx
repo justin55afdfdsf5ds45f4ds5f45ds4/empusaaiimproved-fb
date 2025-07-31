@@ -22,6 +22,7 @@ import {
   Sparkles,
   Activity,
   Users,
+  CheckCircle,
 } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -35,14 +36,29 @@ interface DashboardMetrics {
   totalPosts: number
   scheduledPosts: number
   totalEngagement: number
+  publishedPosts?: number
+  impressions?: number
+  outboundClicks?: number
 }
 
-// Helper function to generate mock metrics
-const generateMockMetrics = (): DashboardMetrics => ({
-  totalPosts: Math.floor(Math.random() * 100) + 10, // e.g., 10-110
-  scheduledPosts: Math.floor(Math.random() * 50) + 5, // e.g., 5-55
-  totalEngagement: Math.floor(Math.random() * 5000) + 1000, // e.g., 1K-6K
-})
+interface MetricsWithGrowth extends DashboardMetrics {
+  totalPostsGrowth?: number
+  scheduledPostsGrowth?: number
+  totalEngagementGrowth?: number
+  publishedPostsGrowth?: number
+}
+
+// Helper function to calculate growth percentage
+const calculateGrowth = (current: number, previous: number): number => {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+};
+
+// Helper function to format growth percentage
+const formatGrowth = (growth: number): string => {
+  const sign = growth >= 0 ? '+' : '';
+  return `${sign}${growth.toFixed(1)}%`;
+};
 
 // Initial default date range (last 7 days)
 const defaultInitialDateRange: DateRange = {
@@ -52,8 +68,9 @@ const defaultInitialDateRange: DateRange = {
 
 export default function DashboardContent() {
   const router = useRouter()
-  const [metrics, setMetrics] = useState<DashboardMetrics>(generateMockMetrics()) // Initialize with some values
-  const [isLoading, setIsLoading] = useState(false) // Start with false, true on date change
+  const [metrics, setMetrics] = useState<MetricsWithGrowth>({ totalPosts: 0, scheduledPosts: 0, totalEngagement: 0 })
+  const [previousMetrics, setPreviousMetrics] = useState<DashboardMetrics | null>(null)
+  const [isLoading, setIsLoading] = useState(true) // Start with true to fetch real data
   const [dateRange, setDateRange] = useState<DateRange | undefined>(defaultInitialDateRange)
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
 
@@ -110,7 +127,7 @@ export default function DashboardContent() {
     setIsLoading(true)
     const fetchMetrics = async () => {
       try {
-        const res = await fetch("/api/dashboard/metrics", {
+        const currentRes = await fetch("/api/dashboard/metrics", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -121,14 +138,48 @@ export default function DashboardContent() {
           }),
         })
 
-        if (!res.ok) throw new Error("Failed to fetch metrics")
+        if (!currentRes.ok) throw new Error("Failed to fetch current metrics")
+        const currentData = await currentRes.json()
 
-        const data = await res.json()
-        setMetrics(data)
+        let previousData = null;
+        if (dateRange?.from && dateRange?.to) {
+          const periodLength = dateRange.to.getTime() - dateRange.from.getTime();
+          const previousFrom = new Date(dateRange.from.getTime() - periodLength);
+          const previousTo = new Date(dateRange.from.getTime() - 1); // Day before current period starts
+
+          try {
+            const previousRes = await fetch("/api/dashboard/metrics", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: previousFrom,
+                to: previousTo,
+              }),
+            })
+
+            if (previousRes.ok) {
+              previousData = await previousRes.json()
+            }
+          } catch (prevErr) {
+            console.warn("Could not fetch previous period metrics:", prevErr)
+          }
+        }
+
+        const metricsWithGrowth: MetricsWithGrowth = {
+          ...currentData,
+          totalPostsGrowth: previousData ? calculateGrowth(currentData.totalPosts, previousData.totalPosts) : undefined,
+          scheduledPostsGrowth: previousData ? calculateGrowth(currentData.scheduledPosts, previousData.scheduledPosts) : undefined,
+          totalEngagementGrowth: previousData ? calculateGrowth(currentData.totalEngagement, previousData.totalEngagement) : undefined,
+        };
+
+        setMetrics(metricsWithGrowth)
+        setPreviousMetrics(previousData)
       } catch (err) {
         console.error("Error fetching metrics:", err)
-        // Optionally reset to default on error
         setMetrics({ totalPosts: 0, scheduledPosts: 0, totalEngagement: 0 })
+        setPreviousMetrics(null)
       } finally {
         setIsLoading(false)
       }
@@ -433,7 +484,7 @@ export default function DashboardContent() {
           {formattedDateRangeText()}
         </p>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {/* Total Posts Card */}
           <Card className="border-2 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-teal-50 to-teal-100">
@@ -449,7 +500,17 @@ export default function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-gray-900">{isLoading ? "..." : metrics.totalPosts}</div>
-              <p className="text-xs text-gray-500 mt-1">Posts created in range</p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-gray-500">Posts created in range</p>
+                {metrics.totalPostsGrowth !== undefined && (
+                  <div className={`flex items-center gap-1 text-xs font-medium ${
+                    metrics.totalPostsGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    <TrendingUp className={`h-3 w-3 ${metrics.totalPostsGrowth < 0 ? 'rotate-180' : ''}`} />
+                    {formatGrowth(metrics.totalPostsGrowth)}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -468,7 +529,17 @@ export default function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-gray-900">{isLoading ? "..." : metrics.scheduledPosts}</div>
-              <p className="text-xs text-gray-500 mt-1">Posts scheduled in range</p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-gray-500">Posts scheduled in range</p>
+                {metrics.scheduledPostsGrowth !== undefined && (
+                  <div className={`flex items-center gap-1 text-xs font-medium ${
+                    metrics.scheduledPostsGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    <TrendingUp className={`h-3 w-3 ${metrics.scheduledPostsGrowth < 0 ? 'rotate-180' : ''}`} />
+                    {formatGrowth(metrics.scheduledPostsGrowth)}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -489,7 +560,43 @@ export default function DashboardContent() {
               <div className="text-3xl font-bold text-gray-900">
                 {isLoading ? "..." : metrics.totalEngagement.toLocaleString()}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Engagements in range</p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-gray-500">Engagements in range</p>
+                {metrics.totalEngagementGrowth !== undefined && (
+                  <div className={`flex items-center gap-1 text-xs font-medium ${
+                    metrics.totalEngagementGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    <TrendingUp className={`h-3 w-3 ${metrics.totalEngagementGrowth < 0 ? 'rotate-180' : ''}`} />
+                    {formatGrowth(metrics.totalEngagementGrowth)}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Published Posts Card */}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl relative overflow-hidden border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-r from-green-50 to-emerald-50">
+              <CardTitle className="text-sm font-semibold text-green-800">Published Posts</CardTitle>
+              <div className="text-green-600">
+                <CheckCircle className="h-4 w-4" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="text-3xl font-bold text-gray-900">
+                {isLoading ? "..." : (metrics.publishedPosts || 0)}
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-gray-500">Posts published in range</p>
+                {metrics.publishedPostsGrowth !== undefined && (
+                  <div className={`flex items-center gap-1 text-xs font-medium ${
+                    metrics.publishedPostsGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    <TrendingUp className={`h-3 w-3 ${metrics.publishedPostsGrowth < 0 ? 'rotate-180' : ''}`} />
+                    {formatGrowth(metrics.publishedPostsGrowth)}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { Plus, Shuffle, Lock, Crown, Calendar, Loader2, AlertCircle } from "lucide-react"
+import { Plus, Shuffle, Lock, Crown, Calendar, Loader2, AlertCircle, HelpCircle, Edit3, Eye } from "lucide-react"
 import Link from "next/link"
 import { PostCard } from "@/components/dashboard/post-card"
 import {
@@ -76,6 +76,8 @@ export default function PostsPage() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
   const [currentPostForLink, setCurrentPostForLink] = useState<Post | null>(null)
   const [linkInput, setLinkInput] = useState("")
+  const [bulkPostLinks, setBulkPostLinks] = useState<Record<string, string>>({})
+  const [showPostPreview, setShowPostPreview] = useState(false)
   // limits state
   interface LimitInfo {
     postsGenerated: { remaining: number; nextResetTime: Date };
@@ -155,9 +157,24 @@ export default function PostsPage() {
       router.push("/pricing")
       return
     }
-    // compute eligible draft posts
-    const eligible = posts.filter(p => selectedPosts.has(p._id) && p.status === "draft").length
+    // compute eligible posts (not published and not scheduled)
+    const eligible = posts.filter(p => 
+      selectedPosts.has(p._id) && 
+      p.status !== "published" && 
+      p.status !== "scheduled"
+    ).length
     setEligibleCount(eligible)
+    
+    const initialLinks: Record<string, string> = {}
+    posts.filter(p => 
+      selectedPosts.has(p._id) && 
+      p.status !== "published" && 
+      p.status !== "scheduled"
+    ).forEach(post => {
+      initialLinks[post._id] = postLinks[post._id] || post.defaultLink || ""
+    })
+    setBulkPostLinks(initialLinks)
+    
     setIsBulkShuffleOpen(true)
   }
 
@@ -177,9 +194,11 @@ export default function PostsPage() {
       // Split links by newline and filter empty lines
       const links = bulkLinks.split("\n").filter(link => link.trim())
 
-      // Get eligible draft posts only
+      // Get eligible posts (not published and not scheduled)
       const selectedPostArray = posts.filter(
-        post => selectedPosts.has(post._id) && post.status === "draft",
+        post => selectedPosts.has(post._id) && 
+        post.status !== "published" && 
+        post.status !== "scheduled",
       )
 
       if (selectedPostArray.length === 0) {
@@ -196,13 +215,18 @@ export default function PostsPage() {
       const [hours, minutes] = selectedTime.split(":")
       baseScheduleTime.setHours(parseInt(hours), parseInt(minutes))
 
-      // Schedule each post with a shuffled link
+      // Schedule each post with assigned link
       for (let i = 0; i < selectedPostArray.length; i++) {
         const post = selectedPostArray[i]
-        const link = links[i % links.length] // Cycle through links if more posts than links
+        const postLink = bulkPostLinks[post._id] || links[i % links.length] // Use assigned link or cycle through bulk links
 
-        // Calculate staggered schedule time (add 1 hour for each post)
-        const scheduleTime = new Date(baseScheduleTime.getTime() + (i * 60 * 60 * 1000))
+        // Calculate staggered schedule time across 30 days
+        const daysToSpread = 30
+        const hoursPerDay = 24
+        const totalHours = daysToSpread * hoursPerDay
+        const hourInterval = totalHours / selectedPostArray.length
+        
+        const scheduleTime = new Date(baseScheduleTime.getTime() + (i * hourInterval * 60 * 60 * 1000))
 
         const response = await fetch("/api/pinterest/schedule", {
           method: "POST",
@@ -215,7 +239,7 @@ export default function PostsPage() {
             title: post.title,
             description: post.description,
             scheduledTime: scheduleTime.toISOString(),
-            link: link.trim(),
+            link: postLink.trim(),
           }),
         })
 
@@ -233,6 +257,7 @@ export default function PostsPage() {
       setSelectedPosts(new Set())
       setIsBulkShuffleOpen(false)
       setBulkLinks("")
+      setBulkPostLinks({})
       setSelectedDate(undefined)
       setSelectedTime("")
       
@@ -499,7 +524,7 @@ export default function PostsPage() {
       return
     }
 
-    const eligiblePosts = posts.filter(p => (selectedPosts.size === 0 || selectedPosts.has(p._id)) && p.status === "draft")
+    const eligiblePosts = posts.filter(p => (selectedPosts.size === 0 || selectedPosts.has(p._id)) && p.status !== "published" && p.status !== "scheduled")
 
     if (eligiblePosts.length === 0) {
       toast({
@@ -522,7 +547,7 @@ export default function PostsPage() {
         post.title,
         post.description,
         post.imageUrl,
-        postLinks[post._id] || post.defaultLink || "",
+        bulkPostLinks[post._id] || postLinks[post._id] || post.defaultLink || "",
         scheduleDate.toISOString(),
       ]
     })
@@ -719,15 +744,90 @@ export default function PostsPage() {
 
       {/* Bulk Shuffle Dialog */}
       <Dialog open={isBulkShuffleOpen} onOpenChange={setIsBulkShuffleOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Bulk Shuffle Schedule</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Bulk Shuffle Schedule
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <HelpCircle 
+                  className="h-4 w-4 cursor-help" 
+                  title="Posts will be automatically distributed across the next 30 days for optimal engagement. Each post gets a unique time slot to maximize reach."
+                />
+              </div>
+            </DialogTitle>
             <DialogDescription>
-              Schedule multiple posts with rotating links across optimal time slots.
+              Schedule {eligibleCount} posts across the next 30 days with optimal timing distribution.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
+            {/* Post Preview Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Selected Posts ({eligibleCount})</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPostPreview(!showPostPreview)}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  {showPostPreview ? 'Hide' : 'Show'} Preview
+                </Button>
+              </div>
+              
+              {showPostPreview && (
+                <div className="max-h-60 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                  <div className="space-y-3">
+                    {posts.filter(p => 
+                      selectedPosts.has(p._id) && 
+                      p.status !== "published" && 
+                      p.status !== "scheduled"
+                    ).map((post, index) => (
+                      <div key={post._id} className="bg-white p-3 rounded-lg border">
+                        <div className="flex items-start gap-3">
+                          {post.imageUrl && (
+                            <img 
+                              src={post.imageUrl} 
+                              alt={post.title}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm truncate" title={post.title}>
+                              {post.title}
+                            </h4>
+                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                              {post.description}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Input
+                                placeholder="Post link (optional)"
+                                value={bulkPostLinks[post._id] || ""}
+                                onChange={(e) => setBulkPostLinks(prev => ({
+                                  ...prev,
+                                  [post._id]: e.target.value
+                                }))}
+                                className="text-xs h-7"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                title="Edit link"
+                              >
+                                <Edit3 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label>Pinterest Board</Label>
               <Select value={selectedBoardId} onValueChange={setSelectedBoardId}>
@@ -745,65 +845,83 @@ export default function PostsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Links (one per line)</Label>
+              <div className="flex items-center gap-2">
+                <Label>Fallback Links (one per line)</Label>
+                <HelpCircle 
+                  className="h-4 w-4 text-muted-foreground cursor-help" 
+                  title="These links will be used for posts that don't have individual links assigned. Links will be rotated among posts."
+                />
+              </div>
               <Textarea
                 value={bulkLinks}
                 onChange={(e) => setBulkLinks(e.target.value)}
-                placeholder="Enter your links here, one per line..."
-                className="h-32 resize-none"
+                placeholder="Enter fallback links here, one per line..."
+                className="h-24 resize-none"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <div className={missingFields.includes("date") ? "border border-red-500 rounded-md p-1" : ""}>
-                <DatePicker
-                  date={selectedDate}
-                  onDateChange={(d)=>{setSelectedDate(d);setMissingFields(f=>f.filter(x=>x!=="date"))}}
-                  disabled={(date) => date < new Date()}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Start Time</Label>
-              <div className={missingFields.includes("time") ? "border border-red-500 rounded-md p-1" : ""}>
-                <TimeSelect
-                  value={selectedTime}
-                  onValueChange={(t)=>{setSelectedTime(t);setMissingFields(f=>f.filter(x=>x!=="time"))}}
-                  className="w-full"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Posts will be scheduled 1 hour apart starting from this time.
+              <p className="text-xs text-muted-foreground">
+                Optional: These links will be used for posts without individual links assigned above.
               </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <div className={missingFields.includes("date") ? "border border-red-500 rounded-md p-1" : ""}>
+                  <DatePicker
+                    date={selectedDate}
+                    onDateChange={(d)=>{setSelectedDate(d);setMissingFields(f=>f.filter(x=>x!=="date"))}}
+                    disabled={(date) => date < new Date()}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <div className={missingFields.includes("time") ? "border border-red-500 rounded-md p-1" : ""}>
+                  <TimeSelect
+                    value={selectedTime}
+                    onValueChange={(t)=>{setSelectedTime(t);setMissingFields(f=>f.filter(x=>x!=="time"))}}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium">Scheduling Logic:</p>
+                  <p className="mt-1">Posts will be distributed evenly across 30 days starting from your selected date and time. This ensures optimal engagement by avoiding posting conflicts and maximizing reach.</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setIsBulkShuffleOpen(false)}>
               Cancel
             </Button>
             <div className="flex flex-col flex-1">
-            {csvError && <p className="text-xs text-red-600 mb-1">{csvError}</p>}
-            {selectedDate && selectedTime && (
-              <Button
-                variant="secondary"
-                onClick={handleDownloadCSV}
-                className="mr-auto"
-              >
-                Download CSV
-              </Button>
-            )}
+              {csvError && <p className="text-xs text-red-600 mb-1">{csvError}</p>}
+              {selectedDate && selectedTime && (
+                <Button
+                  variant="secondary"
+                  onClick={handleDownloadCSV}
+                  className="mr-auto"
+                >
+                  Download CSV
+                </Button>
+              )}
             </div>
-            <Button onClick={handleBulkSchedule} disabled={isScheduling}>
+            <Button onClick={handleBulkSchedule} disabled={isScheduling || !selectedBoardId}>
               {isScheduling ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Scheduling...
                 </>
               ) : (
-                "Schedule Posts"
+                `Schedule ${eligibleCount} Posts`
               )}
             </Button>
           </DialogFooter>

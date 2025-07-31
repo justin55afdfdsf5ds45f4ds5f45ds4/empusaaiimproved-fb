@@ -22,6 +22,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    // Validate Pinterest title length (100 character limit)
+    if (title.length > 100) {
+      return NextResponse.json({ 
+        error: "Post title is too long. Please shorten it below 100 characters." 
+      }, { status: 400 })
+    }
+
     // Get the user's Pinterest tokens and premium
     const client = await clientPromise
     const db = client.db()

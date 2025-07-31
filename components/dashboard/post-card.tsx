@@ -10,6 +10,10 @@ import {
   LinkIcon,
   Loader2,
   Trash2,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  FileText,
 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSession } from "next-auth/react"
@@ -21,10 +25,11 @@ interface PostCardProps {
     description: string
     imageUrl: string | null
     defaultLink?: string
-    status?: "draft" | "scheduled" | "published"
+    status?: "draft" | "scheduled" | "published" | "error"
     scheduledFor?: string
     publishedAt?: string
     createdAt?: string
+    errorReason?: string
     metrics?: {
       views: number
       likes: number
@@ -44,6 +49,7 @@ interface PostCardProps {
   onGenerateImage?: (id: string) => void
   onEditLink?: (id: string) => void
   onDelete?: (id: string) => void
+  onRetry?: (id: string) => void
   className?: string
   imageSize?: string
 }
@@ -85,6 +91,7 @@ export function PostCard({
   onGenerateImage,
   onEditLink,
   onDelete,
+  onRetry,
   imageSize = "9:16"
 }: PostCardProps) {
   // Remove session and isPremium check since individual actions are free
@@ -102,6 +109,36 @@ export function PostCard({
         return "aspect-[2/3]"; // 2:3
       default:
         return "aspect-[9/16]"; // default to 9:16
+    }
+  };
+
+  // Function to get status badge configuration
+  const getStatusConfig = (status?: string) => {
+    switch (status) {
+      case "published":
+        return {
+          icon: CheckCircle,
+          text: "Published",
+          className: "bg-green-100 text-green-800 border-green-200"
+        };
+      case "scheduled":
+        return {
+          icon: Clock,
+          text: "Scheduled",
+          className: "bg-blue-100 text-blue-800 border-blue-200"
+        };
+      case "error":
+        return {
+          icon: AlertCircle,
+          text: "Error",
+          className: "bg-red-100 text-red-800 border-red-200"
+        };
+      default:
+        return {
+          icon: FileText,
+          text: "Draft",
+          className: "bg-gray-100 text-gray-800 border-gray-200"
+        };
     }
   };
 
@@ -182,39 +219,94 @@ export function PostCard({
           </div>
         </div>
 
-        {/* Board Assignment Tag */}
-        <div className="mb-3">
+        {/* Status and Board Assignment */}
+        <div className="mb-3 flex flex-wrap gap-2">
+          {/* Status Badge */}
+          {(() => {
+            const statusConfig = getStatusConfig(post.status);
+            const StatusIcon = statusConfig.icon;
+            return (
+              <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border ${statusConfig.className}`}>
+                <StatusIcon className="h-3 w-3" />
+                {statusConfig.text}
+              </span>
+            );
+          })()}
+          
+          {/* Board Assignment Tag */}
           <span className="inline-block px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
             📌 {boardName}
           </span>
         </div>
 
+        {/* Error Message Display */}
+        {post.status === "error" && post.errorReason && (
+          <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-md">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm text-red-700 font-medium">Error occurred</p>
+                <p className="text-xs text-red-600 mt-1">{post.errorReason}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Post action buttons */}
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => onPublish?.(post.id)}
-            disabled={isPublishing}
-            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
-          >
-            {isPublishing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              <>
-                <PinIcon className="mr-2 h-4 w-4" />
-                Publish
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => onSchedule?.(post.id)}
-            className="px-3"
-          >
-            <Calendar className="h-4 w-4" />
-          </Button>
+          {post.status === "error" ? (
+            <>
+              <Button
+                onClick={() => onRetry?.(post.id)}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <AlertCircle className="mr-2 h-4 w-4" />
+                Fix and Republish
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onSchedule?.(post.id)}
+                className="px-3"
+              >
+                <Calendar className="h-4 w-4" />
+              </Button>
+            </>
+          ) : post.status === "published" ? (
+            <div className="flex-1 text-center py-2 text-sm text-green-600 font-medium">
+              ✅ Successfully Published
+            </div>
+          ) : post.status === "scheduled" ? (
+            <div className="flex-1 text-center py-2 text-sm text-blue-600 font-medium">
+              🕒 Scheduled for {post.scheduledFor ? new Date(post.scheduledFor).toLocaleDateString() : 'later'}
+            </div>
+          ) : (
+            <>
+              <Button
+                onClick={() => onPublish?.(post.id)}
+                disabled={isPublishing}
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {isPublishing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <PinIcon className="mr-2 h-4 w-4" />
+                    Publish
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onSchedule?.(post.id)}
+                className="px-3"
+              >
+                <Calendar className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

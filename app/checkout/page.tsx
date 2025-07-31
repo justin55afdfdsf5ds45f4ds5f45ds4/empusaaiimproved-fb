@@ -12,6 +12,12 @@ import React from 'react';
 // IMPORTANT: For security, move this to a .env.local file
 // Example: NEXT_PUBLIC_PAYPAL_CLIENT_ID=AURGuM1...
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AURGuM1m_po0hnXsbFXSpd1OCFKdnraFHB7hPiGDaBqNBhvfvFLgOJmAcaBfE1ppdnLuYUtvSPNsJl6T";
+const IS_SANDBOX = process.env.NODE_ENV !== 'production';
+
+const PLAN_IDS = {
+  monthly: 'P-22365777UK845691BNCDW4WI',
+  yearly: 'P-91V4006850544234XNCDW52I'
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -21,6 +27,17 @@ export default function CheckoutPage() {
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const { data: authSession } = useSession();
+  
+  const [selectedPlan, setSelectedPlan] = useState('growth');
+  const [selectedTerm, setSelectedTerm] = useState('monthly');
+  
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get('plan') || 'growth';
+    const term = urlParams.get('term') || 'monthly';
+    setSelectedPlan(plan);
+    setSelectedTerm(term);
+  }, []);
 
   // Prefill name and email when the user is already logged in
   React.useEffect(() => {
@@ -101,23 +118,33 @@ export default function CheckoutPage() {
           <div className="w-full max-w-sm">
             <p className="text-base font-semibold text-gray-300">Subscribe to Growth Plan</p>
             <div className="flex items-baseline mt-2 mb-8">
-              <span className="text-4xl font-extrabold">$500.00</span>
-              <span className="text-base font-medium text-gray-400 ml-1.5">/ month</span>
+              <span className="text-4xl font-extrabold">
+                {selectedTerm === 'yearly' ? '$4,800.00' : '$500.00'}
+              </span>
+              <span className="text-base font-medium text-gray-400 ml-1.5">
+                / {selectedTerm === 'yearly' ? 'year' : 'month'}
+              </span>
             </div>
             <div className="space-y-3 text-sm text-gray-300">
               <div className="flex justify-between">
-                <span>Growth Plan</span>
-                <span className="font-semibold">$500.00</span>
+                <span>Growth Plan ({selectedTerm})</span>
+                <span className="font-semibold">
+                  {selectedTerm === 'yearly' ? '$4,800.00' : '$500.00'}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-semibold">$500.00</span>
+                <span className="font-semibold">
+                  {selectedTerm === 'yearly' ? '$4,800.00' : '$500.00'}
+                </span>
               </div>
             </div>
             <hr className="border-gray-700 my-6" />
             <div className="flex justify-between items-baseline">
               <span className="text-base font-semibold">Total due today</span>
-              <span className="text-2xl font-extrabold">$500.00</span>
+              <span className="text-2xl font-extrabold">
+                {selectedTerm === 'yearly' ? '$4,800.00' : '$500.00'}
+              </span>
             </div>
           </div>
         </div>
@@ -155,16 +182,42 @@ export default function CheckoutPage() {
                 {(authSession?.user || buyerEmail) ? (
                   <PayPalButtons
                     style={{ layout: "vertical", shape: "rect", height: 55 }}
-                    createOrder={(data, actions) => {
-                      return actions.order.create({
-                        intent: 'CAPTURE',
-                        purchase_units: [{
-                          description: 'Empusa AI - Growth Plan (One-Time Charge)',
-                          amount: { currency_code: 'USD', value: '500.00' }
-                        }]
+                    createSubscription={(data, actions) => {
+                      const planId = selectedTerm === 'yearly' ? PLAN_IDS.yearly : PLAN_IDS.monthly;
+                      return actions.subscription.create({
+                        plan_id: planId
                       });
                     }}
-                    onApprove={handleApprove}
+                    onApprove={(data, actions) => {
+                      console.log('Subscription approved:', data);
+                      setPaymentStatus('success');
+                      setPaymentError(null);
+                      setTransactionId(data.subscriptionID || null);
+
+                      // Set purchase cookie so we can detect upgrade after registering
+                      document.cookie = "purchase_completed=true; path=/; max-age=31536000"; // 1 year expiry
+
+                      // If user not signed in yet, auto-register them
+                      if (!authSession?.user) {
+                        console.log('Auto-registration needed for subscription');
+                      }
+
+                      // Upgrade user to premium
+                      fetch('/api/premium/upgrade', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                          subscriptionId: data.subscriptionID,
+                          planId: selectedTerm === 'yearly' ? PLAN_IDS.yearly : PLAN_IDS.monthly,
+                          term: selectedTerm
+                        })
+                      }).catch(e => console.error('Failed to upgrade to premium:', e));
+
+                      // Redirect to dashboard after a short delay
+                      setTimeout(() => {
+                        router.push('/dashboard');
+                      }, 3000);
+                    }}
                     onError={(err) => {
                       console.error('PayPal Button Error:', err);
                       setPaymentError('An error occurred. Please try another payment method.');
@@ -176,7 +229,9 @@ export default function CheckoutPage() {
                 )}
                 {paymentError && <p className="text-red-500 text-sm my-4">{paymentError}</p>}
                 <p className="text-xs text-gray-500 mt-4">
-                  This is a one-time charge for the Growth Plan, not a recurring subscription. By confirming your payment, you agree to our Terms of Service.
+                  This is a recurring subscription for the Growth Plan ({selectedTerm}). 
+                  {IS_SANDBOX && <span className="text-orange-500 font-medium"> [SANDBOX MODE]</span>}
+                  By confirming your payment, you agree to our Terms of Service.
                 </p>
               </PayPalScriptProvider>
             ) : (
