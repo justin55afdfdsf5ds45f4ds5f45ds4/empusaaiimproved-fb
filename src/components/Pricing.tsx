@@ -1,4 +1,4 @@
-import { Check, Terminal, RefreshCw, Package, Clock, Gift, Sparkles } from 'lucide-react'
+import { Check, Terminal, RefreshCw, Package, Gift, Sparkles } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 const features = [
