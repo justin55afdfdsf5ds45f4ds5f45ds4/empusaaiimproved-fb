@@ -23,7 +23,7 @@ export default function Hero() {
               Download CLI v1.0
             </a>
             <a
-              href="#how-it-works"
+              href="#protocol"
               className="flex items-center gap-2 px-6 py-3 text-base font-mono font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors"
             >
               <BookOpen className="w-5 h-5" />
