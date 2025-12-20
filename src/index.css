@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  --color-accent: #10b981;
+  --color-accent-hover: #34d399;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+}
+
+/* Glow effect for accent elements */
+.glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
