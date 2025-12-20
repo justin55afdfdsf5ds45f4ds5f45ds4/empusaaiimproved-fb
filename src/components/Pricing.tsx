@@ -1,4 +1,4 @@
-import { Check, Terminal, RefreshCw, Package, Clock, Gift } from 'lucide-react'
+import { Check, Terminal, RefreshCw, Package, Clock, Gift, Sparkles } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 const features = [
@@ -8,37 +8,60 @@ const features = [
 ]
 
 function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState(() => {
-    const saved = sessionStorage.getItem('cmp-discount-timer')
-    if (saved) {
-      const remaining = parseInt(saved) - Date.now()
-      return remaining > 0 ? remaining : 0
-    }
-    const fourHours = 4 * 60 * 60 * 1000
-    sessionStorage.setItem('cmp-discount-timer', String(Date.now() + fourHours))
-    return fourHours
-  })
+  const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const [expired, setExpired] = useState(false)
 
   useEffect(() => {
+    const saved = localStorage.getItem('cmp-discount-timer')
+    if (saved) {
+      const remaining = parseInt(saved) - Date.now()
+      if (remaining > 0) {
+        setTimeLeft(remaining)
+      } else {
+        setExpired(true)
+      }
+    } else {
+      const fourHours = 4 * 60 * 60 * 1000
+      const expiresAt = Date.now() + fourHours
+      localStorage.setItem('cmp-discount-timer', String(expiresAt))
+      setTimeLeft(fourHours)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (timeLeft === null || expired) return
+
     const interval = setInterval(() => {
-      const saved = sessionStorage.getItem('cmp-discount-timer')
+      const saved = localStorage.getItem('cmp-discount-timer')
       if (saved) {
         const remaining = parseInt(saved) - Date.now()
-        setTimeLeft(remaining > 0 ? remaining : 0)
+        if (remaining > 0) {
+          setTimeLeft(remaining)
+        } else {
+          setExpired(true)
+          setTimeLeft(0)
+        }
       }
     }, 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [timeLeft, expired])
 
-  const hours = Math.floor(timeLeft / (1000 * 60 * 60))
-  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-  const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
-
+  const hours = Math.floor((timeLeft || 0) / (1000 * 60 * 60))
+  const minutes = Math.floor(((timeLeft || 0) % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor(((timeLeft || 0) % (1000 * 60)) / 1000)
   const pad = (n: number) => n.toString().padStart(2, '0')
 
-  if (timeLeft <= 0) {
-    return null
+  if (expired) {
+    return (
+      <div className="flex items-center justify-center gap-2 text-emerald-400">
+        <Sparkles className="w-5 h-5" />
+        <span className="font-medium">We've reserved your discount — claim it anytime.</span>
+        <Sparkles className="w-5 h-5" />
+      </div>
+    )
   }
+
+  if (timeLeft === null) return null
 
   return (
     <div className="flex items-center justify-center gap-2 font-mono text-lg">
@@ -64,14 +87,10 @@ export default function Pricing() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 sm:p-12">
           {/* Christmas Discount Banner */}
           <div className="bg-emerald-400/10 border border-emerald-400/30 rounded-lg p-4 mb-8">
-            <div className="flex items-center justify-center gap-2 text-emerald-400 mb-2">
+            <div className="flex items-center justify-center gap-2 text-emerald-400 mb-3">
               <Gift className="w-5 h-5" />
               <span className="font-mono font-semibold">🎄 CHRISTMAS SPECIAL — 70% OFF</span>
               <Gift className="w-5 h-5" />
-            </div>
-            <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm mb-3">
-              <Clock className="w-4 h-4" />
-              <span>Offer expires in:</span>
             </div>
             <CountdownTimer />
           </div>
