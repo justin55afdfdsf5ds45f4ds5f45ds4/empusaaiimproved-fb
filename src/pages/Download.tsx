@@ -1,4 +1,4 @@
-import { Download, CheckCircle, Terminal } from 'lucide-react'
+import { Download, CheckCircle, Terminal, MessageCircle } from 'lucide-react'
 
 export default function DownloadPage() {
   return (
@@ -25,10 +25,20 @@ export default function DownloadPage() {
           <a
             href="/CMP.zip"
             download
-            className="inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow w-full justify-center"
+            className="inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow w-full justify-center mb-4"
           >
             <Download className="w-5 h-5" />
             Download CMP
+          </a>
+
+          <a
+            href="https://discord.gg/9t4XV78EnK"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-medium text-zinc-100 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors w-full justify-center"
+          >
+            <MessageCircle className="w-5 h-5" />
+            Join Discord Support
           </a>
           
           <p className="mt-4 text-sm text-zinc-500">
