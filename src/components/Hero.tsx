@@ -31,6 +31,17 @@ export default function Hero() {
             </a>
           </div>
         </div>
+        {/* Loom Video Embed */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              src="https://www.loom.com/embed/c1b5572cda214eea883b19f04e6f0f98"
+              frameBorder="0"
+              allowFullScreen
+              className="absolute top-0 left-0 w-full h-full rounded-xl border border-zinc-800"
+            />
+          </div>
+        </div>
         <TerminalVisual />
       </div>
     </section>
