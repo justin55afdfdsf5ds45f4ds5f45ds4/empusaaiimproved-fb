@@ -15,14 +15,15 @@
         .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; }
         .nav-links a:hover { color: var(--text); }
         .nav-btn { background: var(--text); color: var(--bg); padding: 8px 18px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
-        .hero { padding: 100px 24px 28px; text-align: center; max-width: 580px; margin: 0 auto; }
-        .hero h1 { font-size: 52px; font-weight: 700; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
-        .hero p { color: var(--muted); font-size: 17px; margin-bottom: 28px; }
+        .hero { padding: 100px 24px 28px; text-align: center; max-width: 620px; margin: 0 auto; }
+        .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -2px; line-height: 1.1; margin-bottom: 16px; }
+        .hero p { color: var(--muted); font-size: 17px; margin-bottom: 28px; line-height: 1.5; }
         .hero-btns { display: flex; gap: 12px; justify-content: center; }
         .btn-main { background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; }
         .btn-ghost { color: var(--muted); text-decoration: none; font-size: 14px; padding: 12px 16px; }
         .price-hint { color: var(--muted); font-size: 13px; margin-top: 20px; }
-        .price-hint strong { color: var(--text); }
+        .price-hint strong { color: var(--accent); }
+        .price-hint .old { text-decoration: line-through; color: #666; }
         .demo { padding: 20px 24px 64px; display: flex; justify-content: center; }
         .screen-wrap { width: 100%; max-width: 700px; background: linear-gradient(145deg, #1a1a1d, #141416); border-radius: 16px; padding: 6px; box-shadow: 0 32px 64px -16px rgba(0,0,0,0.5); }
         .screen { border-radius: 12px; position: relative; overflow: hidden; aspect-ratio: 16/9; background: linear-gradient(135deg, #1a2332, #0f1419); }
@@ -47,25 +48,109 @@
         .pricing { padding: 64px 24px 80px; text-align: center; }
         .pricing h2 { font-size: 32px; font-weight: 700; margin-bottom: 28px; letter-spacing: -1px; }
         .price-box { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px 44px; }
-        .price-amt { font-size: 48px; font-weight: 700; letter-spacing: -2px; }
-        .price-sub { color: var(--muted); font-size: 14px; margin: 6px 0 24px; }
+        .beta-badge { background: var(--accent); color: #000; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 16px; }
+        .spots-left { color: var(--accent); font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        .price-amt { font-size: 48px; font-weight: 700; letter-spacing: -2px; color: var(--accent); }
+        .price-old { font-size: 24px; color: #666; text-decoration: line-through; margin-right: 8px; }
+        .price-sub { color: var(--muted); font-size: 14px; margin: 6px 0 8px; }
+        .discount-tag { background: rgba(34, 197, 94, 0.15); color: var(--accent); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 20px; }
         .price-list { text-align: left; margin-bottom: 28px; }
         .price-list li { list-style: none; font-size: 14px; color: var(--text); padding: 8px 0; display: flex; align-items: center; gap: 10px; }
-        .price-list li::before { content: ''; color: var(--accent); font-weight: 700; }
-        .buy-btn { background: var(--text); color: var(--bg); padding: 14px 36px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block; }
+        .price-list li::before { content: '✓'; color: var(--accent); font-weight: 700; }
+        .buy-btn { background: var(--accent); color: #000; padding: 14px 36px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block; }
+        .buy-btn:hover { background: #34d399; }
+        .reserved-msg { color: var(--accent); font-size: 14px; margin-top: 16px; display: none; }
+        .reserved-msg.show { display: block; }
         footer { padding: 28px; text-align: center; border-top: 1px solid var(--border); }
         footer p { color: #555; font-size: 12px; }
-        @media (max-width: 700px) { .feat-grid { grid-template-columns: 1fr; } .hero h1 { font-size: 36px; } .nav-links { display: none; } }
+        @media (max-width: 700px) { .feat-grid { grid-template-columns: 1fr; } .hero h1 { font-size: 32px; } .nav-links { display: none; } }
     </style>
 </head>
 <body>
     <nav><div class="logo">panda</div><div class="nav-links"><a href="#features">Features</a><a href="#pricing">Pricing</a></div><a href="#pricing" class="nav-btn">Download</a></nav>
-    <section class="hero"><h1>Stay healthy while you work</h1><p>A minimal desktop companion that reminds you to drink water, stretch, and take breaks.</p><div class="hero-btns"><a href="#pricing" class="btn-main">Get Panda</a><a href="#demo" class="btn-ghost">See demo </a></div><p class="price-hint"><strong>$99</strong> one-time</p></section>
-    <section class="demo" id="demo"><div class="screen-wrap"><div class="screen"><img src="/panda/Screenshot.png" alt="" class="bg" onerror="this.style.background='linear-gradient(135deg,#1a2332,#0f1419)'"><div class="cursor" id="cursor"><svg viewBox="0 0 24 24" fill="black"><path d="M4 4l16 8-7 2-2 7z"/></svg></div><div class="panda-wrap" id="pandaWrap"><div class="bubble" id="bubble"><p>Did you drink water? </p><div class="bubble-btns"><span class="bbtn yes">Yes</span><span class="bbtn no">No</span></div></div><img src="/panda/panda1.png" class="panda" id="panda"></div></div></div></section>
-    <section class="features" id="features"><h2>Simple by design</h2><div class="feat-grid"><div class="feat"><div class="feat-icon"></div><h3>Custom reminders</h3><p>Set tasks and intervals your way.</p></div><div class="feat"><div class="feat-icon"></div><h3>Cute animations</h3><p>Panda walks in, asks, walks out.</p></div><div class="feat"><div class="feat-icon"></div><h3>Track progress</h3><p>See your history and build habits.</p></div><div class="feat"><div class="feat-icon"></div><h3>Red alert mode</h3><p>Full-screen for urgent reminders.</p></div><div class="feat"><div class="feat-icon"></div><h3>Non-intrusive</h3><p>Lives in system tray quietly.</p></div><div class="feat"><div class="feat-icon"></div><h3>Lightweight</h3><p>Minimal resources, no slowdown.</p></div></div></section>
-    <section class="pricing" id="pricing"><h2>One price, forever</h2><div class="price-box"><div class="price-amt">$99</div><div class="price-sub">One-time  Lifetime license</div><ul class="price-list"><li>All features included</li><li>Free updates forever</li><li>Windows 10 & 11</li><li>macOS</li><li>No subscription</li></ul><a href="https://www.paypal.com/ncp/payment/QBFW9KS9J5PLJ" class="buy-btn">Download Now</a></div></section>
-    <footer><p> 2025 Panda · Built with ❤️ · <a href="mailto:justinlord@empusaai.com" style="color:#888;text-decoration:none">Support</a></p></footer>
+    <section class="hero">
+        <h1>The only coworker who actually cares about your health</h1>
+        <p>A non-annoying desktop companion that forces you to drink water, fix your posture, and blink. Minimal, cute, and effective.</p>
+        <div class="hero-btns"><a href="#pricing" class="btn-main">Get Panda</a><a href="#demo" class="btn-ghost">See demo ↓</a></div>
+        <p class="price-hint"><span class="old">$99</span> → <strong>$19.80</strong> beta launch price</p>
+    </section>
+    <section class="demo" id="demo"><div class="screen-wrap"><div class="screen"><img src="/panda/Screenshot.png" alt="" class="bg" onerror="this.style.background='linear-gradient(135deg,#1a2332,#0f1419)'"><div class="cursor" id="cursor"><svg viewBox="0 0 24 24" fill="black"><path d="M4 4l16 8-7 2-2 7z"/></svg></div><div class="panda-wrap" id="pandaWrap"><div class="bubble" id="bubble"><p>Did you drink water? 💧</p><div class="bubble-btns"><span class="bbtn yes">Yes</span><span class="bbtn no">No</span></div></div><img src="/panda/panda1.png" class="panda" id="panda"></div></div></div></section>
+    <section class="features" id="features"><h2>Simple by design</h2><div class="feat-grid"><div class="feat"><div class="feat-icon">⏰</div><h3>Custom reminders</h3><p>Set tasks and intervals your way.</p></div><div class="feat"><div class="feat-icon">🐼</div><h3>Cute animations</h3><p>Panda walks in, asks, walks out.</p></div><div class="feat"><div class="feat-icon">📊</div><h3>Track progress</h3><p>See your history and build habits.</p></div><div class="feat"><div class="feat-icon">🚨</div><h3>Red alert mode</h3><p>Full-screen for urgent reminders.</p></div><div class="feat"><div class="feat-icon">🔕</div><h3>Non-intrusive</h3><p>Lives in system tray quietly.</p></div><div class="feat"><div class="feat-icon">⚡</div><h3>Lightweight</h3><p>Minimal resources, no slowdown.</p></div></div></section>
+    <section class="pricing" id="pricing">
+        <h2>Beta Launch Pricing</h2>
+        <div class="price-box">
+            <div class="beta-badge">🚀 BETA LAUNCH</div>
+            <div class="spots-left" id="spotsLeft">🔥 9 beta spots left</div>
+            <div>
+                <span class="price-old">$99</span>
+                <span class="price-amt">$19.80</span>
+            </div>
+            <div class="price-sub">One-time · Lifetime license</div>
+            <div class="discount-tag">80% OFF — Top 50 Beta Signup Discount</div>
+            <ul class="price-list">
+                <li>All features included</li>
+                <li>Free updates forever</li>
+                <li>Windows 10 & 11</li>
+                <li>macOS</li>
+                <li>No subscription</li>
+            </ul>
+            <a href="https://www.paypal.com/ncp/payment/QBFW9KS9J5PLJ" class="buy-btn">Get Beta Access Now</a>
+            <p class="reserved-msg" id="reservedMsg">✨ We've reserved your discount. Claim it anytime.</p>
+            <p style="color:#666;font-size:12px;margin-top:16px;">Production price: $99 after beta</p>
+        </div>
+    </section>
+    <footer><p>© 2025 Panda · Built with ❤️ · <a href="mailto:justinlord@empusaai.com" style="color:#888;text-decoration:none">Support</a></p></footer>
     <script>
+        // Beta spots countdown
+        (function() {
+            const spotsEl = document.getElementById('spotsLeft');
+            const reservedEl = document.getElementById('reservedMsg');
+            let spots = parseInt(localStorage.getItem('panda-beta-spots') || '9');
+            const lastUpdate = parseInt(localStorage.getItem('panda-spots-time') || '0');
+            const now = Date.now();
+            
+            // Calculate how many 10-min intervals passed
+            if (lastUpdate > 0) {
+                const elapsed = now - lastUpdate;
+                const intervalsPassed = Math.floor(elapsed / (10 * 60 * 1000));
+                spots = Math.max(0, spots - intervalsPassed);
+            }
+            
+            localStorage.setItem('panda-beta-spots', spots.toString());
+            localStorage.setItem('panda-spots-time', now.toString());
+            
+            function updateDisplay() {
+                if (spots <= 0) {
+                    spotsEl.textContent = '✨ Beta spots filled!';
+                    reservedEl.classList.add('show');
+                } else {
+                    spotsEl.textContent = '🔥 ' + spots + ' beta spot' + (spots === 1 ? '' : 's') + ' left';
+                }
+            }
+            
+            updateDisplay();
+            
+            // Drop by 1 after 5 seconds of viewing
+            setTimeout(() => {
+                if (spots > 0) {
+                    spots = Math.max(0, spots - 1);
+                    localStorage.setItem('panda-beta-spots', spots.toString());
+                    updateDisplay();
+                }
+            }, 5000);
+            
+            // Then every 10 minutes
+            setInterval(() => {
+                if (spots > 0) {
+                    spots = Math.max(0, spots - 1);
+                    localStorage.setItem('panda-beta-spots', spots.toString());
+                    localStorage.setItem('panda-spots-time', Date.now().toString());
+                    updateDisplay();
+                }
+            }, 10 * 60 * 1000);
+        })();
+
+        // Panda demo animation
         const pandaWrap=document.getElementById('pandaWrap'),bubble=document.getElementById('bubble'),panda=document.getElementById('panda'),cursor=document.getElementById('cursor'),screen=document.querySelector('.screen'),frames=['/panda/panda1.png','/panda/panda2.png','/panda/panda3.png','/panda/panda4.png'];let fi=0,walkInt,demoRound=0;function sleep(ms){return new Promise(r=>setTimeout(r,ms))}function walk(on){if(on)walkInt=setInterval(()=>{fi=(fi+1)%4;panda.src=frames[fi]},120);else{clearInterval(walkInt);panda.src='/panda/panda1.png'}}function animateCursor(x1,y1,x2,y2,dur){return new Promise(r=>{cursor.style.transition='none';cursor.style.left=x1+'px';cursor.style.top=y1+'px';cursor.style.opacity='1';setTimeout(()=>{cursor.style.transition=`left ${dur}ms ease, top ${dur}ms ease`;cursor.style.left=x2+'px';cursor.style.top=y2+'px';setTimeout(r,dur)},50)})}function clickEffect(){cursor.style.transform='scale(0.8)';setTimeout(()=>cursor.style.transform='scale(1)',100)}async function runPandaDemo(){const sw=screen.offsetWidth,sh=screen.offsetHeight;pandaWrap.style.transition='right 1.6s ease-out';pandaWrap.style.right='16px';walk(true);await sleep(1600);walk(false);bubble.classList.add('show');await sleep(700);const clickYes=demoRound%4<2;const btn=bubble.querySelector(clickYes?'.yes':'.no');const btnRect=btn.getBoundingClientRect(),screenRect=screen.getBoundingClientRect(),targetX=btnRect.left-screenRect.left+10,targetY=btnRect.top-screenRect.top+8;await animateCursor(sw*0.3,sh*0.5,targetX,targetY,700);clickEffect();await sleep(150);bubble.classList.remove('show');cursor.style.opacity='0';if(clickYes){panda.src='/panda/victory1.png';await sleep(400);panda.src='/panda/victory2.png';panda.style.transform='scale(0.90)';await sleep(400);panda.style.transform='scale(1)';panda.src='/panda/victory3.png';panda.style.transform='scale(1.15)';await sleep(600);panda.style.transform='scale(1)'}else{if(demoRound%4===2){panda.src='/panda/angry.png'}else{panda.src='/panda/crying.png'}await sleep(1000)}pandaWrap.style.transition='right 1.6s ease-in';pandaWrap.style.right='-100px';walk(true);await sleep(1600);walk(false);demoRound++;await sleep(1500);runPandaDemo()}setTimeout(runPandaDemo,1200);
     </script>
 </body>
