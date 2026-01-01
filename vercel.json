@@ -2,9 +2,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "redirects": [
+    { "source": "/panda", "destination": "/panda/", "permanent": true }
+  ],
   "rewrites": [
-    { "source": "/panda", "destination": "/panda/index.html" },
-    { "source": "/panda/", "destination": "/panda/index.html" },
     { "source": "/((?!panda/).*)", "destination": "/index.html" }
   ]
 }
