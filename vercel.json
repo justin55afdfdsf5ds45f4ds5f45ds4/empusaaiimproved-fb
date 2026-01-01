@@ -3,7 +3,8 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/panda/:path*", "destination": "/panda/:path*" },
-    { "source": "/((?!panda).*)", "destination": "/index.html" }
+    { "source": "/panda", "destination": "/panda/index.html" },
+    { "source": "/panda/", "destination": "/panda/index.html" },
+    { "source": "/((?!panda/).*)", "destination": "/index.html" }
   ]
 }
