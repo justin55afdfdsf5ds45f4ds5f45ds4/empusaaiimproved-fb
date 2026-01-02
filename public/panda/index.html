@@ -72,7 +72,7 @@
         <h1>The only coworker who actually cares about your health</h1>
         <p>A non-annoying desktop companion that forces you to drink water, fix your posture, and blink. Minimal, cute, and effective.</p>
         <div class="hero-btns"><a href="#pricing" class="btn-main">Get Panda</a><a href="#demo" class="btn-ghost">See demo ↓</a></div>
-        <p class="price-hint"><span class="old">$99</span> → <strong>$19.80</strong> beta launch price</p>
+        <p class="price-hint"><strong>$4.95</strong> one-time</p>
     </section>
     <section class="demo" id="demo">
         <div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; align-items: flex-start; max-width: 1100px; margin: 0 auto;">
@@ -90,16 +90,12 @@
     </section>
     <section class="features" id="features"><h2>Simple by design</h2><div class="feat-grid"><div class="feat"><div class="feat-icon">⏰</div><h3>Custom reminders</h3><p>Set tasks and intervals your way.</p></div><div class="feat"><div class="feat-icon">🐼</div><h3>Cute animations</h3><p>Panda walks in, asks, walks out.</p></div><div class="feat"><div class="feat-icon">📊</div><h3>Track progress</h3><p>See your history and build habits.</p></div><div class="feat"><div class="feat-icon">🚨</div><h3>Red alert mode</h3><p>Full-screen for urgent reminders.</p></div><div class="feat"><div class="feat-icon">🔕</div><h3>Non-intrusive</h3><p>Lives in system tray quietly.</p></div><div class="feat"><div class="feat-icon">⚡</div><h3>Lightweight</h3><p>Minimal resources, no slowdown.</p></div></div></section>
     <section class="pricing" id="pricing">
-        <h2>Beta Launch Pricing</h2>
+        <h2>One price, forever</h2>
         <div class="price-box">
-            <div class="beta-badge">🚀 BETA LAUNCH</div>
-            <div class="spots-left" id="spotsLeft">🔥 9 beta spots left</div>
             <div>
-                <span class="price-old">$99</span>
-                <span class="price-amt">$19.80</span>
+                <span class="price-amt">$4.95</span>
             </div>
             <div class="price-sub">One-time · Lifetime license</div>
-            <div class="discount-tag">80% OFF — Top 50 Beta Signup Discount</div>
             <ul class="price-list">
                 <li>All features included</li>
                 <li>Free updates forever</li>
@@ -107,62 +103,11 @@
                 <li>macOS</li>
                 <li>No subscription</li>
             </ul>
-            <a href="https://www.paypal.com/ncp/payment/QBFW9KS9J5PLJ" class="buy-btn">Get Beta Access Now</a>
-            <p class="reserved-msg" id="reservedMsg">✨ We've reserved your discount. Claim it anytime.</p>
-            <p style="color:#666;font-size:12px;margin-top:16px;">Production price: $99 after beta</p>
+            <a href="https://www.paypal.com/ncp/payment/QBFW9KS9J5PLJ" class="buy-btn">Get Panda Now</a>
         </div>
     </section>
     <footer><p>© 2025 Panda · Built with ❤️ · <a href="mailto:justinlord@empusaai.com" style="color:#888;text-decoration:none">Support</a></p></footer>
     <script>
-        // Beta spots countdown
-        (function() {
-            const spotsEl = document.getElementById('spotsLeft');
-            const reservedEl = document.getElementById('reservedMsg');
-            let spots = parseInt(localStorage.getItem('panda-beta-spots') || '9');
-            const lastUpdate = parseInt(localStorage.getItem('panda-spots-time') || '0');
-            const now = Date.now();
-            
-            // Calculate how many 10-min intervals passed
-            if (lastUpdate > 0) {
-                const elapsed = now - lastUpdate;
-                const intervalsPassed = Math.floor(elapsed / (10 * 60 * 1000));
-                spots = Math.max(0, spots - intervalsPassed);
-            }
-            
-            localStorage.setItem('panda-beta-spots', spots.toString());
-            localStorage.setItem('panda-spots-time', now.toString());
-            
-            function updateDisplay() {
-                if (spots <= 0) {
-                    spotsEl.textContent = '✨ Beta spots filled!';
-                    reservedEl.classList.add('show');
-                } else {
-                    spotsEl.textContent = '🔥 ' + spots + ' beta spot' + (spots === 1 ? '' : 's') + ' left';
-                }
-            }
-            
-            updateDisplay();
-            
-            // Drop by 1 after 5 seconds of viewing
-            setTimeout(() => {
-                if (spots > 0) {
-                    spots = Math.max(0, spots - 1);
-                    localStorage.setItem('panda-beta-spots', spots.toString());
-                    updateDisplay();
-                }
-            }, 5000);
-            
-            // Then every 10 minutes
-            setInterval(() => {
-                if (spots > 0) {
-                    spots = Math.max(0, spots - 1);
-                    localStorage.setItem('panda-beta-spots', spots.toString());
-                    localStorage.setItem('panda-spots-time', Date.now().toString());
-                    updateDisplay();
-                }
-            }, 10 * 60 * 1000);
-        })();
-
         // Panda demo animation
         const pandaWrap=document.getElementById('pandaWrap'),bubble=document.getElementById('bubble'),panda=document.getElementById('panda'),cursor=document.getElementById('cursor'),screen=document.querySelector('.screen'),frames=['/panda/panda1.png','/panda/panda2.png','/panda/panda3.png','/panda/panda4.png'];let fi=0,walkInt,demoRound=0;function sleep(ms){return new Promise(r=>setTimeout(r,ms))}function walk(on){if(on)walkInt=setInterval(()=>{fi=(fi+1)%4;panda.src=frames[fi]},120);else{clearInterval(walkInt);panda.src='/panda/panda1.png'}}function animateCursor(x1,y1,x2,y2,dur){return new Promise(r=>{cursor.style.transition='none';cursor.style.left=x1+'px';cursor.style.top=y1+'px';cursor.style.opacity='1';setTimeout(()=>{cursor.style.transition=`left ${dur}ms ease, top ${dur}ms ease`;cursor.style.left=x2+'px';cursor.style.top=y2+'px';setTimeout(r,dur)},50)})}function clickEffect(){cursor.style.transform='scale(0.8)';setTimeout(()=>cursor.style.transform='scale(1)',100)}async function runPandaDemo(){const sw=screen.offsetWidth,sh=screen.offsetHeight;pandaWrap.style.transition='right 1.6s ease-out';pandaWrap.style.right='16px';walk(true);await sleep(1600);walk(false);bubble.classList.add('show');await sleep(700);const clickYes=demoRound%4<2;const btn=bubble.querySelector(clickYes?'.yes':'.no');const btnRect=btn.getBoundingClientRect(),screenRect=screen.getBoundingClientRect(),targetX=btnRect.left-screenRect.left+10,targetY=btnRect.top-screenRect.top+8;await animateCursor(sw*0.3,sh*0.5,targetX,targetY,700);clickEffect();await sleep(150);bubble.classList.remove('show');cursor.style.opacity='0';if(clickYes){panda.src='/panda/victory1.png';await sleep(400);panda.src='/panda/victory2.png';panda.style.transform='scale(0.90)';await sleep(400);panda.style.transform='scale(1)';panda.src='/panda/victory3.png';panda.style.transform='scale(1.15)';await sleep(600);panda.style.transform='scale(1)'}else{if(demoRound%4===2){panda.src='/panda/angry.png'}else{panda.src='/panda/crying.png'}await sleep(1000)}pandaWrap.style.transition='right 1.6s ease-in';pandaWrap.style.right='-100px';walk(true);await sleep(1600);walk(false);demoRound++;await sleep(1500);runPandaDemo()}setTimeout(runPandaDemo,1200);
     </script>
