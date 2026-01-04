@@ -85,11 +85,11 @@ export default function Pricing() {
           One purchase. Lifetime access. No subscriptions.
         </p>
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 sm:p-12">
-          {/* Christmas Discount Banner */}
+          {/* New Year Q1 Sprint Discount Banner */}
           <div className="bg-emerald-400/10 border border-emerald-400/30 rounded-lg p-4 mb-8">
             <div className="flex items-center justify-center gap-2 text-emerald-400 mb-3">
               <Gift className="w-5 h-5" />
-              <span className="font-mono font-semibold">🎄 CHRISTMAS SPECIAL — 70% OFF</span>
+              <span className="font-mono font-semibold">🚀 Q1 SPRINT SALE — 70% OFF</span>
               <Gift className="w-5 h-5" />
             </div>
             <CountdownTimer />
