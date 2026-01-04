@@ -54,7 +54,7 @@ export default function Testimonials() {
           Used by developers shipping faster in 2026
         </h2>
         <p className="text-zinc-500 text-center">
-          Real devs. Real results. No corporate logos needed.
+          Real devs. Real results.
         </p>
       </div>
       <div 
