@@ -1,0 +1,101 @@
+<context type="skeleton_map">
+<project_map>
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+</file>
+<file path="src/App.tsx">
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Navbar from './components/Navbar'
+import Hero from './components/Hero'
+import Problem from './components/Problem'
+import HowItWorks from './components/HowItWorks'
+import Testimonials from './components/Testimonials'
+import SocialProof from './components/SocialProof'
+import FAQ from './components/FAQ'
+import Pricing from './components/Pricing'
+import Footer from './components/Footer'
+import DownloadPage from './pages/Download'
+
+function LandingPage() // ...
+function App() // ...
+</file>
+<file path="src/components/FAQ.tsx">
+import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+
+export default function FAQ() // ...
+</file>
+<file path="src/components/Footer.tsx">
+import { Github, Twitter } from 'lucide-react'
+
+export default function Footer() // ...
+</file>
+<file path="src/components/Hero.tsx">
+import { Download, BookOpen } from 'lucide-react'
+import TerminalVisual from './TerminalVisual'
+
+export default function Hero() // ...
+</file>
+<file path="src/components/HowItWorks.tsx">
+import { Search, Layers, Zap } from 'lucide-react'
+
+export default function HowItWorks() // ...
+</file>
+<file path="src/components/Navbar.tsx">
+import { ExternalLink } from 'lucide-react'
+
+export default function Navbar() // ...
+</file>
+<file path="src/components/Pricing.tsx">
+import { Check, Terminal, RefreshCw, Package, Gift, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+function CountdownTimer() // ...
+const pad = (n: number) =&gt; // ...
+export default function Pricing() // ...
+</file>
+<file path="src/components/Problem.tsx">
+import { Clock, Copy, AlertTriangle } from 'lucide-react'
+
+export default function Problem() // ...
+</file>
+<file path="src/components/SocialProof.tsx">
+import { Quote } from 'lucide-react'
+
+export default function SocialProof() // ...
+</file>
+<file path="src/components/TerminalVisual.tsx">
+export default function TerminalVisual() // ...
+</file>
+<file path="src/components/Testimonials.tsx">
+import { useEffect, useRef } from 'react'
+
+export default function Testimonials() // ...
+const animate = () =&gt; // ...
+</file>
+<file path="src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+</file>
+<file path="src/pages/Download.tsx">
+import { Download, Terminal, MessageCircle } from 'lucide-react'
+
+export default function DownloadPage() // ...
+</file>
+<file path="vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+</file>
+</project_map>
+</context>

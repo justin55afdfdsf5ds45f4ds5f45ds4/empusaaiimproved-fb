@@ -1,34 +1,199 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: 'Inter', 'Geist Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
-  --color-accent: #10b981;
-  --color-accent-hover: #34d399;
+  
+  /* UNIFIED COLOR SYSTEM */
+  --color-void: #050505;
+  --color-surface: #0A0A0A;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+  --color-accent: #ffffff; /* white */
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   scroll-behavior: smooth;
+  background: var(--color-void);
 }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  background: var(--color-void);
+  color: #fafafa;
 }
 
 .font-mono {
   font-family: var(--font-mono);
 }
 
-/* Terminal cursor blink */
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+/* Grain texture overlay */
+.grain {
+  position: relative;
 }
 
-.cursor-blink {
-  animation: blink 1s infinite;
+.grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 10;
 }
 
-/* Glow effect for accent elements */
-.glow {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+/* Glass surface */
+.glass {
+  background: rgba(10, 10, 10, 0.5);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hollow button */
+.btn-hollow {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-hollow:hover {
+  background: white;
+  color: #050505;
+  border-color: white;
+}
+
+/* Subtle border glow on hover */
+.border-glow {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s ease;
+}
+
+.border-glow:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* UNIFIED TYPOGRAPHY SYSTEM */
+
+/* Labels */
+.label {
+  font-size: 0.75rem; /* 12px */
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #71717a; /* zinc-500 */
+}
+
+/* Section Headers */
+.section-header {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+/* Body Text */
+.body-text {
+  font-size: 1rem; /* text-base */
+  color: #a1a1aa; /* zinc-400 */
+  line-height: 1.75;
+}
+
+/* Tight tracking for hero */
+.tracking-hero {
+  letter-spacing: -0.02em;
+}
+
+/* Counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.count-up {
+  animation: countUp 0.6s ease-out forwards;
+}
+
+/* Spotlight effect */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(6, 182, 212, 0.05),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.spotlight-container:hover .spotlight {
+  opacity: 1;
+}
+
+/* Marquee scroll animation */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-2800px); }
+}
+
+.marquee-scroll {
+  animation: marquee-scroll 39s linear infinite;
+}
+
+/* Slow spin for holographic wireframes */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Reverse slower spin for orbital rings */
+@keyframes spin-reverse-slower {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* Slow bounce for cloud icons */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+/* Shimmer effect for glassy water border */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Sparkle animation for border dots */
+@keyframes sparkle {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+/* Ripple effect for water-like border */
+@keyframes ripple {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 0; }
 }

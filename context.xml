@@ -26,80 +26,214 @@ dist-ssr
 *.sln
 *.sw?
 </file>
+<file path=".mu_memory.json">
+{
+  &quot;version&quot;: 1,
+  &quot;files&quot;: {
+    &quot;src/components/TerminalVisual.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/TerminalVisual.tsx&quot;,
+      &quot;content&quot;: &quot;export default function TerminalVisual() {\r\n  return (\r\n    &lt;div className=\&quot;max-w-4xl mx-auto\&quot;&gt;\r\n      &lt;div className=\&quot;grid grid-cols-1 md:grid-cols-2 gap-4\&quot;&gt;\r\n        {/* Left Terminal */}\r\n        &lt;div className=\&quot;bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden\&quot;&gt;\r\n          &lt;div className=\&quot;flex items-center gap-2 px-4 py-3 bg-zinc-800/50 border-b border-zinc-800\&quot;&gt;\r\n            &lt;div className=\&quot;flex gap-1.5\&quot;&gt;\r\n              &lt;div className=\&quot;w-3 h-3 rounded-full bg-red-500/80\&quot;&gt;&lt;/div&gt;\r\n              &lt;div className=\&quot;w-3 h-3 rounded-full bg-yellow-500/80\&quot;&gt;&lt;/div&gt;\r\n              &lt;div className=\&quot;w-3 h-3 rounded-full bg-green-500/80\&quot;&gt;&lt;/div&gt;\r\n            &lt;/div&gt;\r\n            &lt;span className=\&quot;text-xs font-mono text-zinc-500 ml-2\&quot;&gt;terminal&lt;/span&gt;\r\n          &lt;/div&gt;\r\n          &lt;div className=\&quot;p-4 font-mono text-sm\&quot;&gt;\r\n            &lt;div className=\&quot;text-zinc-500\&quot;&gt;$ cmp .&lt;/div&gt;\r\n            &lt;div className=\&quot;mt-2 text-emerald-400\&quot;&gt;\r\n              &lt;span className=\&quot;text-zinc-500\&quot;&gt;[&lt;/span&gt;\r\n              &lt;span&gt;■■■■■■■■■■&lt;/span&gt;\r\n              &lt;span className=\&quot;text-zinc-500\&quot;&gt;]&lt;/span&gt;\r\n              &lt;span className=\&quot;ml-2\&quot;&gt;100%&lt;/span&gt;\r\n            &lt;/div&gt;\r\n            &lt;div className=\&quot;mt-2 text-zinc-400\&quot;&gt;\r\n              &lt;div&gt;→ Scanning repo...&lt;/div&gt;\r\n              &lt;div&gt;→ Found 247 files&lt;/div&gt;\r\n              &lt;div&gt;→ Mapping dependencies...&lt;/div&gt;\r\n              &lt;div className=\&quot;text-emerald-400 mt-1\&quot;&gt;✓ Context map generated&lt;/div&gt;\r\n            &lt;/div&gt;\r\n          &lt;/div&gt;\r\n        &lt;/div&gt;\r\n\r\n        {/* Right Terminal */}\r\n        &lt;div className=\&quot;bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden\&quot;&gt;\r\n          &lt;div className=\&quot;flex items-center gap-2 px-4 py-3 bg-zinc-800/50 border-b border-zinc-800\&quot;&gt;\r\n            &lt;div className=\&quot;flex gap-1.5\&quot;&gt;\r\n              &lt;div className=\&quot;w-3 h-3 rounded-full bg-red-500/80\&quot;&gt;&lt;/div&gt;\r\n              &lt;div className=\&quot;w-3 h-3 rounded-full bg-yellow-500/80\&quot;&gt;&lt;/div&gt;\r\n              &lt;div className=\&quot;w-3 h-3 rounded-full bg-green-500/80\&quot;&gt;&lt;/div&gt;\r\n            &lt;/div&gt;\r\n            &lt;span className=\&quot;text-xs font-mono text-zinc-500 ml-2\&quot;&gt;output&lt;/span&gt;\r\n          &lt;/div&gt;\r\n          &lt;div className=\&quot;p-4 font-mono text-sm\&quot;&gt;\r\n            &lt;div className=\&quot;text-zinc-500\&quot;&gt;// Context Injection Report&lt;/div&gt;\r\n            &lt;div className=\&quot;mt-2 text-zinc-300\&quot;&gt;\r\n              &lt;div className=\&quot;flex justify-between\&quot;&gt;\r\n                &lt;span className=\&quot;text-zinc-500\&quot;&gt;Files mapped:&lt;/span&gt;\r\n                &lt;span className=\&quot;text-emerald-400\&quot;&gt;247&lt;/span&gt;\r\n              &lt;/div&gt;\r\n              &lt;div className=\&quot;flex justify-between\&quot;&gt;\r\n                &lt;span className=\&quot;text-zinc-500\&quot;&gt;Dependencies:&lt;/span&gt;\r\n                &lt;span className=\&quot;text-emerald-400\&quot;&gt;89&lt;/span&gt;\r\n              &lt;/div&gt;\r\n              &lt;div className=\&quot;flex justify-between\&quot;&gt;\r\n                &lt;span className=\&quot;text-zinc-500\&quot;&gt;Types resolved:&lt;/span&gt;\r\n                &lt;span className=\&quot;text-emerald-400\&quot;&gt;156&lt;/span&gt;\r\n              &lt;/div&gt;\r\n              &lt;div className=\&quot;flex justify-between mt-2 pt-2 border-t border-zinc-800\&quot;&gt;\r\n                &lt;span className=\&quot;text-zinc-400\&quot;&gt;Accuracy:&lt;/span&gt;\r\n                &lt;span className=\&quot;text-emerald-400 font-semibold\&quot;&gt;100%&lt;/span&gt;\r\n              &lt;/div&gt;\r\n            &lt;/div&gt;\r\n          &lt;/div&gt;\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/div&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766220758,
+      &quot;hash&quot;: 6960321758471050689
+    },
+    &quot;src/main.tsx&quot;: {
+      &quot;path&quot;: &quot;src/main.tsx&quot;,
+      &quot;content&quot;: &quot;import { StrictMode } from 'react'\nimport { createRoot } from 'react-dom/client'\nimport './index.css'\nimport App from './App.tsx'\n\ncreateRoot(document.getElementById('root')!).render(\n  &lt;StrictMode&gt;\n    &lt;App /&gt;\n  &lt;/StrictMode&gt;,\n)\n&quot;,
+      &quot;modified&quot;: 1766220734,
+      &quot;hash&quot;: 317362321846761562
+    },
+    &quot;public/vite.svg&quot;: {
+      &quot;path&quot;: &quot;public/vite.svg&quot;,
+      &quot;content&quot;: &quot;&lt;svg xmlns=\&quot;http://www.w3.org/2000/svg\&quot; xmlns:xlink=\&quot;http://www.w3.org/1999/xlink\&quot; aria-hidden=\&quot;true\&quot; role=\&quot;img\&quot; class=\&quot;iconify iconify--logos\&quot; width=\&quot;31.88\&quot; height=\&quot;32\&quot; preserveAspectRatio=\&quot;xMidYMid meet\&quot; viewBox=\&quot;0 0 256 257\&quot;&gt;&lt;defs&gt;&lt;linearGradient id=\&quot;IconifyId1813088fe1fbc01fb466\&quot; x1=\&quot;-.828%\&quot; x2=\&quot;57.636%\&quot; y1=\&quot;7.652%\&quot; y2=\&quot;78.411%\&quot;&gt;&lt;stop offset=\&quot;0%\&quot; stop-color=\&quot;#41D1FF\&quot;&gt;&lt;/stop&gt;&lt;stop offset=\&quot;100%\&quot; stop-color=\&quot;#BD34FE\&quot;&gt;&lt;/stop&gt;&lt;/linearGradient&gt;&lt;linearGradient id=\&quot;IconifyId1813088fe1fbc01fb467\&quot; x1=\&quot;43.376%\&quot; x2=\&quot;50.316%\&quot; y1=\&quot;2.242%\&quot; y2=\&quot;89.03%\&quot;&gt;&lt;stop offset=\&quot;0%\&quot; stop-color=\&quot;#FFEA83\&quot;&gt;&lt;/stop&gt;&lt;stop offset=\&quot;8.333%\&quot; stop-color=\&quot;#FFDD35\&quot;&gt;&lt;/stop&gt;&lt;stop offset=\&quot;100%\&quot; stop-color=\&quot;#FFA800\&quot;&gt;&lt;/stop&gt;&lt;/linearGradient&gt;&lt;/defs&gt;&lt;path fill=\&quot;url(#IconifyId1813088fe1fbc01fb466)\&quot; d=\&quot;M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z\&quot;&gt;&lt;/path&gt;&lt;path fill=\&quot;url(#IconifyId1813088fe1fbc01fb467)\&quot; d=\&quot;M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z\&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&quot;,
+      &quot;modified&quot;: 1763834103,
+      &quot;hash&quot;: 9002406962457274415
+    },
+    &quot;README.md&quot;: {
+      &quot;path&quot;: &quot;README.md&quot;,
+      &quot;content&quot;: &quot;# React + TypeScript + Vite\n\nThis template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.\n\nCurrently, two official plugins are available:\n\n- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh\n- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh\n\n## React Compiler\n\nThe React Compiler is not enabled on this template because of its impact on dev &amp; build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).\n\n## Expanding the ESLint configuration\n\nIf you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:\n\n```js\nexport default defineConfig([\n  globalIgnores(['dist']),\n  {\n    files: ['**/*.{ts,tsx}'],\n    extends: [\n      // Other configs...\n\n      // Remove tseslint.configs.recommended and replace with this\n      tseslint.configs.recommendedTypeChecked,\n      // Alternatively, use this for stricter rules\n      tseslint.configs.strictTypeChecked,\n      // Optionally, add this for stylistic rules\n      tseslint.configs.stylisticTypeChecked,\n\n      // Other configs...\n    ],\n    languageOptions: {\n      parserOptions: {\n        project: ['./tsconfig.node.json', './tsconfig.app.json'],\n        tsconfigRootDir: import.meta.dirname,\n      },\n      // other options...\n    },\n  },\n])\n```\n\nYou can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:\n\n```js\n// eslint.config.js\nimport reactX from 'eslint-plugin-react-x'\nimport reactDom from 'eslint-plugin-react-dom'\n\nexport default defineConfig([\n  globalIgnores(['dist']),\n  {\n    files: ['**/*.{ts,tsx}'],\n    extends: [\n      // Other configs...\n      // Enable lint rules for React\n      reactX.configs['recommended-typescript'],\n      // Enable lint rules for React DOM\n      reactDom.configs.recommended,\n    ],\n    languageOptions: {\n      parserOptions: {\n        project: ['./tsconfig.node.json', './tsconfig.app.json'],\n        tsconfigRootDir: import.meta.dirname,\n      },\n      // other options...\n    },\n  },\n])\n```\n&quot;,
+      &quot;modified&quot;: 1763834103,
+      &quot;hash&quot;: 10248861042113147542
+    },
+    &quot;src/components/HowItWorks.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/HowItWorks.tsx&quot;,
+      &quot;content&quot;: &quot;import { Search, Layers, Zap } from 'lucide-react'\r\n\r\nconst steps = [\r\n  {\r\n    icon: Search,\r\n    step: '01',\r\n    title: 'PHASE 01 :: SCAN',\r\n    description: (\r\n      &lt;&gt;\r\n        Executing deep traversal. &lt;code className=\&quot;font-mono text-emerald-400 bg-zinc-800 px-1.5 py-0.5 rounded text-sm\&quot;&gt;cmp&lt;/code&gt; strips the noise (node_modules) and isolates the signal.\r\n      &lt;/&gt;\r\n    ),\r\n  },\r\n  {\r\n    icon: Layers,\r\n    step: '02',\r\n    title: 'PHASE 02 :: COMPRESS',\r\n    description: 'Your file hierarchy is tokenized into a deterministic map. We preserve structure, not just text.',\r\n  },\r\n  {\r\n    icon: Zap,\r\n    step: '03',\r\n    title: 'PHASE 03 :: INJECT',\r\n    description: 'The payload is ready. One paste restores full Senior Engineer context instantly.',\r\n  },\r\n]\r\n\r\nexport default function HowItWorks() {\r\n  return (\r\n    &lt;section id=\&quot;protocol\&quot; className=\&quot;py-20 px-4 sm:px-6 lg:px-8\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-6xl mx-auto\&quot;&gt;\r\n        &lt;div className=\&quot;text-center mb-12\&quot;&gt;\r\n          &lt;h2 className=\&quot;text-3xl sm:text-4xl font-bold font-mono text-zinc-100 mb-4\&quot;&gt;\r\n            // THE PROTOCOL\r\n          &lt;/h2&gt;\r\n          &lt;p className=\&quot;text-zinc-400 text-lg\&quot;&gt;\r\n            Three phases. Zero friction. Total recall.\r\n          &lt;/p&gt;\r\n        &lt;/div&gt;\r\n        &lt;div className=\&quot;grid grid-cols-1 md:grid-cols-3 gap-8\&quot;&gt;\r\n          {steps.map((step, index) =&gt; (\r\n            &lt;div key={index} className=\&quot;relative\&quot;&gt;\r\n              {index &lt; steps.length - 1 &amp;&amp; (\r\n                &lt;div className=\&quot;hidden md:block absolute top-12 left-full w-full h-px bg-gradient-to-r from-zinc-700 to-transparent -translate-x-1/2 z-0\&quot; /&gt;\r\n              )}\r\n              &lt;div className=\&quot;relative z-10 text-center\&quot;&gt;\r\n                &lt;div className=\&quot;w-24 h-24 mx-auto flex items-center justify-center bg-zinc-900 border-2 border-emerald-400/30 rounded-2xl mb-6\&quot;&gt;\r\n                  &lt;step.icon className=\&quot;w-10 h-10 text-emerald-400\&quot; /&gt;\r\n                &lt;/div&gt;\r\n                &lt;div className=\&quot;font-mono text-sm text-emerald-400 mb-2\&quot;&gt;\r\n                  {step.step}\r\n                &lt;/div&gt;\r\n                &lt;h3 className=\&quot;text-xl font-bold font-mono text-zinc-100 mb-3\&quot;&gt;\r\n                  {step.title}\r\n                &lt;/h3&gt;\r\n                &lt;p className=\&quot;text-zinc-400 leading-relaxed\&quot;&gt;\r\n                  {step.description}\r\n                &lt;/p&gt;\r\n              &lt;/div&gt;\r\n            &lt;/div&gt;\r\n          ))}\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/section&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766224091,
+      &quot;hash&quot;: 13754626345696165510
+    },
+    &quot;index.html&quot;: {
+      &quot;path&quot;: &quot;index.html&quot;,
+      &quot;content&quot;: &quot;&lt;!doctype html&gt;\n&lt;html lang=\&quot;en\&quot; class=\&quot;dark\&quot;&gt;\n  &lt;head&gt;\n    &lt;meta charset=\&quot;UTF-8\&quot; /&gt;\n    &lt;link rel=\&quot;icon\&quot; type=\&quot;image/png\&quot; href=\&quot;https://res.cloudinary.com/dbalp1654/image/upload/w_64,h_64,c_fill,r_max,f_png/v1766221044/cropped_circle_image_fem8gv_yizfl2_ew4kdu.jpg\&quot; /&gt;\n    &lt;meta name=\&quot;viewport\&quot; content=\&quot;width=device-width, initial-scale=1.0\&quot; /&gt;\n    &lt;title&gt;CMP - Context Memory Protocol | Empusa AI&lt;/title&gt;\n    &lt;meta name=\&quot;description\&quot; content=\&quot;The deterministic context engine that reinjects your entire project state instantly. Stop explaining your codebase to AI.\&quot; /&gt;\n    &lt;link rel=\&quot;preconnect\&quot; href=\&quot;https://fonts.googleapis.com\&quot;&gt;\n    &lt;link rel=\&quot;preconnect\&quot; href=\&quot;https://fonts.gstatic.com\&quot; crossorigin&gt;\n    &lt;link href=\&quot;https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap\&quot; rel=\&quot;stylesheet\&quot;&gt;\n  &lt;/head&gt;\n  &lt;body class=\&quot;bg-zinc-950 text-zinc-100\&quot;&gt;\n    &lt;div id=\&quot;root\&quot;&gt;&lt;/div&gt;\n    &lt;script type=\&quot;module\&quot; src=\&quot;/src/main.tsx\&quot;&gt;&lt;/script&gt;\n  &lt;/body&gt;\n&lt;/html&gt;\n&quot;,
+      &quot;modified&quot;: 1766221314,
+      &quot;hash&quot;: 6163285163505138889
+    },
+    &quot;src/pages/Download.tsx&quot;: {
+      &quot;path&quot;: &quot;src/pages/Download.tsx&quot;,
+      &quot;content&quot;: &quot;import { Download, CheckCircle, Terminal } from 'lucide-react'\r\n\r\nexport default function DownloadPage() {\r\n  return (\r\n    &lt;div className=\&quot;min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-xl w-full text-center\&quot;&gt;\r\n        &lt;div className=\&quot;mb-8\&quot;&gt;\r\n          &lt;div className=\&quot;w-20 h-20 mx-auto flex items-center justify-center bg-emerald-400/10 rounded-full mb-6\&quot;&gt;\r\n            &lt;CheckCircle className=\&quot;w-10 h-10 text-emerald-400\&quot; /&gt;\r\n          &lt;/div&gt;\r\n          &lt;h1 className=\&quot;text-3xl sm:text-4xl font-bold mb-4\&quot;&gt;\r\n            Thank you for your purchase!\r\n          &lt;/h1&gt;\r\n          &lt;p className=\&quot;text-zinc-400 text-lg\&quot;&gt;\r\n            Your download is ready. Click below to get CMP.\r\n          &lt;/p&gt;\r\n        &lt;/div&gt;\r\n\r\n        &lt;div className=\&quot;bg-zinc-900 border border-zinc-800 rounded-xl p-8 mb-8\&quot;&gt;\r\n          &lt;div className=\&quot;flex items-center justify-center gap-3 mb-6\&quot;&gt;\r\n            &lt;Terminal className=\&quot;w-6 h-6 text-emerald-400\&quot; /&gt;\r\n            &lt;span className=\&quot;font-mono text-xl text-zinc-100\&quot;&gt;CMP v1.0&lt;/span&gt;\r\n          &lt;/div&gt;\r\n          \r\n          &lt;a\r\n            href=\&quot;/CMP.zip\&quot;\r\n            download\r\n            className=\&quot;inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow w-full justify-center\&quot;\r\n          &gt;\r\n            &lt;Download className=\&quot;w-5 h-5\&quot; /&gt;\r\n            Download CMP\r\n          &lt;/a&gt;\r\n          \r\n          &lt;p className=\&quot;mt-4 text-sm text-zinc-500\&quot;&gt;\r\n            Includes Rust binary for macOS, Linux, and Windows\r\n          &lt;/p&gt;\r\n        &lt;/div&gt;\r\n\r\n        &lt;div className=\&quot;text-sm text-zinc-500\&quot;&gt;\r\n          &lt;p&gt;Need help? Contact us at justinlord@empusaai.com&lt;/p&gt;\r\n        &lt;/div&gt;\r\n\r\n        &lt;a\r\n          href=\&quot;/\&quot;\r\n          className=\&quot;inline-block mt-8 text-emerald-400 hover:text-emerald-300 font-mono text-sm\&quot;\r\n        &gt;\r\n          ← Back to home\r\n        &lt;/a&gt;\r\n      &lt;/div&gt;\r\n    &lt;/div&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766222576,
+      &quot;hash&quot;: 16285620873186685520
+    },
+    &quot;src/components/Footer.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/Footer.tsx&quot;,
+      &quot;content&quot;: &quot;import { Github, Twitter } from 'lucide-react'\r\n\r\nexport default function Footer() {\r\n  return (\r\n    &lt;footer className=\&quot;py-12 px-4 sm:px-6 lg:px-8 border-t border-zinc-800\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-6xl mx-auto\&quot;&gt;\r\n        &lt;div className=\&quot;flex flex-col sm:flex-row items-center justify-between gap-6\&quot;&gt;\r\n          &lt;div className=\&quot;flex items-center gap-2\&quot;&gt;\r\n            &lt;img \r\n              src=\&quot;https://res.cloudinary.com/dbalp1654/image/upload/v1766221044/cropped_circle_image_fem8gv_yizfl2_ew4kdu.jpg\&quot; \r\n              alt=\&quot;Empusa AI\&quot; \r\n              className=\&quot;w-6 h-6 rounded-full\&quot;\r\n            /&gt;\r\n            &lt;span className=\&quot;font-mono text-sm text-zinc-500\&quot;&gt;\r\n              &lt;span className=\&quot;text-zinc-400\&quot;&gt;EMPUSA&lt;/span&gt;\r\n              &lt;span className=\&quot;text-zinc-600\&quot;&gt; / &lt;/span&gt;\r\n              &lt;span className=\&quot;text-emerald-400/70\&quot;&gt;AI&lt;/span&gt;\r\n            &lt;/span&gt;\r\n            &lt;span className=\&quot;text-zinc-600 mx-2\&quot;&gt;·&lt;/span&gt;\r\n            &lt;span className=\&quot;text-sm text-zinc-500\&quot;&gt;\r\n              © {new Date().getFullYear()}\r\n            &lt;/span&gt;\r\n          &lt;/div&gt;\r\n          &lt;div className=\&quot;flex items-center gap-4\&quot;&gt;\r\n            &lt;a\r\n              href=\&quot;https://github.com/justin55afdfdsf5ds45f4ds5f45ds4\&quot;\r\n              target=\&quot;_blank\&quot;\r\n              rel=\&quot;noopener noreferrer\&quot;\r\n              className=\&quot;text-zinc-500 hover:text-zinc-300 transition-colors\&quot;\r\n              aria-label=\&quot;GitHub\&quot;\r\n            &gt;\r\n              &lt;Github className=\&quot;w-5 h-5\&quot; /&gt;\r\n            &lt;/a&gt;\r\n            &lt;a\r\n              href=\&quot;https://x.com/Justin_lords\&quot;\r\n              target=\&quot;_blank\&quot;\r\n              rel=\&quot;noopener noreferrer\&quot;\r\n              className=\&quot;text-zinc-500 hover:text-zinc-300 transition-colors\&quot;\r\n              aria-label=\&quot;X\&quot;\r\n            &gt;\r\n              &lt;Twitter className=\&quot;w-5 h-5\&quot; /&gt;\r\n            &lt;/a&gt;\r\n          &lt;/div&gt;\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/footer&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766223136,
+      &quot;hash&quot;: 18200963413373993155
+    },
+    &quot;tsconfig.app.json&quot;: {
+      &quot;path&quot;: &quot;tsconfig.app.json&quot;,
+      &quot;content&quot;: &quot;{\n  \&quot;compilerOptions\&quot;: {\n    \&quot;tsBuildInfoFile\&quot;: \&quot;./node_modules/.tmp/tsconfig.app.tsbuildinfo\&quot;,\n    \&quot;target\&quot;: \&quot;ES2022\&quot;,\n    \&quot;useDefineForClassFields\&quot;: true,\n    \&quot;lib\&quot;: [\&quot;ES2022\&quot;, \&quot;DOM\&quot;, \&quot;DOM.Iterable\&quot;],\n    \&quot;module\&quot;: \&quot;ESNext\&quot;,\n    \&quot;types\&quot;: [\&quot;vite/client\&quot;],\n    \&quot;skipLibCheck\&quot;: true,\n\n    /* Bundler mode */\n    \&quot;moduleResolution\&quot;: \&quot;bundler\&quot;,\n    \&quot;allowImportingTsExtensions\&quot;: true,\n    \&quot;verbatimModuleSyntax\&quot;: true,\n    \&quot;moduleDetection\&quot;: \&quot;force\&quot;,\n    \&quot;noEmit\&quot;: true,\n    \&quot;jsx\&quot;: \&quot;react-jsx\&quot;,\n\n    /* Linting */\n    \&quot;strict\&quot;: true,\n    \&quot;noUnusedLocals\&quot;: true,\n    \&quot;noUnusedParameters\&quot;: true,\n    \&quot;erasableSyntaxOnly\&quot;: true,\n    \&quot;noFallthroughCasesInSwitch\&quot;: true,\n    \&quot;noUncheckedSideEffectImports\&quot;: true\n  },\n  \&quot;include\&quot;: [\&quot;src\&quot;]\n}\n&quot;,
+      &quot;modified&quot;: 1763834102,
+      &quot;hash&quot;: 15998314086006632612
+    },
+    &quot;tsconfig.json&quot;: {
+      &quot;path&quot;: &quot;tsconfig.json&quot;,
+      &quot;content&quot;: &quot;{\n  \&quot;files\&quot;: [],\n  \&quot;references\&quot;: [\n    { \&quot;path\&quot;: \&quot;./tsconfig.app.json\&quot; },\n    { \&quot;path\&quot;: \&quot;./tsconfig.node.json\&quot; }\n  ]\n}\n&quot;,
+      &quot;modified&quot;: 1763834102,
+      &quot;hash&quot;: 18015749101896130919
+    },
+    &quot;vercel.json&quot;: {
+      &quot;path&quot;: &quot;vercel.json&quot;,
+      &quot;content&quot;: &quot;{\r\n  \&quot;buildCommand\&quot;: \&quot;npm run build\&quot;,\r\n  \&quot;outputDirectory\&quot;: \&quot;dist\&quot;,\r\n  \&quot;framework\&quot;: \&quot;vite\&quot;,\r\n  \&quot;rewrites\&quot;: [\r\n    { \&quot;source\&quot;: \&quot;/(.*)\&quot;, \&quot;destination\&quot;: \&quot;/index.html\&quot; }\r\n  ]\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766223515,
+      &quot;hash&quot;: 13362196672469441069
+    },
+    &quot;src/App.tsx&quot;: {
+      &quot;path&quot;: &quot;src/App.tsx&quot;,
+      &quot;content&quot;: &quot;import { BrowserRouter, Routes, Route } from 'react-router-dom'\nimport Navbar from './components/Navbar'\nimport Hero from './components/Hero'\nimport Problem from './components/Problem'\nimport HowItWorks from './components/HowItWorks'\nimport SocialProof from './components/SocialProof'\nimport Pricing from './components/Pricing'\nimport Footer from './components/Footer'\nimport DownloadPage from './pages/Download'\n\nfunction LandingPage() {\n  return (\n    &lt;div className=\&quot;min-h-screen bg-zinc-950 text-zinc-100\&quot;&gt;\n      &lt;Navbar /&gt;\n      &lt;main&gt;\n        &lt;Hero /&gt;\n        &lt;Problem /&gt;\n        &lt;HowItWorks /&gt;\n        &lt;SocialProof /&gt;\n        &lt;Pricing /&gt;\n      &lt;/main&gt;\n      &lt;Footer /&gt;\n    &lt;/div&gt;\n  )\n}\n\nfunction App() {\n  return (\n    &lt;BrowserRouter&gt;\n      &lt;Routes&gt;\n        &lt;Route path=\&quot;/\&quot; element={&lt;LandingPage /&gt;} /&gt;\n        &lt;Route path=\&quot;/payment/asf454fialfiqifqeifuejnfelwefbelkjfbkjbwejbew65465f1e65w1f\&quot; element={&lt;DownloadPage /&gt;} /&gt;\n      &lt;/Routes&gt;\n    &lt;/BrowserRouter&gt;\n  )\n}\n\nexport default App\n&quot;,
+      &quot;modified&quot;: 1766222429,
+      &quot;hash&quot;: 2690989955175029569
+    },
+    &quot;.gitignore&quot;: {
+      &quot;path&quot;: &quot;.gitignore&quot;,
+      &quot;content&quot;: &quot;# Logs\nlogs\n*.log\nnpm-debug.log*\nyarn-debug.log*\nyarn-error.log*\npnpm-debug.log*\nlerna-debug.log*\n\nnode_modules\ndist\ndist-ssr\n*.local\n\n# Editor directories and files\n.vscode/*\n!.vscode/extensions.json\n.idea\n.DS_Store\n*.suo\n*.ntvs*\n*.njsproj\n*.sln\n*.sw?\n&quot;,
+      &quot;modified&quot;: 1763834102,
+      &quot;hash&quot;: 11138456203407645399
+    },
+    &quot;src/components/Navbar.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/Navbar.tsx&quot;,
+      &quot;content&quot;: &quot;import { ExternalLink } from 'lucide-react'\r\n\r\nexport default function Navbar() {\r\n  return (\r\n    &lt;nav className=\&quot;fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-6xl mx-auto px-4 sm:px-6 lg:px-8\&quot;&gt;\r\n        &lt;div className=\&quot;flex items-center justify-between h-16\&quot;&gt;\r\n          &lt;div className=\&quot;flex items-center gap-3\&quot;&gt;\r\n            &lt;img \r\n              src=\&quot;https://res.cloudinary.com/dbalp1654/image/upload/v1766221044/cropped_circle_image_fem8gv_yizfl2_ew4kdu.jpg\&quot; \r\n              alt=\&quot;Empusa AI\&quot; \r\n              className=\&quot;w-8 h-8 rounded-full\&quot;\r\n            /&gt;\r\n            &lt;span className=\&quot;font-mono text-lg font-semibold tracking-tight\&quot;&gt;\r\n              &lt;span className=\&quot;text-zinc-100\&quot;&gt;EMPUSA&lt;/span&gt;\r\n              &lt;span className=\&quot;text-zinc-500\&quot;&gt; / &lt;/span&gt;\r\n              &lt;span className=\&quot;text-emerald-400\&quot;&gt;AI&lt;/span&gt;\r\n            &lt;/span&gt;\r\n          &lt;/div&gt;\r\n          &lt;a\r\n            href=\&quot;#pricing\&quot;\r\n            className=\&quot;flex items-center gap-2 px-4 py-2 text-sm font-mono font-medium text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded transition-colors\&quot;\r\n          &gt;\r\n            Get CMP\r\n            &lt;ExternalLink className=\&quot;w-4 h-4\&quot; /&gt;\r\n          &lt;/a&gt;\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/nav&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766221277,
+      &quot;hash&quot;: 13142392530649545765
+    },
+    &quot;src/components/SocialProof.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/SocialProof.tsx&quot;,
+      &quot;content&quot;: &quot;import { Quote } from 'lucide-react'\r\n\r\nexport default function SocialProof() {\r\n  return (\r\n    &lt;section className=\&quot;py-20 px-4 sm:px-6 lg:px-8 bg-zinc-900/50\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-4xl mx-auto\&quot;&gt;\r\n        &lt;div className=\&quot;relative bg-zinc-900 border border-zinc-800 rounded-2xl p-8 sm:p-12\&quot;&gt;\r\n          &lt;Quote className=\&quot;absolute top-6 left-6 w-12 h-12 text-emerald-400/20\&quot; /&gt;\r\n          &lt;blockquote className=\&quot;relative z-10\&quot;&gt;\r\n            &lt;p className=\&quot;text-xl sm:text-2xl text-zinc-200 leading-relaxed mb-6 font-light\&quot;&gt;\r\n              \&quot;The problem is the{' '}\r\n              &lt;span className=\&quot;text-emerald-400 font-medium\&quot;&gt;'mountain of noise'&lt;/span&gt;{' '}\r\n              that builds up... My local script just automates the process of dumping that noise...{' '}\r\n              &lt;span className=\&quot;text-emerald-400 font-medium\&quot;&gt;The fog lifted.&lt;/span&gt;\&quot;\r\n            &lt;/p&gt;\r\n            &lt;footer className=\&quot;flex items-center gap-4\&quot;&gt;\r\n              &lt;div className=\&quot;w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center\&quot;&gt;\r\n                &lt;span className=\&quot;font-mono text-emerald-400 font-semibold\&quot;&gt;tq&lt;/span&gt;\r\n              &lt;/div&gt;\r\n              &lt;div&gt;\r\n                &lt;div className=\&quot;font-semibold text-zinc-100\&quot;&gt;tqwhite2&lt;/div&gt;\r\n                &lt;div className=\&quot;text-sm text-zinc-500\&quot;&gt;Senior Developer (Reddit)&lt;/div&gt;\r\n              &lt;/div&gt;\r\n            &lt;/footer&gt;\r\n          &lt;/blockquote&gt;\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/section&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766220784,
+      &quot;hash&quot;: 858883468754567231
+    },
+    &quot;vite.config.ts&quot;: {
+      &quot;path&quot;: &quot;vite.config.ts&quot;,
+      &quot;content&quot;: &quot;import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\nimport tailwindcss from '@tailwindcss/vite'\n\nexport default defineConfig({\n  plugins: [react(), tailwindcss()],\n})\n&quot;,
+      &quot;modified&quot;: 1766220725,
+      &quot;hash&quot;: 8215919303841438491
+    },
+    &quot;src/index.css&quot;: {
+      &quot;path&quot;: &quot;src/index.css&quot;,
+      &quot;content&quot;: &quot;@import \&quot;tailwindcss\&quot;;\n\n@theme {\n  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;\n  --color-accent: #10b981;\n  --color-accent-hover: #34d399;\n}\n\nhtml {\n  scroll-behavior: smooth;\n}\n\nbody {\n  font-family: system-ui, -apple-system, sans-serif;\n}\n\n.font-mono {\n  font-family: var(--font-mono);\n}\n\n/* Terminal cursor blink */\n@keyframes blink {\n  0%, 50% { opacity: 1; }\n  51%, 100% { opacity: 0; }\n}\n\n.cursor-blink {\n  animation: blink 1s infinite;\n}\n\n/* Glow effect for accent elements */\n.glow {\n  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);\n}\n&quot;,
+      &quot;modified&quot;: 1766220728,
+      &quot;hash&quot;: 9932887338413550276
+    },
+    &quot;src/components/Problem.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/Problem.tsx&quot;,
+      &quot;content&quot;: &quot;import { Clock, Copy, AlertTriangle } from 'lucide-react'\r\n\r\nconst problems = [\r\n  {\r\n    icon: Clock,\r\n    title: 'Context Rot.',\r\n    description: 'The model forgets your types.ts or directory structure after 15 minutes.',\r\n    code: 'types.ts',\r\n  },\r\n  {\r\n    icon: Copy,\r\n    title: 'The Manual Grind.',\r\n    description: 'You spend 20% of your coding time copy-pasting files just to remind the AI where things are.',\r\n  },\r\n  {\r\n    icon: AlertTriangle,\r\n    title: 'Hallucinations.',\r\n    description: 'RAG guesses based on \&quot;vibes\&quot;. It misses crucial dependencies. CMP maps them mathematically.',\r\n  },\r\n]\r\n\r\nexport default function Problem() {\r\n  return (\r\n    &lt;section className=\&quot;py-20 px-4 sm:px-6 lg:px-8 bg-zinc-900/50\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-6xl mx-auto\&quot;&gt;\r\n        &lt;div className=\&quot;text-center mb-12\&quot;&gt;\r\n          &lt;h2 className=\&quot;text-3xl sm:text-4xl font-bold text-zinc-100 mb-4\&quot;&gt;\r\n            The Problem\r\n          &lt;/h2&gt;\r\n          &lt;p className=\&quot;text-zinc-400 text-lg\&quot;&gt;\r\n            Every AI coding session ends the same way.\r\n          &lt;/p&gt;\r\n        &lt;/div&gt;\r\n        &lt;div className=\&quot;grid grid-cols-1 md:grid-cols-3 gap-6\&quot;&gt;\r\n          {problems.map((problem, index) =&gt; (\r\n            &lt;div\r\n              key={index}\r\n              className=\&quot;p-6 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors\&quot;\r\n            &gt;\r\n              &lt;div className=\&quot;w-12 h-12 flex items-center justify-center bg-red-500/10 rounded-lg mb-4\&quot;&gt;\r\n                &lt;problem.icon className=\&quot;w-6 h-6 text-red-400\&quot; /&gt;\r\n              &lt;/div&gt;\r\n              &lt;h3 className=\&quot;text-xl font-semibold text-zinc-100 mb-2\&quot;&gt;\r\n                {problem.title}\r\n              &lt;/h3&gt;\r\n              &lt;p className=\&quot;text-zinc-400 leading-relaxed\&quot;&gt;\r\n                {problem.code ? (\r\n                  &lt;&gt;\r\n                    The model forgets your{' '}\r\n                    &lt;code className=\&quot;font-mono text-emerald-400 bg-zinc-800 px-1.5 py-0.5 rounded text-sm\&quot;&gt;\r\n                      {problem.code}\r\n                    &lt;/code&gt;{' '}\r\n                    or directory structure after 15 minutes.\r\n                  &lt;/&gt;\r\n                ) : (\r\n                  problem.description\r\n                )}\r\n              &lt;/p&gt;\r\n            &lt;/div&gt;\r\n          ))}\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/section&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766220770,
+      &quot;hash&quot;: 16626779810757279366
+    },
+    &quot;src/App.css&quot;: {
+      &quot;path&quot;: &quot;src/App.css&quot;,
+      &quot;content&quot;: &quot;#root {\n  max-width: 1280px;\n  margin: 0 auto;\n  padding: 2rem;\n  text-align: center;\n}\n\n.logo {\n  height: 6em;\n  padding: 1.5em;\n  will-change: filter;\n  transition: filter 300ms;\n}\n.logo:hover {\n  filter: drop-shadow(0 0 2em #646cffaa);\n}\n.logo.react:hover {\n  filter: drop-shadow(0 0 2em #61dafbaa);\n}\n\n@keyframes logo-spin {\n  from {\n    transform: rotate(0deg);\n  }\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n@media (prefers-reduced-motion: no-preference) {\n  a:nth-of-type(2) .logo {\n    animation: logo-spin infinite 20s linear;\n  }\n}\n\n.card {\n  padding: 2em;\n}\n\n.read-the-docs {\n  color: #888;\n}\n&quot;,
+      &quot;modified&quot;: 1763834102,
+      &quot;hash&quot;: 9857708836190192348
+    },
+    &quot;package.json&quot;: {
+      &quot;path&quot;: &quot;package.json&quot;,
+      &quot;content&quot;: &quot;{\n  \&quot;name\&quot;: \&quot;empusaai-landing\&quot;,\n  \&quot;private\&quot;: true,\n  \&quot;version\&quot;: \&quot;0.0.0\&quot;,\n  \&quot;type\&quot;: \&quot;module\&quot;,\n  \&quot;scripts\&quot;: {\n    \&quot;dev\&quot;: \&quot;vite\&quot;,\n    \&quot;build\&quot;: \&quot;tsc -b &amp;&amp; vite build\&quot;,\n    \&quot;lint\&quot;: \&quot;eslint .\&quot;,\n    \&quot;preview\&quot;: \&quot;vite preview\&quot;\n  },\n  \&quot;dependencies\&quot;: {\n    \&quot;lucide-react\&quot;: \&quot;^0.562.0\&quot;,\n    \&quot;react\&quot;: \&quot;^19.2.0\&quot;,\n    \&quot;react-dom\&quot;: \&quot;^19.2.0\&quot;,\n    \&quot;react-router-dom\&quot;: \&quot;^7.11.0\&quot;\n  },\n  \&quot;devDependencies\&quot;: {\n    \&quot;@eslint/js\&quot;: \&quot;^9.39.1\&quot;,\n    \&quot;@tailwindcss/vite\&quot;: \&quot;^4.1.18\&quot;,\n    \&quot;@types/node\&quot;: \&quot;^24.10.1\&quot;,\n    \&quot;@types/react\&quot;: \&quot;^19.2.5\&quot;,\n    \&quot;@types/react-dom\&quot;: \&quot;^19.2.3\&quot;,\n    \&quot;@vitejs/plugin-react\&quot;: \&quot;^5.1.1\&quot;,\n    \&quot;eslint\&quot;: \&quot;^9.39.1\&quot;,\n    \&quot;eslint-plugin-react-hooks\&quot;: \&quot;^7.0.1\&quot;,\n    \&quot;eslint-plugin-react-refresh\&quot;: \&quot;^0.4.24\&quot;,\n    \&quot;globals\&quot;: \&quot;^16.5.0\&quot;,\n    \&quot;tailwindcss\&quot;: \&quot;^4.1.18\&quot;,\n    \&quot;typescript\&quot;: \&quot;~5.9.3\&quot;,\n    \&quot;typescript-eslint\&quot;: \&quot;^8.46.4\&quot;,\n    \&quot;vite\&quot;: \&quot;^7.2.4\&quot;\n  }\n}\n&quot;,
+      &quot;modified&quot;: 1766222421,
+      &quot;hash&quot;: 5004295378603347347
+    },
+    &quot;eslint.config.js&quot;: {
+      &quot;path&quot;: &quot;eslint.config.js&quot;,
+      &quot;content&quot;: &quot;import js from '@eslint/js'\nimport globals from 'globals'\nimport reactHooks from 'eslint-plugin-react-hooks'\nimport reactRefresh from 'eslint-plugin-react-refresh'\nimport tseslint from 'typescript-eslint'\nimport { defineConfig, globalIgnores } from 'eslint/config'\n\nexport default defineConfig([\n  globalIgnores(['dist']),\n  {\n    files: ['**/*.{ts,tsx}'],\n    extends: [\n      js.configs.recommended,\n      tseslint.configs.recommended,\n      reactHooks.configs.flat.recommended,\n      reactRefresh.configs.vite,\n    ],\n    languageOptions: {\n      ecmaVersion: 2020,\n      globals: globals.browser,\n    },\n  },\n])\n&quot;,
+      &quot;modified&quot;: 1763834102,
+      &quot;hash&quot;: 719683887726889788
+    },
+    &quot;src/components/Hero.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/Hero.tsx&quot;,
+      &quot;content&quot;: &quot;import { Download, BookOpen } from 'lucide-react'\r\nimport TerminalVisual from './TerminalVisual'\r\n\r\nexport default function Hero() {\r\n  return (\r\n    &lt;section className=\&quot;pt-32 pb-20 px-4 sm:px-6 lg:px-8\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-6xl mx-auto\&quot;&gt;\r\n        &lt;div className=\&quot;text-center mb-12\&quot;&gt;\r\n          &lt;h1 className=\&quot;text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6\&quot;&gt;\r\n            &lt;span className=\&quot;text-zinc-100\&quot;&gt;Stop Explaining Your Codebase.&lt;/span&gt;\r\n            &lt;br /&gt;\r\n            &lt;span className=\&quot;text-emerald-400\&quot;&gt;Just Build.&lt;/span&gt;\r\n          &lt;/h1&gt;\r\n          &lt;p className=\&quot;max-w-3xl mx-auto text-lg sm:text-xl text-zinc-400 leading-relaxed mb-8\&quot;&gt;\r\n            The AI forgets your architecture after 30 messages. CMP is the deterministic context engine that reinjects your entire project state instantly. Built internally at Empusa AI to solve context rot.\r\n          &lt;/p&gt;\r\n          &lt;div className=\&quot;flex flex-col sm:flex-row items-center justify-center gap-4\&quot;&gt;\r\n            &lt;a\r\n              href=\&quot;#pricing\&quot;\r\n              className=\&quot;flex items-center gap-2 px-6 py-3 text-base font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow\&quot;\r\n            &gt;\r\n              &lt;Download className=\&quot;w-5 h-5\&quot; /&gt;\r\n              Download CLI v1.0\r\n            &lt;/a&gt;\r\n            &lt;a\r\n              href=\&quot;#protocol\&quot;\r\n              className=\&quot;flex items-center gap-2 px-6 py-3 text-base font-mono font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors\&quot;\r\n            &gt;\r\n              &lt;BookOpen className=\&quot;w-5 h-5\&quot; /&gt;\r\n              Read the Docs\r\n            &lt;/a&gt;\r\n          &lt;/div&gt;\r\n        &lt;/div&gt;\r\n        &lt;TerminalVisual /&gt;\r\n      &lt;/div&gt;\r\n    &lt;/section&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766224084,
+      &quot;hash&quot;: 10811646493366235524
+    },
+    &quot;tsconfig.node.json&quot;: {
+      &quot;path&quot;: &quot;tsconfig.node.json&quot;,
+      &quot;content&quot;: &quot;{\n  \&quot;compilerOptions\&quot;: {\n    \&quot;tsBuildInfoFile\&quot;: \&quot;./node_modules/.tmp/tsconfig.node.tsbuildinfo\&quot;,\n    \&quot;target\&quot;: \&quot;ES2023\&quot;,\n    \&quot;lib\&quot;: [\&quot;ES2023\&quot;],\n    \&quot;module\&quot;: \&quot;ESNext\&quot;,\n    \&quot;types\&quot;: [\&quot;node\&quot;],\n    \&quot;skipLibCheck\&quot;: true,\n\n    /* Bundler mode */\n    \&quot;moduleResolution\&quot;: \&quot;bundler\&quot;,\n    \&quot;allowImportingTsExtensions\&quot;: true,\n    \&quot;verbatimModuleSyntax\&quot;: true,\n    \&quot;moduleDetection\&quot;: \&quot;force\&quot;,\n    \&quot;noEmit\&quot;: true,\n\n    /* Linting */\n    \&quot;strict\&quot;: true,\n    \&quot;noUnusedLocals\&quot;: true,\n    \&quot;noUnusedParameters\&quot;: true,\n    \&quot;erasableSyntaxOnly\&quot;: true,\n    \&quot;noFallthroughCasesInSwitch\&quot;: true,\n    \&quot;noUncheckedSideEffectImports\&quot;: true\n  },\n  \&quot;include\&quot;: [\&quot;vite.config.ts\&quot;]\n}\n&quot;,
+      &quot;modified&quot;: 1763834102,
+      &quot;hash&quot;: 15053962512247962731
+    },
+    &quot;src/components/Pricing.tsx&quot;: {
+      &quot;path&quot;: &quot;src/components/Pricing.tsx&quot;,
+      &quot;content&quot;: &quot;import { Check, Terminal, RefreshCw, Package, Gift, Sparkles } from 'lucide-react'\r\nimport { useState, useEffect } from 'react'\r\n\r\nconst features = [\r\n  { icon: Terminal, text: 'Rust Binary' },\r\n  { icon: Package, text: 'CLI Tool' },\r\n  { icon: RefreshCw, text: 'Free Updates' },\r\n]\r\n\r\nfunction CountdownTimer() {\r\n  const [timeLeft, setTimeLeft] = useState&lt;number | null&gt;(null)\r\n  const [expired, setExpired] = useState(false)\r\n\r\n  useEffect(() =&gt; {\r\n    const saved = localStorage.getItem('cmp-discount-timer')\r\n    if (saved) {\r\n      const remaining = parseInt(saved) - Date.now()\r\n      if (remaining &gt; 0) {\r\n        setTimeLeft(remaining)\r\n      } else {\r\n        setExpired(true)\r\n      }\r\n    } else {\r\n      const fourHours = 4 * 60 * 60 * 1000\r\n      const expiresAt = Date.now() + fourHours\r\n      localStorage.setItem('cmp-discount-timer', String(expiresAt))\r\n      setTimeLeft(fourHours)\r\n    }\r\n  }, [])\r\n\r\n  useEffect(() =&gt; {\r\n    if (timeLeft === null || expired) return\r\n\r\n    const interval = setInterval(() =&gt; {\r\n      const saved = localStorage.getItem('cmp-discount-timer')\r\n      if (saved) {\r\n        const remaining = parseInt(saved) - Date.now()\r\n        if (remaining &gt; 0) {\r\n          setTimeLeft(remaining)\r\n        } else {\r\n          setExpired(true)\r\n          setTimeLeft(0)\r\n        }\r\n      }\r\n    }, 1000)\r\n    return () =&gt; clearInterval(interval)\r\n  }, [timeLeft, expired])\r\n\r\n  const hours = Math.floor((timeLeft || 0) / (1000 * 60 * 60))\r\n  const minutes = Math.floor(((timeLeft || 0) % (1000 * 60 * 60)) / (1000 * 60))\r\n  const seconds = Math.floor(((timeLeft || 0) % (1000 * 60)) / 1000)\r\n  const pad = (n: number) =&gt; n.toString().padStart(2, '0')\r\n\r\n  if (expired) {\r\n    return (\r\n      &lt;div className=\&quot;flex items-center justify-center gap-2 text-emerald-400\&quot;&gt;\r\n        &lt;Sparkles className=\&quot;w-5 h-5\&quot; /&gt;\r\n        &lt;span className=\&quot;font-medium\&quot;&gt;We've reserved your discount — claim it anytime.&lt;/span&gt;\r\n        &lt;Sparkles className=\&quot;w-5 h-5\&quot; /&gt;\r\n      &lt;/div&gt;\r\n    )\r\n  }\r\n\r\n  if (timeLeft === null) return null\r\n\r\n  return (\r\n    &lt;div className=\&quot;flex items-center justify-center gap-2 font-mono text-lg\&quot;&gt;\r\n      &lt;div className=\&quot;bg-zinc-800 px-3 py-2 rounded\&quot;&gt;{pad(hours)}&lt;/div&gt;\r\n      &lt;span className=\&quot;text-emerald-400\&quot;&gt;:&lt;/span&gt;\r\n      &lt;div className=\&quot;bg-zinc-800 px-3 py-2 rounded\&quot;&gt;{pad(minutes)}&lt;/div&gt;\r\n      &lt;span className=\&quot;text-emerald-400\&quot;&gt;:&lt;/span&gt;\r\n      &lt;div className=\&quot;bg-zinc-800 px-3 py-2 rounded\&quot;&gt;{pad(seconds)}&lt;/div&gt;\r\n    &lt;/div&gt;\r\n  )\r\n}\r\n\r\nexport default function Pricing() {\r\n  return (\r\n    &lt;section id=\&quot;pricing\&quot; className=\&quot;py-20 px-4 sm:px-6 lg:px-8\&quot;&gt;\r\n      &lt;div className=\&quot;max-w-3xl mx-auto text-center\&quot;&gt;\r\n        &lt;h2 className=\&quot;text-3xl sm:text-4xl font-bold text-zinc-100 mb-4\&quot;&gt;\r\n          Stop fighting the context window.\r\n        &lt;/h2&gt;\r\n        &lt;p className=\&quot;text-zinc-400 text-lg mb-12\&quot;&gt;\r\n          One purchase. Lifetime access. No subscriptions.\r\n        &lt;/p&gt;\r\n        &lt;div className=\&quot;bg-zinc-900 border border-zinc-800 rounded-2xl p-8 sm:p-12\&quot;&gt;\r\n          {/* Christmas Discount Banner */}\r\n          &lt;div className=\&quot;bg-emerald-400/10 border border-emerald-400/30 rounded-lg p-4 mb-8\&quot;&gt;\r\n            &lt;div className=\&quot;flex items-center justify-center gap-2 text-emerald-400 mb-3\&quot;&gt;\r\n              &lt;Gift className=\&quot;w-5 h-5\&quot; /&gt;\r\n              &lt;span className=\&quot;font-mono font-semibold\&quot;&gt;🎄 CHRISTMAS SPECIAL — 70% OFF&lt;/span&gt;\r\n              &lt;Gift className=\&quot;w-5 h-5\&quot; /&gt;\r\n            &lt;/div&gt;\r\n            &lt;CountdownTimer /&gt;\r\n          &lt;/div&gt;\r\n\r\n          {/* Pricing */}\r\n          &lt;div className=\&quot;mb-8\&quot;&gt;\r\n            &lt;div className=\&quot;flex items-baseline justify-center gap-3\&quot;&gt;\r\n              &lt;span className=\&quot;text-2xl text-zinc-500 line-through\&quot;&gt;$99.00&lt;/span&gt;\r\n              &lt;span className=\&quot;text-5xl sm:text-6xl font-bold text-emerald-400\&quot;&gt;$29.70&lt;/span&gt;\r\n              &lt;span className=\&quot;text-zinc-500 text-lg\&quot;&gt;USD&lt;/span&gt;\r\n            &lt;/div&gt;\r\n            &lt;div className=\&quot;mt-2 text-sm text-emerald-400/80\&quot;&gt;\r\n              You save $69.30 (70% off)\r\n            &lt;/div&gt;\r\n          &lt;/div&gt;\r\n\r\n          &lt;div className=\&quot;flex flex-col sm:flex-row items-center justify-center gap-6 mb-8\&quot;&gt;\r\n            {features.map((feature, index) =&gt; (\r\n              &lt;div key={index} className=\&quot;flex items-center gap-2 text-zinc-300\&quot;&gt;\r\n                &lt;feature.icon className=\&quot;w-5 h-5 text-emerald-400\&quot; /&gt;\r\n                &lt;span&gt;{feature.text}&lt;/span&gt;\r\n              &lt;/div&gt;\r\n            ))}\r\n          &lt;/div&gt;\r\n          &lt;a\r\n            href=\&quot;https://www.paypal.com/ncp/payment/PENSKE7YSYK5A\&quot;\r\n            target=\&quot;_blank\&quot;\r\n            rel=\&quot;noopener noreferrer\&quot;\r\n            className=\&quot;inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow\&quot;\r\n          &gt;\r\n            &lt;Check className=\&quot;w-5 h-5\&quot; /&gt;\r\n            Get Access Now\r\n          &lt;/a&gt;\r\n          &lt;p className=\&quot;mt-6 text-sm text-zinc-500\&quot;&gt;\r\n            Instant download. Works on macOS, Linux, and Windows.\r\n          &lt;/p&gt;\r\n        &lt;/div&gt;\r\n      &lt;/div&gt;\r\n    &lt;/section&gt;\r\n  )\r\n}\r\n&quot;,
+      &quot;modified&quot;: 1766228929,
+      &quot;hash&quot;: 15323225316474489688
+    }
+  },
+  &quot;last_sync&quot;: 1766412222
+}
+</file>
 <file path="README.md">
-# React + TypeScript + Vite
+# Empusa AI Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CMP (Context Memory Protocol) landing page built with React + Vite + Tailwind CSS.
 
-Currently, two official plugins are available:
+## Live Site
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Main site**: https://empusaai.com
+- **Panda subsite**: https://empusaai.com/panda
 
-## React Compiler
+## Project Structure
 
-The React Compiler is not enabled on this template because of its impact on dev &amp; build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+empusaai-landing/
+├── src/                    # React app source (CMP landing page)
+│   ├── components/         # React components
+│   └── pages/              # Page components (Download page)
+├── public/
+│   ├── panda/              # SEPARATE: Hit and Run Panda website (static HTML)
+│   │   ├── index.html      # Panda landing page
+│   │   ├── downloads/      # Panda app downloads (Mac/Windows)
+│   │   └── payment/        # Panda payment success page
+│   ├── CMP.zip             # CMP download file
+│   └── emoji.png           # Assets
+└── index.html              # Main entry point
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Important Notes
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Panda Subsite (`/panda`)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+The `/panda` route is a **completely separate static website** nested inside the `public/panda/` folder. It is:
+
+- **NOT** part of the React app
+- Served as static HTML files by Vite/Vercel
+- Has its own `index.html`, assets, and download files
+- Source repo: https://github.com/justin55afdfdsf5ds45f4ds5f45ds4/panda.git
+
+To update the Panda site, copy the contents of the `website/` folder from the panda repo into `public/panda/`.
+
+### CMP Landing Page
+
+The main React app handles:
+- `/` - CMP landing page
+- `/payment/[secret-path]` - CMP download page (after purchase)
+
+## Development
+
+```bash
+npm install
+npm run dev
 ```
+
+## Deployment
+
+Deployed on Vercel. Push to `main` branch triggers auto-deploy.
 </file>
 <file path="eslint.config.js">
 import js from '@eslint/js'
@@ -130,6 +264,14 @@ export default defineConfig([
 &lt;!doctype html&gt;
 &lt;html lang=&quot;en&quot; class=&quot;dark&quot;&gt;
   &lt;head&gt;
+    &lt;!-- Google tag (gtag.js) --&gt;
+    &lt;script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-QZK40LDMQY&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QZK40LDMQY');
+    &lt;/script&gt;
     &lt;meta charset=&quot;UTF-8&quot; /&gt;
     &lt;link rel=&quot;icon&quot; type=&quot;image/png&quot; href=&quot;https://res.cloudinary.com/dbalp1654/image/upload/w_64,h_64,c_fill,r_max,f_png/v1766221044/cropped_circle_image_fem8gv_yizfl2_ew4kdu.jpg&quot; /&gt;
     &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
@@ -234,7 +376,9 @@ import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Problem from './components/Problem'
 import HowItWorks from './components/HowItWorks'
+import Testimonials from './components/Testimonials'
 import SocialProof from './components/SocialProof'
+import FAQ from './components/FAQ'
 import Pricing from './components/Pricing'
 import Footer from './components/Footer'
 import DownloadPage from './pages/Download'
@@ -247,7 +391,9 @@ function LandingPage() {
         &lt;Hero /&gt;
         &lt;Problem /&gt;
         &lt;HowItWorks /&gt;
+        &lt;Testimonials /&gt;
         &lt;SocialProof /&gt;
+        &lt;FAQ /&gt;
         &lt;Pricing /&gt;
       &lt;/main&gt;
       &lt;Footer /&gt;
@@ -267,6 +413,69 @@ function App() {
 }
 
 export default App
+</file>
+<file path="src/components/FAQ.tsx">
+import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+
+const faqs = [
+  {
+    q: 'Why should I pay $29.70 when I can use free scripts?',
+    a: `Fair question. Here's the deal: Free scripts break. They don't update. They hallucinate paths because they dump code instead of mapping structure. CMP is a compiled Rust binary—fast, deterministic, zero hallucinations. You get lifetime updates, and yes, you get the source code. Build it yourself if you want. We're not hiding anything.`
+  },
+  {
+    q: 'Is my code safe?',
+    a: `100% local. No API calls. No telemetry. No &quot;anonymous usage data.&quot; Your code never leaves your machine. Ever. Run it air-gapped if you're paranoid. We respect that.`
+  },
+  {
+    q: 'Why not just use Repomix or Aider?',
+    a: `They dump your entire codebase as text and burn through your token limit. CMP is different—it maps your project structure and dependencies mathematically. You get a compressed, intelligent context injection that actually fits in the window. Less tokens, more signal.`
+  },
+  {
+    q: 'What if it stops working?',
+    a: `You own the binary. You own the source. It's yours forever. No subscription to cancel, no server to shut down, no &quot;we're pivoting to enterprise&quot; email. It runs on your machine. If we disappear tomorrow, CMP still works.`
+  },
+]
+
+export default function FAQ() {
+  const [open, setOpen] = useState&lt;number | null&gt;(0)
+
+  return (
+    &lt;section className=&quot;py-20 px-4 sm:px-6 lg:px-8 border-t border-zinc-800&quot;&gt;
+      &lt;div className=&quot;max-w-3xl mx-auto&quot;&gt;
+        &lt;h2 className=&quot;text-2xl sm:text-3xl font-bold text-zinc-100 text-center mb-2&quot;&gt;
+          No-BS FAQ
+        &lt;/h2&gt;
+        &lt;p className=&quot;text-zinc-500 text-center mb-12&quot;&gt;
+          The questions you're actually thinking.
+        &lt;/p&gt;
+        &lt;div className=&quot;space-y-3&quot;&gt;
+          {faqs.map((faq, i) =&gt; (
+            &lt;div
+              key={i}
+              className=&quot;bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden&quot;
+            &gt;
+              &lt;button
+                onClick={() =&gt; setOpen(open === i ? null : i)}
+                className=&quot;w-full flex items-center justify-between p-5 text-left&quot;
+              &gt;
+                &lt;span className=&quot;font-medium text-zinc-100 pr-4&quot;&gt;{faq.q}&lt;/span&gt;
+                &lt;ChevronDown 
+                  className={`w-5 h-5 text-zinc-500 flex-shrink-0 transition-transform ${open === i ? 'rotate-180' : ''}`} 
+                /&gt;
+              &lt;/button&gt;
+              {open === i &amp;&amp; (
+                &lt;div className=&quot;px-5 pb-5 pt-0&quot;&gt;
+                  &lt;p className=&quot;text-zinc-400 text-sm leading-relaxed&quot;&gt;{faq.a}&lt;/p&gt;
+                &lt;/div&gt;
+              )}
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  )
+}
 </file>
 <file path="src/components/Footer.tsx">
 import { Github, Twitter } from 'lucide-react'
@@ -350,6 +559,17 @@ export default function Hero() {
               &lt;BookOpen className=&quot;w-5 h-5&quot; /&gt;
               Read the Docs
             &lt;/a&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        {/* Loom Video Embed */}
+        &lt;div className=&quot;max-w-4xl mx-auto mb-12&quot;&gt;
+          &lt;div className=&quot;relative w-full&quot; style={{ paddingBottom: '56.25%' }}&gt;
+            &lt;iframe
+              src=&quot;https://www.loom.com/embed/c1b5572cda214eea883b19f04e6f0f98&quot;
+              frameBorder=&quot;0&quot;
+              allowFullScreen
+              className=&quot;absolute top-0 left-0 w-full h-full rounded-xl border border-zinc-800&quot;
+            /&gt;
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;TerminalVisual /&gt;
@@ -547,11 +767,11 @@ export default function Pricing() {
           One purchase. Lifetime access. No subscriptions.
         &lt;/p&gt;
         &lt;div className=&quot;bg-zinc-900 border border-zinc-800 rounded-2xl p-8 sm:p-12&quot;&gt;
-          {/* Christmas Discount Banner */}
+          {/* New Year Q1 Sprint Discount Banner */}
           &lt;div className=&quot;bg-emerald-400/10 border border-emerald-400/30 rounded-lg p-4 mb-8&quot;&gt;
             &lt;div className=&quot;flex items-center justify-center gap-2 text-emerald-400 mb-3&quot;&gt;
               &lt;Gift className=&quot;w-5 h-5&quot; /&gt;
-              &lt;span className=&quot;font-mono font-semibold&quot;&gt;🎄 CHRISTMAS SPECIAL — 70% OFF&lt;/span&gt;
+              &lt;span className=&quot;font-mono font-semibold&quot;&gt;🚀 Q1 SPRINT SALE — 70% OFF&lt;/span&gt;
               &lt;Gift className=&quot;w-5 h-5&quot; /&gt;
             &lt;/div&gt;
             &lt;CountdownTimer /&gt;
@@ -763,6 +983,93 @@ export default function TerminalVisual() {
   )
 }
 </file>
+<file path="src/components/Testimonials.tsx">
+import { useEffect, useRef } from 'react'
+
+const testimonials = [
+  { name: 'Marcus Chen', title: 'Senior Frontend Dev', text: 'Finally stopped copy-pasting my entire src folder into ChatGPT. CMP just gets it.' },
+  { name: 'Sarah K.', title: 'Freelance Full-Stack', text: 'I bill hourly. Every minute I spent re-explaining my codebase was money lost. Not anymore.' },
+  { name: 'Jake Morrison', title: 'Rust Engineer', text: 'Simple CLI. I run it, forget it, and my AI actually knows where things are.' },
+  { name: 'Priya Sharma', title: 'Tech Lead @ Startup', text: 'Our monorepo was a nightmare for AI tools. CMP mapped it in seconds.' },
+  { name: 'Tom B.', title: 'Solo Founder', text: 'Went from 20 messages of context-setting to 1. Literally 1.' },
+  { name: 'Elena Rodriguez', title: 'Backend Engineer', text: 'The dependency graph alone is worth it. No more hallucinated imports.' },
+  { name: 'David Park', title: 'DevOps Lead', text: 'Runs locally, no API calls, no BS. Exactly what I needed.' },
+  { name: 'Nina Kowalski', title: 'React Developer', text: 'My modular hell of 200+ components finally makes sense to Claude.' },
+  { name: 'Alex Turner', title: 'Indie Hacker', text: 'Paid for itself in the first hour. Not exaggerating.' },
+  { name: 'Rachel Green', title: 'Senior SWE', text: 'Context rot was killing my productivity. CMP fixed it permanently.' },
+  { name: 'Mike Chen', title: 'Freelancer', text: 'Clients think I code faster now. I just stopped fighting the AI.' },
+  { name: 'Lisa Wang', title: 'Staff Engineer', text: 'Finally, a tool that maps structure instead of dumping text.' },
+  { name: 'Chris O\'Brien', title: 'Startup CTO', text: 'Onboarding AI to our codebase used to take 30 messages. Now it\'s instant.' },
+  { name: 'Yuki Tanaka', title: 'Full-Stack Dev', text: 'The Rust binary is fast. Like, actually fast. No Python bloat.' },
+  { name: 'Jordan Hayes', title: 'Contract Developer', text: 'Every new project, first thing I do: cmp . Done.' },
+  { name: 'Amanda Foster', title: 'Frontend Lead', text: 'Stopped explaining my types.ts file 50 times a day.' },
+  { name: 'Ryan Mitchell', title: 'Go Engineer', text: 'Clean, deterministic, no magic. How tools should be built.' },
+  { name: 'Sophie Laurent', title: 'Mobile Dev', text: 'Works with React Native monorepos. That alone is impressive.' },
+  { name: 'Kevin Patel', title: 'Senior Backend', text: 'My AI stopped hallucinating file paths. That\'s the whole review.' },
+  { name: 'Emma Wilson', title: 'Tech Consultant', text: 'Recommend this to every client now. It just works.' },
+]
+
+export default function Testimonials() {
+  const scrollRef = useRef&lt;HTMLDivElement&gt;(null)
+
+  useEffect(() =&gt; {
+    const scroll = scrollRef.current
+    if (!scroll) return
+
+    let animationId: number
+    let scrollPos = 0
+    const speed = 0.5
+
+    const animate = () =&gt; {
+      scrollPos += speed
+      if (scrollPos &gt;= scroll.scrollWidth / 2) {
+        scrollPos = 0
+      }
+      scroll.scrollLeft = scrollPos
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animationId = requestAnimationFrame(animate)
+    return () =&gt; cancelAnimationFrame(animationId)
+  }, [])
+
+  return (
+    &lt;section className=&quot;py-20 border-t border-zinc-800 overflow-hidden&quot;&gt;
+      &lt;div className=&quot;max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12&quot;&gt;
+        &lt;h2 className=&quot;text-2xl sm:text-3xl font-bold text-zinc-100 text-center mb-2&quot;&gt;
+          Used by developers shipping faster in 2026
+        &lt;/h2&gt;
+        &lt;p className=&quot;text-zinc-500 text-center&quot;&gt;
+          Real devs. Real results.
+        &lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div 
+        ref={scrollRef}
+        className=&quot;flex gap-4 overflow-hidden&quot;
+        style={{ scrollBehavior: 'auto' }}
+      &gt;
+        {[...testimonials, ...testimonials].map((t, i) =&gt; (
+          &lt;div
+            key={i}
+            className=&quot;flex-shrink-0 w-80 bg-zinc-900 border border-zinc-800 rounded-xl p-5&quot;
+          &gt;
+            &lt;p className=&quot;text-zinc-300 text-sm mb-4 leading-relaxed&quot;&gt;&quot;{t.text}&quot;&lt;/p&gt;
+            &lt;div className=&quot;flex items-center gap-3&quot;&gt;
+              &lt;div className=&quot;w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-mono text-emerald-400&quot;&gt;
+                {t.name.split(' ').map(n =&gt; n[0]).join('')}
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;div className=&quot;text-sm font-medium text-zinc-100&quot;&gt;{t.name}&lt;/div&gt;
+                &lt;div className=&quot;text-xs text-zinc-500&quot;&gt;{t.title}&lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/section&gt;
+  )
+}
+</file>
 <file path="src/index.css">
 @import &quot;tailwindcss&quot;;
 
@@ -812,21 +1119,23 @@ createRoot(document.getElementById('root')!).render(
 )
 </file>
 <file path="src/pages/Download.tsx">
-import { Download, CheckCircle, Terminal } from 'lucide-react'
+import { Download, Terminal, MessageCircle } from 'lucide-react'
 
 export default function DownloadPage() {
   return (
-    &lt;div className=&quot;min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4&quot;&gt;
+    &lt;div className=&quot;min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4 py-12&quot;&gt;
       &lt;div className=&quot;max-w-xl w-full text-center&quot;&gt;
         &lt;div className=&quot;mb-8&quot;&gt;
-          &lt;div className=&quot;w-20 h-20 mx-auto flex items-center justify-center bg-emerald-400/10 rounded-full mb-6&quot;&gt;
-            &lt;CheckCircle className=&quot;w-10 h-10 text-emerald-400&quot; /&gt;
-          &lt;/div&gt;
+          &lt;img 
+            src=&quot;/emoji.png&quot; 
+            alt=&quot;Thank you&quot; 
+            className=&quot;w-24 h-24 mx-auto mb-6&quot;
+          /&gt;
           &lt;h1 className=&quot;text-3xl sm:text-4xl font-bold mb-4&quot;&gt;
             Thank you for your purchase!
           &lt;/h1&gt;
           &lt;p className=&quot;text-zinc-400 text-lg&quot;&gt;
-            Your download is ready. Click below to get CMP.
+            You can download CMP now. Please give us your valuable feedback below!
           &lt;/p&gt;
         &lt;/div&gt;
 
@@ -839,10 +1148,29 @@ export default function DownloadPage() {
           &lt;a
             href=&quot;/CMP.zip&quot;
             download
-            className=&quot;inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow w-full justify-center&quot;
+            className=&quot;inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors glow w-full justify-center mb-4&quot;
           &gt;
             &lt;Download className=&quot;w-5 h-5&quot; /&gt;
             Download CMP
+          &lt;/a&gt;
+
+          &lt;a
+            href=&quot;https://docs.google.com/forms/d/e/1FAIpQLSe6mc37OxOw2TMKWTZuKr92IX0Sb2eP0lQwX39PsyZdoQKFbA/viewform&quot;
+            target=&quot;_blank&quot;
+            rel=&quot;noopener noreferrer&quot;
+            className=&quot;inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-medium text-zinc-100 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors w-full justify-center mb-4&quot;
+          &gt;
+            📝 Give Feedback
+          &lt;/a&gt;
+
+          &lt;a
+            href=&quot;https://discord.gg/9t4XV78EnK&quot;
+            target=&quot;_blank&quot;
+            rel=&quot;noopener noreferrer&quot;
+            className=&quot;inline-flex items-center gap-2 px-8 py-4 text-lg font-mono font-medium text-zinc-100 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors w-full justify-center&quot;
+          &gt;
+            &lt;MessageCircle className=&quot;w-5 h-5&quot; /&gt;
+            Join Discord Support
           &lt;/a&gt;
           
           &lt;p className=&quot;mt-4 text-sm text-zinc-500&quot;&gt;

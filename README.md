@@ -1,55 +1,73 @@
-# Empusa AI Landing Page
+# React + TypeScript + Vite
 
-CMP (Context Memory Protocol) landing page built with React + Vite + Tailwind CSS.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Live Site
+Currently, two official plugins are available:
 
-- **Main site**: https://empusaai.com
-- **Panda subsite**: https://empusaai.com/panda
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Project Structure
+## React Compiler
 
-```
-empusaai-landing/
-├── src/                    # React app source (CMP landing page)
-│   ├── components/         # React components
-│   └── pages/              # Page components (Download page)
-├── public/
-│   ├── panda/              # SEPARATE: Hit and Run Panda website (static HTML)
-│   │   ├── index.html      # Panda landing page
-│   │   ├── downloads/      # Panda app downloads (Mac/Windows)
-│   │   └── payment/        # Panda payment success page
-│   ├── CMP.zip             # CMP download file
-│   └── emoji.png           # Assets
-└── index.html              # Main entry point
-```
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Important Notes
+## Expanding the ESLint configuration
 
-### Panda Subsite (`/panda`)
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-The `/panda` route is a **completely separate static website** nested inside the `public/panda/` folder. It is:
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-- **NOT** part of the React app
-- Served as static HTML files by Vite/Vercel
-- Has its own `index.html`, assets, and download files
-- Source repo: https://github.com/justin55afdfdsf5ds45f4ds5f45ds4/panda.git
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-To update the Panda site, copy the contents of the `website/` folder from the panda repo into `public/panda/`.
-
-### CMP Landing Page
-
-The main React app handles:
-- `/` - CMP landing page
-- `/payment/[secret-path]` - CMP download page (after purchase)
-
-## Development
-
-```bash
-npm install
-npm run dev
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-## Deployment
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-Deployed on Vercel. Push to `main` branch triggers auto-deploy.
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

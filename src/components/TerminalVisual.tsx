@@ -13,18 +13,13 @@ export default function TerminalVisual() {
             <span className="text-xs font-mono text-zinc-500 ml-2">terminal</span>
           </div>
           <div className="p-4 font-mono text-sm">
-            <div className="text-zinc-500">$ cmp .</div>
-            <div className="mt-2 text-emerald-400">
-              <span className="text-zinc-500">[</span>
-              <span>■■■■■■■■■■</span>
-              <span className="text-zinc-500">]</span>
-              <span className="ml-2">100%</span>
-            </div>
+            <div className="text-zinc-500">$ cmp map</div>
             <div className="mt-2 text-zinc-400">
-              <div>→ Scanning repo...</div>
-              <div>→ Found 247 files</div>
-              <div>→ Mapping dependencies...</div>
-              <div className="text-emerald-400 mt-1">✓ Context map generated</div>
+              <div>→ Scanning repository...</div>
+              <div>→ Found 247 source files</div>
+              <div>→ Filtering noise...</div>
+              <div>→ Generating skeleton map...</div>
+              <div className="text-emerald-400 mt-1">✓ Map generated (2.3k tokens)</div>
             </div>
           </div>
         </div>
@@ -37,27 +32,24 @@ export default function TerminalVisual() {
               <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
               <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
             </div>
-            <span className="text-xs font-mono text-zinc-500 ml-2">output</span>
+            <span className="text-xs font-mono text-zinc-500 ml-2">cloud sync</span>
           </div>
           <div className="p-4 font-mono text-sm">
-            <div className="text-zinc-500">// Context Injection Report</div>
+            <div className="text-zinc-500">$ cmp push</div>
             <div className="mt-2 text-zinc-300">
               <div className="flex justify-between">
-                <span className="text-zinc-500">Files mapped:</span>
-                <span className="text-emerald-400">247</span>
+                <span className="text-zinc-500">Syncing to cloud:</span>
+                <span className="text-emerald-400">✓</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Dependencies:</span>
-                <span className="text-emerald-400">89</span>
+                <span className="text-zinc-500">Notifying agents:</span>
+                <span className="text-emerald-400">2 webhooks</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Types resolved:</span>
-                <span className="text-emerald-400">156</span>
+                <span className="text-zinc-500">Token savings:</span>
+                <span className="text-emerald-400">90%</span>
               </div>
-              <div className="flex justify-between mt-2 pt-2 border-t border-zinc-800">
-                <span className="text-zinc-400">Accuracy:</span>
-                <span className="text-emerald-400 font-semibold">100%</span>
-              </div>
+              <div className="text-emerald-400 mt-2">✓ Context synced</div>
             </div>
           </div>
         </div>

@@ -1,58 +1,92 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
 
 const faqs = [
   {
-    q: 'Why should I pay $29.70 when I can use free scripts?',
-    a: `Fair question. Here's the deal: Free scripts break. They don't update. They hallucinate paths because they dump code instead of mapping structure. CMP is a compiled Rust binary—fast, deterministic, zero hallucinations. You get lifetime updates, and yes, you get the source code. Build it yourself if you want. We're not hiding anything.`
+    question: 'What is CMP?',
+    answer: 'CMP (Context Memory Protocol) is a blazing-fast context engine that generates token-optimized maps of your repository. It eliminates context rot by providing AI agents with perfect, deterministic context.',
   },
   {
-    q: 'Is my code safe?',
-    a: `100% local. No API calls. No telemetry. No "anonymous usage data." Your code never leaves your machine. Ever. Run it air-gapped if you're paranoid. We respect that.`
+    question: 'How does it reduce tokens by 90%?',
+    answer: 'CMP uses skeleton mapping to extract only imports and function signatures, ignoring implementation details. This drastically reduces token count while preserving structural context.',
   },
   {
-    q: 'Why not just use Repomix or Aider?',
-    a: `They dump your entire codebase as text and burn through your token limit. CMP is different—it maps your project structure and dependencies mathematically. You get a compressed, intelligent context injection that actually fits in the window. Less tokens, more signal.`
+    question: 'Does it work with my IDE?',
+    answer: 'CMP is a CLI tool that works with any IDE or editor. Simply run `cmp map` in your project directory and copy the output to your AI assistant.',
   },
   {
-    q: 'What if it stops working?',
-    a: `You own the binary. You own the source. It's yours forever. No subscription to cancel, no server to shut down, no "we're pivoting to enterprise" email. It runs on your machine. If we disappear tomorrow, CMP still works.`
+    question: 'What is UltraContext cloud sync?',
+    answer: 'UltraContext is our cloud platform for storing and versioning your context maps. It enables webhook notifications to AI agents and provides version control for your context.',
+  },
+  {
+    question: 'Is my code secure?',
+    answer: 'Yes. CMP runs locally on your machine. Cloud sync is optional and uses end-to-end encryption. Your code never leaves your control unless you explicitly push to UltraContext.',
+  },
+  {
+    question: 'What languages are supported?',
+    answer: 'CMP supports all major programming languages including TypeScript, JavaScript, Python, Rust, Go, Java, C++, and more. Language detection is automatic.',
   },
 ]
 
-export default function FAQ() {
-  const [open, setOpen] = useState<number | null>(0)
+function FAQItem({ faq, index }: { faq: typeof faqs[0]; index: number }) {
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-zinc-800">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.05 }}
+      className={`border-b transition-all ${isOpen ? 'border-white/10 bg-cyan-500/5 px-4 -mx-4' : 'border-white/10'}`}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between py-4 text-left group"
+      >
+        <span className="text-base font-medium text-white tracking-tight transition-colors">
+          {faq.question}
+        </span>
+        <motion.div
+          animate={{ rotate: isOpen ? 90 : 0 }}
+          transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+          className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center flex-shrink-0"
+        >
+          <ChevronRight className="w-3.5 h-3.5 text-white" />
+        </motion.div>
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+            className="overflow-hidden"
+          >
+            <p className="text-sm text-zinc-400 leading-relaxed pb-4">
+              {faq.answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+export default function FAQ() {
+  return (
+    <section className="py-24 px-6 relative bg-[#030303]">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-zinc-100 text-center mb-2">
-          No-BS FAQ
+        <div className="label mb-4">
+          06 // SYSTEM DIAGNOSTICS
+        </div>
+        <h2 className="section-header">
+          Frequently Asked Questions
         </h2>
-        <p className="text-zinc-500 text-center mb-12">
-          The questions you're actually thinking.
-        </p>
-        <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <div
-              key={i}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
-            >
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between p-5 text-left"
-              >
-                <span className="font-medium text-zinc-100 pr-4">{faq.q}</span>
-                <ChevronDown 
-                  className={`w-5 h-5 text-zinc-500 flex-shrink-0 transition-transform ${open === i ? 'rotate-180' : ''}`} 
-                />
-              </button>
-              {open === i && (
-                <div className="px-5 pb-5 pt-0">
-                  <p className="text-zinc-400 text-sm leading-relaxed">{faq.a}</p>
-                </div>
-              )}
-            </div>
+        <div className="border-t border-white/10">
+          {faqs.map((faq, index) => (
+            <FAQItem key={index} faq={faq} index={index} />
           ))}
         </div>
       </div>
